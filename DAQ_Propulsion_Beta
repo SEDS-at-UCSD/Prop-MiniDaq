@@ -1,0 +1,266 @@
+# Written by Darell Chua
+# For SEDS at UC San Diego Propulsion Team
+# Data Acquisition modular user interface
+
+import tkinter as tk
+from tkinter import ttk
+import serial
+import serial.tools.list_ports
+import math
+import csv
+import datetime
+from PIL import Image, ImageTk
+
+
+# Baud rate
+baud_rate = 115200
+
+# Serial connection object
+ser = None
+
+def send_serial_command(command):
+    if ser:
+        ser.write(command.encode())
+
+def connect_serial(port):
+    global ser
+    if ser:
+        ser.close()
+
+    ser = serial.Serial(port, baud_rate)
+    print(f'Connected to {port}')
+
+def get_serial_ports():
+    ports = list(serial.tools.list_ports.comports())
+    return [port.device for port in ports]
+
+def draw_gauge(canvas, value, max_value, x, y, r):
+    canvas.delete('gauge')
+    angle = 180 * (value / max_value)
+    canvas.create_arc(x-r, y-r, x+r, y+r, start=0, extent=180, outline='black', width=2, tags='gauge')
+    canvas.create_arc(x-r+10, y-r+10, x+r-10, y+r-10, start=0, extent=180, outline='white', width=2, tags='gauge')
+    canvas.create_line(x, y, x + r * 0.8 * -math.cos(math.radians(angle)), y - r * 0.8 * math.sin(math.radians(angle)), width=2, fill='red', tags='gauge')
+
+class App(tk.Tk):
+    def __init__(self):
+        super().__init__()
+        self.title("SEDS at UCSD Propulsion DAQ") #ESP32 Gauge and Switch Contro
+        self.geometry("1080x900")
+        ttk.Label(self, text="SEDS at UC San Diego Propulsion team DAQ").grid(column=6, row=0, sticky=tk.E)
+
+        logo_image = Image.open("./downloads/sedsLogoFull.png")
+        logo_image = logo_image.resize((100, 100))  # Resize the image if needed
+        logo = ImageTk.PhotoImage(logo_image)
+        logo_label = ttk.Label(self, image=logo)
+        logo_label.grid(column=5, row=8, sticky=tk.SE)
+
+        # COM port dropdown and connect button
+        ttk.Label(self, text="COM Port Select:").grid(column=0, row=0, sticky=tk.W)
+        self.com_port = tk.StringVar()
+        self.com_port.set(get_serial_ports()[0])  # Set the first available port as default
+        ttk.OptionMenu(self, self.com_port, *get_serial_ports()).grid(column=1, row=0, columnspan=2)
+        ttk.Button(self, text="Connect", command=lambda: connect_serial(self.com_port.get())).grid(column=4, row=0)
+
+
+        # Data storage location entry box
+        ttk.Label(self, text="Record Location:").grid(column=0, row=1, sticky=tk.W)
+        self.data_location_entry = ttk.Entry(self, width=30)
+        self.data_location_entry.insert(0,"./downloads")
+        self.data_location_entry.grid(column=1, row=1, columnspan=2)
+        
+        # Start button
+        ttk.Label(self, text="Data Recording:").grid(column=3, row=1, sticky=tk.W)
+        self.start_button = ttk.Button(self, text="Start", command=self.start_data_recording)
+        self.start_button.grid(column=4, row=1)
+
+        # Gauge 0
+        self.gauge0_label = ttk.Label(self, text="Gauge 0 (PSI):")
+        self.gauge0_label.grid(column=1, row=3, sticky=tk.W)
+        self.gauge0_canvas = tk.Canvas(self, width=200, height=150, bg='white')
+        self.gauge0_canvas.grid(column=2, row=3, columnspan=3)
+        self.gauge0_value = 0
+        self.gauge0_max_value = 1000
+        ttk.Label(self, text="Range (PSI):").grid(column=1, row=4, sticky=tk.E)
+        self.gauge0_entry = ttk.Entry(self, text="Max 0:")
+        self.gauge0_entry.grid(column=2, row=4, sticky=tk.W)
+        self.gauge0_entry.insert(0, 1000)  # Set the initial value
+
+        # Gauge 1
+        self.gauge1_label = ttk.Label(self, text="Gauge 1 (PSI):")
+        self.gauge1_label.grid(column=1, row=5, sticky=tk.W)
+        self.gauge1_canvas = tk.Canvas(self, width=200, height=150, bg='white')
+        self.gauge1_canvas.grid(column=2, row=5, columnspan=3)
+        self.gauge1_value = 0
+        self.gauge1_max_value = 1000
+        ttk.Label(self, text="Range (PSI):").grid(column=1, row=6, sticky=tk.E)
+        self.gauge1_entry = ttk.Entry(self, text="Max 1:")
+        self.gauge1_entry.grid(column=2, row=6, sticky=tk.W)
+        self.gauge1_entry.insert(0, 1000)  # Set the initial value
+
+        # Gauge 2
+        self.gauge2_label = ttk.Label(self, text="Gauge 2 (PSI):")
+        self.gauge2_label.grid(column=1, row=7, sticky=tk.W)
+        self.gauge2_canvas = tk.Canvas(self, width=200, height=150, bg='white')
+        self.gauge2_canvas.grid(column=2, row=7, columnspan=3)
+        self.gauge2_value = 0
+        self.gauge2_max_value = 1000
+        ttk.Label(self, text="Range (PSI):").grid(column=1, row=8, sticky=tk.E)
+        self.gauge2_entry = ttk.Entry(self, text="Max 2:")
+        self.gauge2_entry.grid(column=2, row=8, sticky=tk.W)
+        self.gauge2_entry.insert(0, 1000)  # Set the initial value
+
+        # Gauge 3
+        self.gauge3_label = ttk.Label(self, text="Gauge 3 (PSI):")
+        self.gauge3_label.grid(column=1, row=9, sticky=tk.W)
+        self.gauge3_canvas = tk.Canvas(self, width=200, height=150, bg='white')
+        self.gauge3_canvas.grid(column=2, row=9, columnspan=3)
+        self.gauge3_value = 0
+        self.gauge3_max_value = 1000;
+        ttk.Label(self, text="Range (PSI):").grid(column=1, row=10, sticky=tk.E)
+        self.gauge3_entry = ttk.Entry(self, text="Max 3:")
+        self.gauge3_entry.grid(column=2, row=10, sticky=tk.W)
+        self.gauge3_entry.insert(0, 1000)  # Set the initial value
+
+        # Add more gauges as needed
+
+        # Switch 0
+        self.switch0_state = tk.BooleanVar()
+        #self.switch0_state.trace('w', lambda *args: send_serial_command("Sol0on" if self.switch0_state.get() else "Sol0off"))
+        ttk.Label(self, text="Solenoid 0:").grid(column=5, row=3, sticky=tk.W)
+        ttk.Checkbutton(self, text="", variable=self.switch0_state).grid(column=6, row=3)
+        ttk.Button(self, text="ON", command=lambda:  send_serial_command("Sol0on\n")).grid(column=5, row=4)
+        ttk.Button(self, text="OFF", command=lambda: send_serial_command("Sol0off\n")).grid(column=6, row=4)
+
+        # Switch 1
+        self.switch1_state = tk.BooleanVar()
+        #self.switch1_state.trace('w', lambda *args: send_serial_command("Sol1on" if self.switch1_state.get() else "Sol1off"))
+        ttk.Label(self, text="Solenoid 1:").grid(column=5, row=5, sticky=tk.W)
+        ttk.Checkbutton(self, text="", variable=self.switch1_state).grid(column=6, row=5)
+        ttk.Button(self, text="ON", command=lambda: send_serial_command("Sol1on\n")).grid(column=5, row=6)
+        ttk.Button(self, text="OFF", command=lambda: send_serial_command("Sol1off\n")).grid(column=6, row=6)
+
+        # Add more switches as needed
+
+        # Initialize recording flag
+        self.recording = False
+
+        # Start the update loop
+        self.update_gauges()
+
+    def update_gauges(self):
+        if ser and ser.in_waiting > 0:
+            data = ser.readline().decode().strip()
+            values = data.split('\t')
+            #print(values)
+
+            if len(values) >= 4:
+                gauge0_raw = float(values[0].split(':')[-1].strip())
+                gauge0_psi = self.convert_to_psi_gauge0(gauge0_raw)
+                self.gauge0_value = gauge0_psi
+                self.gauge0_max_value = int(self.gauge0_entry.get())
+                gauge0text = "Gauge 0 (PSI): " + str("{:.{}f}".format(gauge0_psi, 2))
+                self.gauge0_label.config(text=gauge0text)
+
+                gauge1_raw = float(values[1].split(':')[-1].strip())
+                gauge1_psi = self.convert_to_psi_gauge1(gauge1_raw)
+                self.gauge1_value = gauge1_psi
+                self.gauge1_max_value = int(self.gauge1_entry.get())
+                gauge1text = "Gauge 1 (PSI): " + str("{:.{}f}".format(gauge1_psi, 2))
+                self.gauge1_label.config(text=gauge1text)
+
+                gauge2_raw = float(values[2].split(':')[-1].strip())
+                gauge2_psi = self.convert_to_psi_gauge2(gauge2_raw)
+                self.gauge2_value = gauge2_psi
+                self.gauge2_max_value = int(self.gauge2_entry.get())
+                gauge2text = "Gauge 2 (PSI): " + str("{:.{}f}".format(gauge2_psi, 2))
+                self.gauge2_label.config(text=gauge2text)
+
+                gauge3_raw = float(values[3].split(':')[-1].strip())
+                gauge3_psi = self.convert_to_psi_gauge3(gauge3_raw)
+                self.gauge3_value = gauge3_psi
+                self.gauge3_max_value = int(self.gauge3_entry.get())
+                gauge3text = "Gauge 3 (PSI): " + str("{:.{}f}".format(gauge3_psi, 2))
+                self.gauge3_label.config(text=gauge3text)
+
+                #print(values[4].split(':')[-1].strip());
+                #print(values[5].split(':')[-1].strip());
+                self.switch0_state.set(values[4].split(':')[-1].strip());
+                self.switch1_state.set(values[5].split(':')[-1].strip());
+
+                # Save data to CSV file
+                if self.recording:
+                    timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                    row = [timestamp] + values
+                    data_writer.writerow(row)
+
+                # Update more gauges as needed
+
+        # Redraw the gauges
+        draw_gauge(self.gauge0_canvas, self.gauge0_value, self.gauge0_max_value, 100, 100, 80)
+        draw_gauge(self.gauge1_canvas, self.gauge1_value, self.gauge1_max_value, 100, 100, 80)
+        draw_gauge(self.gauge2_canvas, self.gauge2_value, self.gauge2_max_value, 100, 100, 80)
+        draw_gauge(self.gauge3_canvas, self.gauge3_value, self.gauge3_max_value, 100, 100, 80)
+        
+        # Add more gauge redraw calls as needed
+
+        self.after(10, self.update_gauges)
+    def convert_to_psi_gauge0(self, raw_value):
+        # Implement the conversion from raw_value to PSI for gauge 1
+        # Replace this with the actual conversion
+        psi_value = ((self.gauge0_max_value - 0.5) / 4) * raw_value ;
+        return psi_value
+
+    def convert_to_psi_gauge1(self, raw_value):
+        # Implement the conversion from raw_value to PSI for gauge 1
+        # Replace this with the actual conversion
+        psi_value = ((self.gauge1_max_value - 0.5) / 4 )* raw_value ;
+        return psi_value
+
+    def convert_to_psi_gauge2(self, raw_value):
+        # Implement the conversion from raw_value to PSI for gauge 1
+        # Replace this with the actual conversion
+        psi_value = ((self.gauge2_max_value - 0.5) / 4 )* raw_value ;
+        return psi_value
+
+    def convert_to_psi_gauge3(self, raw_value):
+        # Implement the conversion from raw_value to PSI for gauge 1
+        # Replace this with the actual conversion
+        psi_value = ((self.gauge3_max_value - 0.5) / 4 )* raw_value ;
+        return psi_value
+    
+    def start_data_recording(self):
+        global data_file, data_writer
+
+        if self.start_button['text'] == "Start":
+            # Get the data storage location from the entry box
+            data_location = self.data_location_entry.get()
+
+            # Open CSV file in append mode
+            data_file = open(data_location, "a", newline="")
+            data_writer = csv.writer(data_file)
+
+            # Write header row if the file is empty
+            if data_file.tell() == 0:
+                header = ["Timestamp", "Analog0", "Analog1", "Analog2", "Analog3", "Sol0", "Sol1", "Joystick_UD", "Joystick_Btn"]
+                data_writer.writerow(header)
+
+            self.start_button.configure(text="Stop")
+            self.recording = True
+        else:
+            self.start_button.configure(text="Start")
+            self.recording = False
+
+            # Close the CSV file
+            data_file.close()
+
+
+
+
+# Add more conversion functions as needed
+
+if __name__ == "__main__":
+    app = App()
+    app.mainloop()
+    if ser:
+        ser.close()
+
