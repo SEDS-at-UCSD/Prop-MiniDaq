@@ -1,0 +1,30 @@
+import serial
+import csv
+from datetime import datetime
+import time
+
+ser = serial.Serial('/dev/cu.wchusbserial56292564361', 921600, timeout=1)  # Replace 'COM3' with the port your Arduino is connected to
+ser.flush()
+
+header = ['Timestamp', 'Pin 1', 'Pin 2', 'Pin 3', 'Pin 4']
+filename = './downloads/ESP3227Maydata_2.csv'
+
+with open(filename, 'w', newline='') as file:
+    writer = csv.writer(file)
+    writer.writerow(header)
+
+while True:
+    try:
+        if ser.in_waiting > 0:
+            data = ser.readline().decode().strip()
+            values = data.split('\t')
+
+            timestamp = datetime.now()#.strftime("%Y-%m-%d %H:%M:%S")
+            data = [timestamp] + values
+            #print(values)
+            with open(filename, 'a', newline='') as file:
+                writer = csv.writer(file)
+                writer.writerow(data)
+
+    except KeyboardInterrupt:
+        break
