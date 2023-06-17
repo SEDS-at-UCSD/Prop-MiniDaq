@@ -26,11 +26,11 @@ volatile int flowPulses = 0;   // Keeps track of the number of pulses from the f
 volatile float flowRate;       // Stores the calculated flow rate
 
 QueueHandle_t flowRateQueue;   // Queue handler to communicate flow rate values between tasks
-volatile int usedisplay = 1;
-volatile int get_INA219 = 1;
+volatile int usedisplay = 0; //false for speed
+volatile int get_INA219 = 0;
 volatile int get_ADS1115 = 1;
 
-volatile int switch2InternalADC_12 = 1; //true use internal
+volatile int switch2InternalADC_12 = 0; //true use internal
 const uint8_t intDAQ0 = 15;
 const uint8_t intDAQ1 = 17;
 const int Solenoid0 = 16;
@@ -299,7 +299,7 @@ void setup()
 
   flowRateQueue = xQueueCreate(1, sizeof(float));  // Create a queue to hold one float value
   xTaskCreate(flowRateTask, "FlowRateTask", configMINIMAL_STACK_SIZE + 1024, NULL, 1, NULL);
-  xTaskCreatePinnedToCore(flowRateManual, "FlowRateManual", 4096, NULL, 1, NULL,0);
+  //xTaskCreatePinnedToCore(flowRateManual, "FlowRateManual", 4096, NULL, 1, NULL,0);
 
   analogReadResolution(12); // Set ADC resolution to 12 bits
   pinMode(intDAQ0,INPUT_PULLUP);
