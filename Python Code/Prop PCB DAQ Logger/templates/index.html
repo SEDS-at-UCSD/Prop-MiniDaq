@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles.css') }}">
+  <style>
+    /* Add CSS styles to adjust the grid layout */
+    .data {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 0px 20px;
+    }
+  </style>
+</head>
+<body>
+  <!-- ... (inside index.html) -->
+<div class="container">
+    <h1>Data Display</h1>
+    <div class="data">
+      {% for chip in ['ADS1015_1', 'ADS1015_2', 'ADS1115_1', 'ADS1115_2'] %}
+        {% for channel in channels %}
+          <div class="channel">
+            <h2>{{ chip }} - {{ channel }}</h2>
+            <div class="scale">
+              <div class="bar" id="{{ chip }}{{ channel.replace(':', '') }}Bar"></div>
+              <div class="value" id="{{ chip }}{{ channel.replace(':', '') }}Value">0 V</div>
+            </div>
+          </div>
+        {% endfor %}
+      {% endfor %}
+    </div>
+</div>
+  <!-- ... (rest of index.html) -->
+  
+  <script>
+    function updateChannel(chip, channel, value) {
+      const bar = document.getElementById(chip + channel.replace(':', '') + 'Bar');
+      const valueDiv = document.getElementById(chip + channel.replace(':', '') + 'Value');
+      const scaledValue = (value / 5) * 100; // Scale value to percentage
+      bar.style.width = scaledValue + '%';
+      valueDiv.textContent = value.toFixed(4) + ' V';
+    }
+
+    function updateData() {
+      fetch('/get_data')
+        .then(response => response.json())
+        .then(data => {
+          {% for chip in ['ADS1015_1', 'ADS1015_2', 'ADS1115_1', 'ADS1115_2'] %}
+          {% for channel in channels %}
+          updateChannel('{{ chip }}', '{{ channel }}', data['{{ chip }}']['{{ channel }}']);
+          {% endfor %}
+          {% endfor %}
+        });
+    }
+
+    setInterval(updateData, 50); // Update every 50 milliseconds
+</script>
+
+
+</body>
+</html>

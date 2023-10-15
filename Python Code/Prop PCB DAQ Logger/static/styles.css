@@ -1,0 +1,41 @@
+body {
+    font-family: Arial, sans-serif;
+  }
+  
+  .container {
+    max-width: 600px;
+    margin: 0 auto;
+    padding: 20px;
+  }
+  
+  .data {
+    display: flex;
+    flex-wrap: wrap;
+  }
+  
+  .channel {
+    margin: 20px;
+    text-align: center;
+  }
+  
+  .scale {
+    width: 200px;
+    height: 20px;
+    border: 1px solid #ccc;
+    position: relative;
+  }
+  
+  .bar {
+    height: 100%;
+    width: 0;
+    background-color: #4CAF50;
+    transition: width 0.5s;
+  }
+  
+  .value {
+    position: absolute;
+    top: 50%;
+    left: 100%;
+    transform: translate(10px, -50%);
+  }
+  
