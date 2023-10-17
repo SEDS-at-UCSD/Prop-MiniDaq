@@ -10,9 +10,9 @@ TaskHandle_t dataCollectionTask, fftProcessingTask;
 QueueHandle_t dataQueue;
 
 TwoWire I2C_one(0);
-ADS1115 ADS(0x48, &I2C_one);
+ADS1015 ADS(0x48, &I2C_one);
 
-const int numSamples = 1024;
+const int numSamples = 3300;
 double samplingFrequency = 3300.0;
 double voltageSamples[numSamples];
 double vImag[numSamples];
@@ -24,7 +24,7 @@ void dataCollectionTaskFunction(void* parameter) {
     int sampleIndex = 0;
     while (sampleIndex < numSamples) {
       int16_t adc0 = ADS.readADC_Differential_0_1();
-      double voltage = (adc0 * 0.1875) / 1000.0;
+      double voltage = (adc0 * 0.1875);
       voltageSamples[sampleIndex] = voltage;
       vImag[sampleIndex] = 0;
       sampleIndex++;
@@ -64,7 +64,8 @@ void fftProcessingTaskFunction(void* parameter) {
 
 void setup() {
   Serial.begin(921600);
-  I2C_one.begin(13, 14);
+  I2C_one.begin(16, 17); //1015
+  //I2C_one.begin(13, 14);
   I2C_one.setClock(400000);
 
   if (!ADS.begin()) {
@@ -79,7 +80,7 @@ void setup() {
   xTaskCreatePinnedToCore(
     dataCollectionTaskFunction,
     "DataCollectionTask",
-    4096,
+    8192,
     NULL,
     1,
     &dataCollectionTask,
@@ -89,7 +90,7 @@ void setup() {
   xTaskCreatePinnedToCore(
     fftProcessingTaskFunction,
     "FFTProcessingTask",
-    4096,
+    8192,
     NULL,
     1,
     &fftProcessingTask,

@@ -3,10 +3,11 @@
 #include <arduinoFFT.h>
 
 TwoWire I2C_one(0);
+//ADS1015 ADS(0x48, &I2C_one); // ADS1015 object using TwoWire
 ADS1115 ADS(0x48, &I2C_one); // ADS1115 object using TwoWire
 
-const int numSamples = 200; // Number of samples for FFT
-double samplingFrequency = 8.0; // Maximum sampling rate in Hz, usually 868.0
+const int numSamples = 1100; // Number of samples for Counter to store/FFT
+double samplingFrequency = 3300; //868; // Maximum sampling rate in Hz, usually 868.0 or 3300
 volatile double voltageSamples[numSamples];
 volatile double vImag[numSamples];
 volatile double min_count[numSamples];
@@ -17,7 +18,8 @@ unsigned long startTime;
 void setup() {
   Serial.begin(921600);
   //I2C_one.begin(13, 14);
-  I2C_one.begin(16, 17);
+  I2C_one.begin(16, 17); //1015
+  //I2C_one.begin(42, 41); //1115
   //I2C_one.begin(5, 4);
   I2C_one.setClock(400000);
   startTime = millis();
@@ -27,10 +29,11 @@ void setup() {
     Serial.println("Failed to initialize ADS.");
     while (1);
   }
-  ADS.setMode(1);
+  ADS.setMode(0);
   ADS.setDataRate(7);
   // Set the gain to the desired range (adjust this based on your voltage range)
-  ADS.setGain(0);
+  ADS.setGain(16);
+  ADS.readADC_Differential_0_1();
 
   //init to 0
   for (int i = 0; i < numSamples; i++){
@@ -47,18 +50,18 @@ void loop() {
 
   startTime = millis();
   
-  int sampling_subcycle = 5;
-
+  int sampling_subcycle = 50;
   for (int i = 0; i < sampling_subcycle; i++){
-    int16_t adc0 = ADS.readADC_Differential_0_1();
-    double voltage = (adc0 * 0.1875); // Calculate voltage in mV
+    int16_t adc0 = ADS.getValue();
+    double voltage = (adc0 * 1000* ADS.toVoltage()); // Calculate voltage in mV
+    //Serial.print("Raw mV:");
+    //Serial.println(voltage);
     if (abs(voltage) < 5){
       voltage = 0;
     } //at least 5mV
     voltageSamples[sampleIndex] = voltage;
-    vImag[sampleIndex]=0;
-    //Serial.print("Raw mV:");
-    //Serial.println(voltage);
+    //vImag[sampleIndex]=0;
+    
     if (sampleIndex > 1)
     {
       if (min_count[sampleIndex] == 1){ //previous value
