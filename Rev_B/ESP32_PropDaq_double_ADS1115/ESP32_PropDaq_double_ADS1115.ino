@@ -4,8 +4,8 @@
 
 TwoWire I2C_one(0);
 TwoWire I2C_two(1);
-ADS1115 ADS0(0x48, &I2C_one); // ADS1115 object using TwoWire
-ADS1115 ADS1(0x48, &I2C_two); // ADS1115 object using TwoWire
+ADS1015 ADS0(0x48, &I2C_one); // ADS1115 object using TwoWire
+ADS1015 ADS1(0x48, &I2C_one); // ADS1115 object using TwoWire
 
 const int numSamples = 200; // Number of samples for FFT
 double samplingFrequency = 8.0; // Maximum sampling rate in Hz, usually 868.0
@@ -17,9 +17,9 @@ unsigned long startTime;
 
 void setup() {
   Serial.begin(921600);
-  I2C_one.begin(13, 14);
+  I2C_one.begin(16, 17);
   I2C_one.setClock(400000);
-  I2C_two.begin(5, 4);
+  I2C_two.begin(42, 41);
   I2C_two.setClock(400000);
   startTime = millis();
 
@@ -53,8 +53,8 @@ void loop() {
   startTime = millis();
   int16_t adc0 = ADS0.readADC_Differential_0_1();
   int16_t adc1 = ADS0.readADC_Differential_2_3();
-  double voltage0 = (adc0 * 0.1875); // Calculate voltage in mV 6.144/32767
-  double voltage1 = (adc1 * 0.1875); // Calculate voltage in mV
+  double voltage0 = ADS0.toVoltage(adc0); // Calculate voltage in mV 6.144/32767
+  double voltage1 = ADS0.toVoltage(adc1); // Calculate voltage in mV
   Serial.print("In0: ");
   Serial.print(voltage0);
   Serial.print("\t In1: ");
@@ -62,8 +62,8 @@ void loop() {
 
   int16_t adc0_1 = ADS1.readADC_Differential_0_1();
   int16_t adc1_1 = ADS1.readADC_Differential_2_3();
-  double voltage0_1 = (adc0_1 * (512/32767.0)); // Calculate voltage in mV
-  double voltage1_1 = (adc1_1 * (512/32767.0)); // Calculate voltage in mV
+  double voltage0_1 = ADS1.toVoltage(adc0_1); //(adc0_1 * (512/32767.0)); // Calculate voltage in mV
+  double voltage1_1 = ADS1.toVoltage(adc1_1); //(adc1_1 * (512/32767.0)); // Calculate voltage in mV
   Serial.print("\t In0_1: ");
   Serial.print(voltage0_1);
   Serial.print("\t In1_1: ");
