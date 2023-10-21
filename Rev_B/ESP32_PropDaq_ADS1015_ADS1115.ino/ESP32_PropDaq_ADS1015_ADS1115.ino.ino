@@ -112,7 +112,6 @@ void setup() {
   0
   );
 
-
   xTaskCreatePinnedToCore(
   ADS1115TaskFunction,
   "ADS1115Task",
@@ -122,6 +121,7 @@ void setup() {
   &ADS1115Task,
   1
   );
+  
 
 }
 
@@ -138,10 +138,11 @@ void ADS1015TaskFunction(void* parameter) {
     
     //Serial.print("In0: "); Serial.print(voltage0); Serial.print("\t In1: "); Serial.print(voltage1);
 
-    double voltage0 = (ADS0.toVoltage(adc0)); // Calculate voltage in mV 6.144/2048
-    double voltage1 = (ADS0.toVoltage(adc1)); // Calculate voltage in mV 6.144/2048
-    double voltage0_1 = (ADS1.toVoltage(adc0_1)); // Calculate voltage in mV
-    double voltage1_1 = (ADS1.toVoltage(adc1_1)); // Calculate voltage in mV
+    double voltage0 = 1000*(ADS0.toVoltage(adc0)); // Calculate voltage in mV 6.144/2048
+    double voltage1 = 1000*(ADS0.toVoltage(adc1)); // Calculate voltage in mV 6.144/2048
+    double voltage0_1 = 1000*(ADS1.toVoltage(adc0_1)); // Calculate voltage in mV
+    double voltage1_1 = 1000*(ADS1.toVoltage(adc1_1)); // Calculate voltage in mV
+
     sensor0doc["PT0"] = voltage0;
     sensor0doc["PT1"] = voltage1;
     sensor0doc["PT2"] = voltage0_1;
@@ -173,10 +174,10 @@ void ADS1115TaskFunction(void* parameter) {
     
     //Serial.print("In0: "); Serial.print(voltage0); Serial.print("\t In1: "); Serial.print(voltage1);
 
-    double voltage0 = (adc0 * 0.1875); // Calculate voltage in mV 6.144/32767
-    double voltage1 = (adc1 * 0.1875); // Calculate voltage in mV
-    double voltage0_1 = (adc0_1 * (0.1875)); // Calculate voltage in mV
-    double voltage1_1 = (adc1_1 * (0.1875)); // Calculate voltage in mV
+    double voltage0 = 1000*(ADS2.toVoltage(adc0)); // Calculate voltage in mV 6.144/32767
+    double voltage1 = 1000*(ADS3.toVoltage(adc1)); // Calculate voltage in mV 6.144/32767
+    double voltage0_1 = 1000*(ADS2.toVoltage(adc0_1)); // Calculate voltage in mV
+    double voltage1_1 = 1000*(ADS3.toVoltage(adc1_1)); // Calculate voltage in mV
 
     sensor1doc["TC0"] = voltage0;
     sensor1doc["TC1"] = voltage1;
