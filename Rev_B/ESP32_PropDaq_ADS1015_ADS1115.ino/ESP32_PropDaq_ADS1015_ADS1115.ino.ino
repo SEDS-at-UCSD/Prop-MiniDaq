@@ -6,7 +6,7 @@
 #include <task.h>
 #include <queue.h>
 
-//DynamicJsonDocument doc(1024);
+StaticJsonDocument<512> sensorData;
 DynamicJsonDocument doc0(1024);
 DynamicJsonDocument doc1(1024);
 DynamicJsonDocument sensor0doc(1024);
@@ -44,8 +44,8 @@ void setup() {
   Serial.println("Mutex can not be created"); 
   } 
 
-  sensor0doc["BoardID"] = "DAQ0";
-  sensor1doc["BoardID"] = "DAQ0";
+  // sensor0doc["BoardID"] = "DAQ0";
+  // sensor1doc["BoardID"] = "DAQ0";
 
   I2C_one.begin(16, 17);
   I2C_one.setClock(400000);
@@ -138,15 +138,16 @@ void ADS1015TaskFunction(void* parameter) {
     
     //Serial.print("In0: "); Serial.print(voltage0); Serial.print("\t In1: "); Serial.print(voltage1);
 
-    double voltage0 = 1000*(ADS0.toVoltage(adc0)); // Calculate voltage in mV 6.144/2048
-    double voltage1 = 1000*(ADS0.toVoltage(adc1)); // Calculate voltage in mV 6.144/2048
-    double voltage0_1 = 1000*(ADS1.toVoltage(adc0_1)); // Calculate voltage in mV
-    double voltage1_1 = 1000*(ADS1.toVoltage(adc1_1)); // Calculate voltage in mV
+    double voltage0 = (ADS0.toVoltage(adc0)); // Calculate voltage in mV 6.144/2048
+    double voltage1 = (ADS0.toVoltage(adc1)); // Calculate voltage in mV 6.144/2048
+    double voltage0_1 = (ADS1.toVoltage(adc0_1)); // Calculate voltage in mV
+    double voltage1_1 = (ADS1.toVoltage(adc1_1)); // Calculate voltage in mV
 
-    sensor0doc["PT0"] = voltage0;
-    sensor0doc["PT1"] = voltage1;
-    sensor0doc["PT2"] = voltage0_1;
-    sensor0doc["PT3"] = voltage1_1;
+    // sensor0doc["PT0"] = voltage0;
+    // sensor0doc["PT1"] = voltage1;
+    // sensor0doc["PT2"] = voltage0_1;
+    // sensor0doc["PT3"] = voltage1_1;
+    double data[4] = {voltage0, voltage1, voltage0_1, voltage1_1};
 
     //Serial.print("\t In0_1: "); Serial.print(voltage0_1); Serial.print("\t In1_1: "); Serial.print(voltage1_1);
     unsigned long currentTime = millis();
@@ -155,8 +156,8 @@ void ADS1015TaskFunction(void* parameter) {
     sampleIndex = 0;
     //String sensorjson0;
     xSemaphoreTake(mutex_v, portMAX_DELAY); 
-    serializeJson(sensor0doc, Serial);
-    Serial.print("\t FPS: "); Serial.println(1000*1/(timePassed));
+    // serializeJson(sensor0doc, Serial);
+     sendSerialData(data, "ADS1015", 1000*1/(timePassed));
     xSemaphoreGive(mutex_v); 
   }
 }
@@ -174,27 +175,42 @@ void ADS1115TaskFunction(void* parameter) {
     
     //Serial.print("In0: "); Serial.print(voltage0); Serial.print("\t In1: "); Serial.print(voltage1);
 
-    double voltage0 = 1000*(ADS2.toVoltage(adc0)); // Calculate voltage in mV 6.144/32767
-    double voltage1 = 1000*(ADS3.toVoltage(adc1)); // Calculate voltage in mV 6.144/32767
-    double voltage0_1 = 1000*(ADS2.toVoltage(adc0_1)); // Calculate voltage in mV
-    double voltage1_1 = 1000*(ADS3.toVoltage(adc1_1)); // Calculate voltage in mV
+    double voltage0 = (ADS2.toVoltage(adc0)); // Calculate voltage in mV 6.144/32767
+    double voltage1 = (ADS3.toVoltage(adc1)); // Calculate voltage in mV 6.144/32767
+    double voltage0_1 = (ADS2.toVoltage(adc0_1)); // Calculate voltage in mV
+    double voltage1_1 = (ADS3.toVoltage(adc1_1)); // Calculate voltage in mV
 
-    sensor1doc["TC0"] = voltage0;
-    sensor1doc["TC1"] = voltage1;
-    sensor1doc["TC2"] = voltage0_1;
-    sensor1doc["TC3"] = voltage1_1;
+    double data[4] = {voltage0, voltage1, voltage0_1, voltage1_1};
     //Serial.print("\t In0_1: "); Serial.print(voltage0_1); Serial.print("\t In1_1: "); Serial.print(voltage1_1);
     unsigned long currentTime = millis();
     unsigned long timePassed = currentTime - startTime1;
     startTime1 = millis();
     sampleIndex = 0;
     xSemaphoreTake(mutex_v, portMAX_DELAY); 
-    serializeJson(sensor1doc, Serial);
-    Serial.print("\t FPS: "); Serial.println(1000*1/(timePassed));
+    // serializeJson(sensor1doc, Serial);
+    sendSerialData(data, "ADS1115", 1000*1/(timePassed));
+    // Serial.print("\t FPS: "); Serial.println(1000*1/(timePassed));
     xSemaphoreGive(mutex_v); 
   }
 }
 
 void loop() {
   //doc["BoardID"] = "PT Board";
+}
+
+void sendSerialData(double data[], String SensorType, int FPS) {
+  //JSON doc
+  int data_arr_size = 4;
+
+  sensorData["BoardID"] = "Board 1";
+  sensorData["SensorType"] = SensorType;
+
+  for (int i = 0; i < data_arr_size; i++) {
+    sensorData["Sensors"][i] = data[i];
+  }
+  // doc["Sensors"][1] = data[1];
+  sensorData["FPS"] = FPS;
+
+  serializeJson(sensorData, Serial);
+  Serial.println();
 }
