@@ -1,0 +1,17 @@
+venv name = propdaq
+quickstart command:
+conda activate propdaq
+
+start mosquitto broker command:
+/opt/homebrew/opt/mosquitto/sbin/mosquitto -c /opt/homebrew/etc/mosquitto/mosquitto.conf
+
+mosquitto config file:
+/opt/homebrew/etc/mosquitto/mosquitto.conf
+
+links: http://www.steves-internet-guide.com/mosquitto_pub-sub-clients/
+
+local dependencies:
+pyserial
+paho-mqtt
+flask
+flask-socketio

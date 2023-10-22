@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>ESP32 Data Monitor</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
+</head>
+<body>
+    <h1>ESP32 Data:</h1>
+    <p id="esp32-data">Waiting for data...</p>
+    <div id="serial-data">Waiting for serial data...</div>
+    <h1>Log File:</h1>
+    <pre id="log-data">Waiting for log data...</pre>
+
+    <script>
+        var socket = io.connect('http://' + document.domain + ':' + location.port);
+        socket.on('connect', function() {
+            console.log('Connected to the server');
+        });
+        socket.on('serial_data', function(data) {
+            document.getElementById('serial-data').textContent = data;
+        });
+        socket.on('log_data', function(data) {
+            logData.innerHTML = data;  // Use innerHTML to preserve line breaks
+            logData.scrollTop = logData.scrollHeight;  // Scroll to the bottom
+            //document.getElementById('log-data').textContent = data;
+        });
+        function scrollToBottom() {
+        logData.scrollTop = logData.scrollHeight;
+        }
+
+        // Call scrollToBottom when the page loads and whenever new data is received
+        window.onload = scrollToBottom;
+    </script>
+</body>
+</html>
