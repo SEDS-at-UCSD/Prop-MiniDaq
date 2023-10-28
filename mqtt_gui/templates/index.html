@@ -20,16 +20,12 @@
             document.getElementById('serial-data').textContent = data;
         });
         socket.on('log_data', function(data) {
-            logData.innerHTML = data;  // Use innerHTML to preserve line breaks
-            logData.scrollTop = logData.scrollHeight;  // Scroll to the bottom
-            //document.getElementById('log-data').textContent = data;
+            document.getElementById('log-data').textContent = data;
         });
         function scrollToBottom() {
         logData.scrollTop = logData.scrollHeight;
         }
 
-        // Call scrollToBottom when the page loads and whenever new data is received
-        window.onload = scrollToBottom;
     </script>
 </body>
 </html>
