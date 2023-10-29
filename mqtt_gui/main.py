@@ -45,9 +45,10 @@ def read_serial_and_log_high_freq():
             data_dict = json.loads(data)
             #print (data_dict)
             # Log the data to a text file
-            data_formatted = str(datetime.now())[11:] + " " + str(data_dict['BoardID']) + "  " + str(data_dict['Sensors'][0]) + "  " + str(data_dict['Sensors'][1]) + "  " + str(data_dict['Sensors'][2]) + "  " + str(data_dict['Sensors'][3]) + "\r\n"
+            data_formatted = str(datetime.now())[11:] + " " + str(data_dict['BoardID']) + "  " + str(data_dict['SensorType']) + "  " + str(data_dict['Sensors'][0]) + "  " + str(data_dict['Sensors'][1]) + "  " + str(data_dict['Sensors'][2]) + "  " + str(data_dict['Sensors'][3]) + "\r\n"
             if event.is_set:
                 datatopass[0] = data_formatted
+                
                 read_event.set
             #print (data_dict)
             raw_log_file.write(data_formatted)
