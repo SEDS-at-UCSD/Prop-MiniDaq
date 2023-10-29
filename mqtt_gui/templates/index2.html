@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>ESP32 Data Monitor</title>
+    <!-- Include the Paho MQTT JavaScript library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/paho-mqtt/1.1.0/mqttws31.js"></script>
+</head>
+<body>
+    <h1>ESP32 Data:</h1>
+    <p id="esp32-data">Waiting for data...</p>
+    <div id="serial-data">Waiting for serial data...</div>
+    <h1>Log File:</h1>
+    <pre id="log-data">Waiting for log data...</pre>
+
+    <script>
+        // MQTT configuration
+        var mqttBrokerAddress = "localhost"; // Fill in your MQTT broker address
+        var mqttTopicSerial = "serial_data";  // Fill in your MQTT topic for serial data
+        var mqttTopicLog = "log_data";        // Fill in your MQTT topic for log data
+
+        // Create an MQTT client instance
+        var client = new Paho.MQTT.Client(mqttBrokerAddress, 1884, "web_client");
+
+        // Set up the callback for a successful connection
+        client.onConnectionLost = onConnectionLost;
+
+        // Set up the callback for receiving messages
+        client.onMessageArrived = onMessageArrived;
+
+        // Connect to the MQTT broker
+        client.connect({ onSuccess: onConnect });
+
+        // Function to handle a successful connection
+        function onConnect() {
+            console.log("Connected to MQTT broker");
+            // Subscribe to the MQTT topics
+            client.subscribe(mqttTopicSerial);
+            client.subscribe(mqttTopicLog);
+        }
+
+        // Function to handle connection loss
+        function onConnectionLost(responseObject) {
+            if (responseObject.errorCode !== 0) {
+                console.log("Connection lost: " + responseObject.errorMessage);
+            }
+        }
+
+        // Function to handle incoming MQTT messages
+        function onMessageArrived(message) {
+            if (message.destinationName === mqttTopicSerial) {
+                document.getElementById('serial-data').textContent = message.payloadString;
+            } else if (message.destinationName === mqttTopicLog) {
+                var logData = document.getElementById('log-data');
+                logData.innerHTML += message.payloadString + '<br>';
+                // Scroll to the bottom of the log data
+                logData.scrollTop = logData.scrollHeight;
+            }
+        }
+    </script>
+</body>
+</html>
