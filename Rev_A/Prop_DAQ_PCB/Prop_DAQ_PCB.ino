@@ -111,7 +111,7 @@ void setup() {
   }
   twai_start();
   // Prepare the message to send
-  txMessage.identifier = 0x11;           // Example identifier
+  txMessage.identifier = 0x10;           // Example identifier
   txMessage.flags = TWAI_MSG_FLAG_EXTD;  // Example flags (extended frame)
   txMessage.data_length_code = 8;        // Example data length (8 bytes)
   txMessage.data[0] = 0xFF;              // Reserved for message type

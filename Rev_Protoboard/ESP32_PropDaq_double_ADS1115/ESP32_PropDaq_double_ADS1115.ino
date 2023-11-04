@@ -1,10 +1,13 @@
 #include <Wire.h>
 #include <ADS1X15.h>
 #include <arduinoFFT.h>
+#include <ArduinoJson.h>
+
+#define BOARD_ID 3
 
 TwoWire I2C_one(0);
 TwoWire I2C_two(1);
-ADS1115 ADS0(0x48, &I2C_one); // ADS1115 object using TwoWire
+ADS1015 ADS0(0x48, &I2C_one); // ADS1115 object using TwoWire
 ADS1115 ADS1(0x48, &I2C_two); // ADS1115 object using TwoWire
 
 const int numSamples = 200; // Number of samples for FFT
@@ -15,11 +18,13 @@ volatile double vImag[numSamples];
 //arduinoFFT FFT = arduinoFFT();
 unsigned long startTime;
 
+
 void setup() {
   Serial.begin(921600);
-  I2C_one.begin(13, 14);
+
+  I2C_one.begin(16, 17);
   I2C_one.setClock(400000);
-  I2C_two.begin(5, 4);
+  I2C_two.begin(42, 41);
   I2C_two.setClock(400000);
   startTime = millis();
 
@@ -45,7 +50,6 @@ void setup() {
 }
 
 void loop() {
-
   // Store the voltage reading in an array
   static int sampleIndex = 0;
   int count = 0;
@@ -55,23 +59,46 @@ void loop() {
   int16_t adc1 = ADS0.readADC_Differential_2_3();
   double voltage0 = (adc0 * 0.1875); // Calculate voltage in mV 6.144/32767
   double voltage1 = (adc1 * 0.1875); // Calculate voltage in mV
-  Serial.print("In0: ");
-  Serial.print(voltage0);
-  Serial.print("\t In1: ");
-  Serial.print(voltage1);
+  // Serial.print("In0: ");
+  // Serial.print(voltage0);
+  // Serial.print("\t In1: ");
+  // Serial.print(voltage1);
 
   int16_t adc0_1 = ADS1.readADC_Differential_0_1();
   int16_t adc1_1 = ADS1.readADC_Differential_2_3();
   double voltage0_1 = (adc0_1 * (512/32767.0)); // Calculate voltage in mV
   double voltage1_1 = (adc1_1 * (512/32767.0)); // Calculate voltage in mV
-  Serial.print("\t In0_1: ");
-  Serial.print(voltage0_1);
-  Serial.print("\t In1_1: ");
-  Serial.print(voltage1_1);
+  // Serial.print("\t In0_1: ");
+  // Serial.print(voltage0_1);
+  // Serial.print("\t In1_1: ");
+  // Serial.print(voltage1_1);
 
   unsigned long currentTime = millis();
   unsigned long timePassed = currentTime - startTime;
   Serial.print("\t FPS: ");
   Serial.println(1000*1/(timePassed));
   sampleIndex = 0;
+
+  double voltage_data[] = {voltage0, voltage1, voltage0_1, voltage1_1};
+  sendSerialData(voltage_data);
+
+
+}
+
+void sendSerialData(double data[]) {
+  //JSON doc
+  DynamicJsonDocument doc(1024);
+  int data_arr_size = 4;
+
+
+  doc["Board_ID"] = BOARD_ID;
+  doc["Array size"] = data_arr_size;
+
+  for (int i = 0; i < data_arr_size; i++) {
+    doc["Sensors"][i] = data[i];
+  }
+  // doc["Sensors"][1] = data[1];
+
+  serializeJson(doc, Serial);
+  Serial.println();
 }

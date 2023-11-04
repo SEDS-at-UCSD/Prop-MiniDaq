@@ -5,6 +5,27 @@
 #include <FreeRTOS.h>
 #include <task.h>
 #include <queue.h>
+#include "driver/twai.h"
+
+// --------------------------- CAN --------------------------- //
+// Task handles
+TaskHandle_t transmitTaskHandle;
+TaskHandle_t receiveTaskHandle;
+
+// Function prototypes
+void transmitTask(void *pvParameters);
+void receiveTask(void *pvParameters);
+
+// CAN TWAI message to send
+twai_message_t txMessage_1015;
+twai_message_t txMessage_1115;
+
+// Pins used to connect to CAN bus transceiver:
+#define CAN_RX 10
+#define CAN_TX 9
+
+
+// --------------------------- JSON --------------------------- //
 
 StaticJsonDocument<512> sensorData;
 DynamicJsonDocument doc0(1024);
@@ -12,9 +33,12 @@ DynamicJsonDocument doc1(1024);
 DynamicJsonDocument sensor0doc(1024);
 DynamicJsonDocument sensor1doc(1024);
 
+// --------------------------- RTOS --------------------------- //
+
 TaskHandle_t ADS1015Task;
 TaskHandle_t ADS1115Task;
 
+// --------------------------- I2C --------------------------- //
 TwoWire I2C_one(0);
 TwoWire I2C_two(1);
 ADS1015 ADS0(0x48, &I2C_one); // ADS1015 object using TwoWire
@@ -22,12 +46,14 @@ ADS1015 ADS1(0x49, &I2C_one); // ADS1015 object using TwoWire
 ADS1115 ADS2(0x48, &I2C_two); // ADS1115 object using TwoWire
 ADS1115 ADS3(0x49, &I2C_two); // ADS1115 object using TwoWire
 
+ADS1X15 ADS[] = {ADS0, ADS1, ADS2, ADS3};
+
 const int numSamples = 200; // Number of samples for FFT
 double samplingFrequency = 8.0; // Maximum sampling rate in Hz, usually 868.0
 volatile double voltageSamples[numSamples];
 volatile double vImag[numSamples];
 
-//arduinoFFT FFT = arduinoFFT();
+// --------------------------- DUMB PERSON --------------------------- //
 unsigned long startTime0;
 unsigned long startTime1;
 
@@ -62,45 +88,35 @@ void setup() {
   startTime0 = millis();
   startTime1 = millis();
 
-  // Initialize the ADS1115
-  if (!ADS0.begin()) {
-    Serial.println("Failed to initialize ADS0.");
-    while (1);
+  for (int i = 0; i < 4; i++) {
+    if (!ADS[i].begin()) {
+      Serial.println("Failed to initialize ADS " + i);
+      while (1);
+    }
+    ADS[i].setMode(1);
+    ADS[i].setDataRate(7);
+    // Set the gain to the desired range (adjust this based on your voltage range)
+    ADS[i].setGain(0);
   }
-  ADS0.setMode(1);
-  ADS0.setDataRate(7);
-  // Set the gain to the desired range (adjust this based on your voltage range)
-  ADS0.setGain(0);
 
-  if (!ADS1.begin()) {
-    Serial.println("Failed to initialize ADS1.");
-    while (1);
+// --------------- CAN Init --------------- //
+  pinMode(CAN_TX,OUTPUT);
+  pinMode(CAN_RX,INPUT);
+
+  twai_general_config_t g_config = TWAI_GENERAL_CONFIG_DEFAULT((gpio_num_t)CAN_TX, (gpio_num_t)CAN_RX, TWAI_MODE_NORMAL);
+  twai_timing_config_t t_config = TWAI_TIMING_CONFIG_125KBITS();
+  twai_filter_config_t f_config = TWAI_FILTER_CONFIG_ACCEPT_ALL();
+
+  // Install and start the TWAI driver
+  esp_err_t canStatus = twai_driver_install(&g_config, &t_config, &f_config);
+  if (canStatus == ESP_OK) {
+    Serial.println("\nCAN Driver installed");
+  } else {
+    Serial.println("\nCAN Driver installation failed");
   }
-  ADS1.setMode(1);
-  ADS1.setDataRate(7);
-  // Set the gain to the desired range (adjust this based on your voltage range)
-  ADS1.setGain(0);
+  twai_start();
 
-
-  // Initialize the ADS1115
-  if (!ADS2.begin()) {
-    Serial.println("Failed to initialize ADS2.");
-    while (1);
-  }
-  ADS2.setMode(1);
-  ADS2.setDataRate(7);
-  // Set the gain to the desired range (adjust this based on your voltage range)
-  ADS2.setGain(0);
-
-  if (!ADS3.begin()) {
-    Serial.println("Failed to initialize ADS3.");
-    while (1);
-  }
-  ADS3.setMode(1);
-  ADS3.setDataRate(7);
-  // Set the gain to the desired range (adjust this based on your voltage range)
-  ADS3.setGain(0);
-
+// --------------------------- RTOS --------------------------- //
 
   xTaskCreatePinnedToCore(
   ADS1015TaskFunction,
@@ -143,11 +159,14 @@ void ADS1015TaskFunction(void* parameter) {
     double voltage0_1 = (ADS1.toVoltage(adc0_1)); // Calculate voltage in mV
     double voltage1_1 = (ADS1.toVoltage(adc1_1)); // Calculate voltage in mV
 
-    // sensor0doc["PT0"] = voltage0;
-    // sensor0doc["PT1"] = voltage1;
-    // sensor0doc["PT2"] = voltage0_1;
-    // sensor0doc["PT3"] = voltage1_1;
-    double data[4] = {voltage0, voltage1, voltage0_1, voltage1_1};
+    int16_t adc_data[4] = {adc0, adc0_1, adc1, adc1_1};
+    double voltage_data[4] = {voltage0, voltage1, voltage0_1, voltage1_1};
+
+    uint8_t can_data[8];
+    for (int i = 0; i < 4; i++) {
+      can_data[i * 2 + 0] = highByte(adc_data[i]);
+      can_data[i * 2 + 1] = lowByte(adc_data[i]);
+    }
 
     //Serial.print("\t In0_1: "); Serial.print(voltage0_1); Serial.print("\t In1_1: "); Serial.print(voltage1_1);
     unsigned long currentTime = millis();
@@ -157,8 +176,13 @@ void ADS1015TaskFunction(void* parameter) {
     //String sensorjson0;
     xSemaphoreTake(mutex_v, portMAX_DELAY); 
     // serializeJson(sensor0doc, Serial);
-     sendSerialData(data, "ADS1015", 1000*1/(timePassed));
-    xSemaphoreGive(mutex_v); 
+    sendSerialData(voltage_data, "ADS1015", 1000*1/(timePassed));
+
+    // uint8_t can_data[8] = {0x51, 0x51, 0x13, 0x21, 0x12, 0xFF, 0xFF, 0xFF};
+
+    setData(&txMessage_1015, 0x13, TWAI_MSG_FLAG_EXTD, 8, can_data);
+    twai_transmit(&txMessage_1015, pdMS_TO_TICKS(1)); 
+    xSemaphoreGive(mutex_v);
   }
 }
 
@@ -180,7 +204,15 @@ void ADS1115TaskFunction(void* parameter) {
     double voltage0_1 = (ADS2.toVoltage(adc0_1)); // Calculate voltage in mV
     double voltage1_1 = (ADS3.toVoltage(adc1_1)); // Calculate voltage in mV
 
-    double data[4] = {voltage0, voltage1, voltage0_1, voltage1_1};
+    int16_t adc_data[4] = {adc0, adc0_1, adc1, adc1_1};
+    double voltage_data[4] = {voltage0, voltage1, voltage0_1, voltage1_1};
+
+    uint8_t can_data[8];
+    for (int i = 0; i < 4; i++) {
+      can_data[i * 2 + 0] = highByte(adc_data[i]);
+      can_data[i * 2 + 1] = lowByte(adc_data[i]);
+    }
+
     //Serial.print("\t In0_1: "); Serial.print(voltage0_1); Serial.print("\t In1_1: "); Serial.print(voltage1_1);
     unsigned long currentTime = millis();
     unsigned long timePassed = currentTime - startTime1;
@@ -188,8 +220,13 @@ void ADS1115TaskFunction(void* parameter) {
     sampleIndex = 0;
     xSemaphoreTake(mutex_v, portMAX_DELAY); 
     // serializeJson(sensor1doc, Serial);
-    sendSerialData(data, "ADS1115", 1000*1/(timePassed));
+    sendSerialData(voltage_data, "ADS1115", 1000*1/(timePassed));
     // Serial.print("\t FPS: "); Serial.println(1000*1/(timePassed));
+
+
+    setData(&txMessage_1115, 0x12, TWAI_MSG_FLAG_EXTD, 8, can_data);
+    twai_transmit(&txMessage_1115, pdMS_TO_TICKS(1));
+
     xSemaphoreGive(mutex_v); 
   }
 }
@@ -209,8 +246,20 @@ void sendSerialData(double data[], String SensorType, int FPS) {
     sensorData["Sensors"][i] = data[i];
   }
   // doc["Sensors"][1] = data[1];
-  sensorData["FPS"] = 
+  sensorData["FPS"] = FPS;
 
   serializeJson(sensorData, Serial);
   Serial.println();
+}
+
+
+void setData(twai_message_t *txMessage, uint32_t id, uint32_t flags, uint8_t data_length_code, uint8_t *data) {
+  txMessage->identifier = id;           // Example identifier
+  txMessage->flags = flags;  // Example flags (extended frame)
+  txMessage->data_length_code = data_length_code;        // Example data length (8 bytes)
+
+  // txMessage.data = data;
+  for (int i = 0 ; i < 8; i++) {
+    txMessage->data[i] = data[i];
+  }
 }
