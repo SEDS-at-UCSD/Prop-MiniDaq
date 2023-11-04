@@ -70,7 +70,7 @@ function App() {
         setConnectStatus('Reconnecting');
       });
       client.on('message', (topic, message) => {
-        // setData(message);
+        console.log(message);
       });
     }
   }, [client]);
