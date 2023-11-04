@@ -11,15 +11,15 @@ function App() {
   const ads_1015_min = useState(0);
   const ads_1015_max = useState(100);
 
-  const [board1Data, setBoard1Data] = useState({
-    ads_1015: {
+  const [boardData, setBoardData] = useState({
+    b1_log_data_1015: {
       time: 0, 
       sensor_readings: [0, 0, 0, 0, 0],
     },
-    ads_1115: {
+    b1_log_data_1115: {
       time: 0,
       sensor_readings: [0, 0, 0, 0 ,0]
-    }
+    },
   });
   // const [altitudeData, setAltitudeData] = useState([{"altitude": 0, "time": 0}]);
   // const [currentAltitude, setCurrentAltitude] = useState({"altitude": 0, "time": 0});
@@ -61,16 +61,24 @@ function App() {
     if (client) {
       client.on('connect', () => {
         setConnectStatus('Connected');
+        mqttSub("b1_log_data_1015");
+        mqttSub("b1_log_data_1115");
       });
+
       client.on('error', (err) => {
         console.error('Connection error: ', err);
         client.end();
       });
+
       client.on('reconnect', () => {
         setConnectStatus('Reconnecting');
       });
+
       client.on('message', (topic, message) => {
-        console.log(message);
+        setBoardData((prevData)=>{
+          prevData[topic].time = message.time;
+          prevData[topic].sensor_readings = message.sensor_readings;
+        })
       });
     }
   }, [client]);
@@ -80,20 +88,20 @@ function App() {
     <div className="App">
       <p>{connectStatus}</p>
       <p>Recording data: {isSub ? "True" : "False"}</p>
-      {!isSub && <button onClick={()=>mqttSub("log_data_1015")} disabled={!(connectStatus === "Connected")}>Start Recording Data</button>}
       <button onClick={()=>setArrangable(!arrangable)}> {arrangable ? "Stop Arranging" : "Arrange"} </button>
 
-        { board1Data.ads_1015.sensor_readings.map((reading)=>{
+        { boardData.b1_log_data_1015.sensor_readings.map((reading)=>{
           return (
-          <Draggable disabled={!arrangable}>
-            <div>
-              <Knob 
-                value={reading}
-                min = {ads_1015_min}
-                max = {ads_1015_max}
-              />
-            </div>
-          </Draggable>)
+            <Draggable disabled={!arrangable}>
+              <div>
+                <Knob 
+                  value={reading}
+                  min = {ads_1015_min}
+                  max = {ads_1015_max}
+                />
+              </div>
+            </Draggable>
+          );
         })}
     </div>
   );

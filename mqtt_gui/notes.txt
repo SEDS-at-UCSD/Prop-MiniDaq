@@ -18,6 +18,5 @@ flask-socketio
 
 {
     time: Date,
-    board_name: string,
     sensor_readings: []
 }
