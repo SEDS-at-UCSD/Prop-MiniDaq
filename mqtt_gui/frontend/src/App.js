@@ -3,13 +3,18 @@ import { useState, useEffect } from "react";
 import * as mqtt from 'mqtt/dist/mqtt.min';
 import { Knob } from 'primereact/knob';
 import Draggable from 'react-draggable';
+import settings from "./settings.json";
+
 
 function App() {
   const [client, setClient] = useState(null);
   const [connectStatus, setConnectStatus] = useState("Not Connected");
   const [isSub, setIsSub] = useState(false);
-  const ads_1015_min = useState(0);
-  const ads_1015_max = useState(100);
+  const [ads_1015_min, setAds_1015_min] = useState(settings.ads_1015_min);
+  const [ads_1015_max, setAds_1015_max] = useState(settings.ads_1015_max);
+  const [ads_1115_min, setAds_1115_min] = useState(settings.ads_1115_min);
+  const [ads_1115_max, setAds_1115_max] = useState(settings.ads_1115_max);
+  const [showDisplaySettings, setShowDisplaySettings] = useState(false);
 
   const [boardData, setBoardData] = useState({
     b1_log_data_1015: {
@@ -21,10 +26,7 @@ function App() {
       sensor_readings: [0, 0, 0, 0 ,0]
     },
   });
-  // const [altitudeData, setAltitudeData] = useState([{"altitude": 0, "time": 0}]);
-  // const [currentAltitude, setCurrentAltitude] = useState({"altitude": 0, "time": 0});
-  // const [plotAltitudes,setPlotAltitudes] = useState([]);
-  // const [plotTimes,setPlotTimes] = useState([]);
+
   const [arrangable, setArrangable] = useState(false);
   
   const mqttSub = (topic) => {
@@ -76,8 +78,8 @@ function App() {
 
       client.on('message', (topic, message) => {
         setBoardData((prevData)=>{
-          prevData[topic].time = message.time;
-          prevData[topic].sensor_readings = message.sensor_readings;
+          prevData[topic] = message;
+          return prevData;
         })
       });
     }
@@ -86,14 +88,27 @@ function App() {
 
   return (
     <div className="App">
-      <p>{connectStatus}</p>
-      <p>Recording data: {isSub ? "True" : "False"}</p>
-      <button onClick={()=>setArrangable(!arrangable)}> {arrangable ? "Stop Arranging" : "Arrange"} </button>
+      <div className="settings">
+        <p className="status">{connectStatus}</p>
+        <p className="status">Recieving data: {isSub ? "True" : "False"}</p>
+        <button onClick={()=>setShowDisplaySettings(!showDisplaySettings)} className="status">{showDisplaySettings ? "Hide Settings" : "Show Settings"}</button>
+        { showDisplaySettings && (
+          <div className="min_max_settings">
+            <button onClick={()=>setArrangable(!arrangable)} className="status"> {arrangable ? "Stop Arranging" : "Arrange Dials"} </button>
+            <p>
+              Ads1015 Dial Minimum: &nbsp;
+              <input className="number_input" type="number" onChange={(e)=>setAds_1015_min(e.target.value)} value={ads_1015_min}></input>
+            </p>
+          </div>
+        )}
+      </div>
 
+      <h3 className="readings_label">Board 1 ADS1015: Last updated at time {boardData.b1_log_data_1015.time}</h3>
+      <div className="sensor_readings">
         { boardData.b1_log_data_1015.sensor_readings.map((reading)=>{
           return (
             <Draggable disabled={!arrangable}>
-              <div>
+              <div className="knob_container">
                 <Knob 
                   value={reading}
                   min = {ads_1015_min}
@@ -103,6 +118,7 @@ function App() {
             </Draggable>
           );
         })}
+      </div>
     </div>
   );
 }
