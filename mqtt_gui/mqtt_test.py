@@ -41,9 +41,8 @@ def read_serial_and_log_high_freq():
             # Read a line of data from the Serial Monitor
             data = ser.readline().decode('utf-8').strip()
             data_dict = json.loads(data)
-            #print (data)
             #print(data_dict)
-            # Log the data to a text file
+            # Log the data to a text fileß
             data_formatted = (
                 str(datetime.now())[11:] 
                 + " "
@@ -63,9 +62,10 @@ def read_serial_and_log_high_freq():
 
         except Exception as e:
             print(f"Serial read error: {e}, {data}")
+            
 
 def publish_data():
-
+    while True:
         with data_lock:
             if datatopass[1] == 'ADS1015':
                 client.publish(mqtt_log_1015, datatopass[0])
@@ -88,3 +88,6 @@ def main():
 
 if __name__ == '__main__':
     main()
+
+
+
