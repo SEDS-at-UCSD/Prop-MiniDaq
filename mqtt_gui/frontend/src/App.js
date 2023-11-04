@@ -102,23 +102,43 @@ function App() {
           </div>
         )}
       </div>
-
-      <h3 className="readings_label">Board 1 ADS1015: Last updated at time {boardData.b1_log_data_1015.time}</h3>
-      <div className="sensor_readings">
-        { boardData.b1_log_data_1015.sensor_readings.map((reading)=>{
-          return (
-            <Draggable disabled={!arrangable}>
-              <div className="knob_container">
-                <Knob 
-                  value={reading}
-                  min = {ads_1015_min}
-                  max = {ads_1015_max}
-                />
-              </div>
-            </Draggable>
-          );
-        })}
-      </div>
+      
+      <Draggable disabled={!arrangable}>
+        <div className="dial_cluster">
+          <h3 className="readings_label">Board 1 ADS1015: Last updated at time {boardData.b1_log_data_1015.time}</h3>
+          <div className="sensor_readings">
+            { boardData.b1_log_data_1015.sensor_readings.map((reading)=>{
+              return (
+                  <div className="knob_container">
+                    <Knob 
+                      value={reading}
+                      min = {ads_1015_min}
+                      max = {ads_1015_max}
+                    />
+                  </div>
+              );
+            })}
+          </div>
+        </div>
+      </Draggable>
+      <Draggable disabled={!arrangable}>
+        <div className="dial_cluster">
+          <h3 className="readings_label">Board 1 ADS1115: Last updated at time {boardData.b1_log_data_1115.time}</h3>
+          <div className="sensor_readings">
+            { boardData.b1_log_data_1115.sensor_readings.map((reading)=>{
+              return (
+                <div className="knob_container">
+                  <Knob 
+                    value={reading}
+                    min = {ads_1115_min}
+                    max = {ads_1115_max}
+                  />
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </Draggable>
     </div>
   );
 }

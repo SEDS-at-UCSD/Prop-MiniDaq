@@ -35,3 +35,7 @@
 .min_max_settings {
   margin-top: 10px;
 }
+
+.dial_cluster {
+  width: fit-content;
+}
