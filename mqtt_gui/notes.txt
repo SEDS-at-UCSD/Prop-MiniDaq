@@ -17,6 +17,6 @@ flask
 flask-socketio
 
 {
-    time: Date,
+    time: datetime.now(),
     sensor_readings: []
 }

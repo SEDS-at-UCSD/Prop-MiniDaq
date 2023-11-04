@@ -1,4 +1,2 @@
 pyserial
 paho-mqtt
-flask
-flask-socketio
