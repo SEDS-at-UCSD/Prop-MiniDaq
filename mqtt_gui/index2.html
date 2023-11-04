@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>ESP32 Data Monitor</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/paho-mqtt/1.0.2/mqttws31.js"></script>
+</head>
+<body>
+    <h1>ESP32 Data:</h1>
+    <p id="esp32-data">Waiting for data...</p>
+    <h1>Log File:</h1>
+    <div class="flex-container">
+        <div class="log-container">
+            <h1>Log File 1:</h1>
+            <pre class="log-content" id="log-data-1">Waiting for log data...<br></pre>
+        </div>
+        <div class="log-container">
+            <h1>Log File 2:</h1>
+            <pre class="log-content" id="log-data-2">Waiting for log data...<br></pre>
+        </div>
+    </div>
+
+    <script>
+        // MQTT Broker configuration
+        //var mqttBroker = "localhost";
+        //var mqttBroker = "ws://localhost:1883/mqtt"; 
+        var mqttBroker = "ws://127.0.0.1:9001/mqtt"; 
+        var mqttTopicSerial = "serial_data";
+        var mqttTopicLog1015 = "log_data_1015";
+        var mqttTopicLog1115 = "log_data_1115";
+
+        // Create an MQTT client
+        var client = new Paho.MQTT.Client(mqttBroker, "web-client");
+
+        // Set up callback functions
+        client.onConnectionLost = onConnectionLost;
+        client.onMessageArrived = onMessageArrived;
+
+        function onConnectionLost(responseObject) {
+            if (responseObject.errorCode !== 0) {
+                console.log("Connection lost: " + responseObject.errorMessage);
+            }
+        }
+
+        function onMessageArrived(message) {
+            
+            console.log("Received message on topic: " + message.destinationName);
+            console.log("Message payload: " + message.payloadString);
+            // Update the web interface based on the received message
+            if (message.destinationName === mqttTopicSerial) {
+                document.getElementById('esp32-data').textContent = message.payloadString;
+            } else if (message.destinationName === mqttTopicLog1015) {
+                document.getElementById('log-data-1').textContent = message.payloadString;
+            }
+            else if (message.destinationName === mqttTopicLog1115) {
+                document.getElementById('log-data-2').textContent = message.payloadString;
+            }
+        }
+
+        // Connect to the MQTT broker
+        client.connect({
+            onSuccess: onConnect,
+            onFailure: onFailure
+        });
+
+        function onConnect() {
+            console.log("Connected to MQTT broker");
+            // Subscribe to MQTT topics
+            client.subscribe(mqttTopicSerial);
+            client.subscribe(mqttTopicLog1015);
+            client.subscribe(mqttTopicLog1115);
+        }
+
+        function onFailure(errorMessage) {
+            console.log("Connection failed: " + errorMessage.errorMessage);
+        }
+    </script>
+</body>
+</html>
