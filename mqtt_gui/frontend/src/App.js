@@ -1,30 +1,23 @@
 import './App.css';
 import { useState, useEffect } from "react";
 import * as mqtt from 'mqtt/dist/mqtt.min';
-import { Knob } from 'primereact/knob';
-import Draggable from 'react-draggable';
-import settings from "./settings.json";
+import { DialCluster } from './components/DialCluster';
 
 
 function App() {
   const [client, setClient] = useState(null);
   const [connectStatus, setConnectStatus] = useState("Not Connected");
   const [isSub, setIsSub] = useState(false);
-  const [ads_1015_min, setAds_1015_min] = useState(settings.ads_1015_min);
-  const [ads_1015_max, setAds_1015_max] = useState(settings.ads_1015_max);
-  const [ads_1115_min, setAds_1115_min] = useState(settings.ads_1115_min);
-  const [ads_1115_max, setAds_1115_max] = useState(settings.ads_1115_max);
   const [showDisplaySettings, setShowDisplaySettings] = useState(false);
 
-  const [boardData, setBoardData] = useState({
-    b1_log_data_1015: {
-      time: 0, 
-      sensor_readings: [0, 0, 0, 0, 0],
-    },
-    b1_log_data_1115: {
-      time: 0,
-      sensor_readings: [0, 0, 0, 0 ,0]
-    },
+  const [b1_data_1015, setB1_1015Data] = useState({
+    time: 0, 
+    sensor_readings: [0, 0, 0, 0, 0]
+  });
+  
+  const [b1_data_1115, setB1_1115Data] = useState({
+    time: 0, 
+    sensor_readings: [0, 0, 0, 0, 0]
   });
 
   const [arrangable, setArrangable] = useState(false);
@@ -77,14 +70,17 @@ function App() {
       });
 
       client.on('message', (topic, message) => {
-        setBoardData((prevData)=>{
-          prevData[topic] = message;
-          return prevData;
-        })
+
+        message = JSON.parse(String(message));
+        console.log(message);
+        if (topic === 'b1_log_data_1015') {
+          setB1_1015Data(message);
+        } else {
+          setB1_1115Data(message);
+        }
       });
     }
   }, [client]);
-
 
   return (
     <div className="App">
@@ -95,50 +91,27 @@ function App() {
         { showDisplaySettings && (
           <div className="min_max_settings">
             <button onClick={()=>setArrangable(!arrangable)} className="status"> {arrangable ? "Stop Arranging" : "Arrange Dials"} </button>
-            <p>
+            {/* <p>
               Ads1015 Dial Minimum: &nbsp;
               <input className="number_input" type="number" onChange={(e)=>setAds_1015_min(e.target.value)} value={ads_1015_min}></input>
-            </p>
+            </p> */}
           </div>
         )}
       </div>
       
-      <Draggable disabled={!arrangable}>
-        <div className="dial_cluster">
-          <h3 className="readings_label">Board 1 ADS1015: Last updated at time {boardData.b1_log_data_1015.time}</h3>
-          <div className="sensor_readings">
-            { boardData.b1_log_data_1015.sensor_readings.map((reading)=>{
-              return (
-                  <div className="knob_container">
-                    <Knob 
-                      value={reading}
-                      min = {ads_1015_min}
-                      max = {ads_1015_max}
-                    />
-                  </div>
-              );
-            })}
-          </div>
-        </div>
-      </Draggable>
-      <Draggable disabled={!arrangable}>
-        <div className="dial_cluster">
-          <h3 className="readings_label">Board 1 ADS1115: Last updated at time {boardData.b1_log_data_1115.time}</h3>
-          <div className="sensor_readings">
-            { boardData.b1_log_data_1115.sensor_readings.map((reading)=>{
-              return (
-                <div className="knob_container">
-                  <Knob 
-                    value={reading}
-                    min = {ads_1115_min}
-                    max = {ads_1115_max}
-                  />
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      </Draggable>
+      <DialCluster 
+        label="Board 1 ADS1015"
+        data={b1_data_1015}
+        arrangable
+        sensor_name="ads_1015"
+      />
+
+      <DialCluster 
+        label="Board 1 ADS1115"
+        data={b1_data_1115}
+        arrangable
+        sensor_name="ads_1115"
+      />
     </div>
   );
 }

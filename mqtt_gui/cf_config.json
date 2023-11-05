@@ -1,4 +1,4 @@
 {
-    "Conv_Factor_ADS1015": 0,
-    "Conv_Factor_ADS1115": 0
+    "Conv_Factor_ADS1015": 1000,
+    "Conv_Factor_ADS1115": 1000
 }

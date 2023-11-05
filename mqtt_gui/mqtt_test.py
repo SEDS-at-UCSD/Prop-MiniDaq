@@ -77,16 +77,16 @@ def read_serial_and_log_high_freq():
                 datatopass[0] = data_formatted
                 datatopass[1] = data_dict['SensorType']
                 publish_json = (
-                "{time: " + str(datetime.now())[11:] 
-                + ", "
-                + "sensor_readings: "
+                "{\"time\": \"" + str(datetime.now())[11:19] 
+                + "\","
+                + "\"sensor_readings\": "
                 )
                 converted_values = []
                 for i in range(len(data_dict['Sensors'])):
                     if datatopass[1] == 'ADS1015':
-                        converted_values.append((data_dict['Sensors'][i] * cf_1015))
+                        converted_values.append(round(data_dict['Sensors'][i] * cf_1015, 1))
                     else:
-                        converted_values.append((data_dict['Sensors'][i] * cf_1115))
+                        converted_values.append(round(data_dict['Sensors'][i] * cf_1115, 1))
             
                 publish_json += str(converted_values)
                 publish_json += '}'
@@ -100,11 +100,12 @@ def read_serial_and_log_high_freq():
 
 def publish_data():
     while True:
+        time.sleep(0.1);
         with data_lock:
             if datatopass[1] == 'ADS1015':
                 client.publish(b1_mqtt_log_1015, datatopass[2])
                 #print(datatopass)
-            elif datatopass[1] == 'ADS1115':
+            if datatopass[1] == 'ADS1115':
                 client.publish(b1_mqtt_log_1115, datatopass[2])
                 #print(datatopass)
         
@@ -124,6 +125,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-
-
-
