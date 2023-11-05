@@ -1,5 +1,5 @@
 .App {
-  text-align: center;
+  text-align: left;
 }
 
 .chart-container {
@@ -12,6 +12,7 @@
   position: absolute;
   text-align: right;
   right: 15px;
+  top: 0px;
 }
 
 .sensor_readings {
@@ -29,14 +30,20 @@
   margin-left: 20px;
 }
 
-.number_input {
-  width: 50px;
-}
-
 .min_max_settings {
   margin-top: 10px;
 }
 
 .dial_cluster {
   width: fit-content;
+  margin-right: 100px;
+}
+
+.board_cluster {
+  display: inline-flex;
+  margin-bottom: 100px;
+}
+
+.status {
+  margin-bottom: 15px;
 }
