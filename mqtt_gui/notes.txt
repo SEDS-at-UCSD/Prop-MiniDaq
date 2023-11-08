@@ -1,3 +1,22 @@
+STEPS FOR RUNNING
+1. download local dependencies
+2. download mosquitto
+3. add the following to the mosquitto config file
+    listener 1883
+    protocol mqtt
+
+    listener 9001
+    protocol websockets
+    allow_anonymous true
+
+4. start the mosquitto broker
+5. in a seperate terminal, cd into mqtt_gui and run mqtt_test.py (with board plugged in)
+6. in another terminal, cd into frontend and do 'npm start'
+7. Can either view the gui at localhost:3000 at this point, or can open another terminal and run
+'npm run electron' to have a local application open 
+
+
+
 venv name = propdaq
 quickstart command:
 conda activate propdaq
@@ -15,8 +34,3 @@ pyserial
 paho-mqtt
 flask
 flask-socketio
-
-{
-    time: datetime.now(),
-    sensor_readings: []
-}
