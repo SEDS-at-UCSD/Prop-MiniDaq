@@ -37,7 +37,11 @@ Uncomment `allow_anonymous` and set to true as such:\
 3. **Run Frontend** in separate terminal window\
    `cd mqtt_gui/frontend`\
    `npm start`\
-    Access GUI on localhost:3000
+    Access GUI on `localhost:3000`
+
+
+## Other Instructions
+- Change conversion factor in config.json
    
    
    
