@@ -26,15 +26,15 @@ Uncomment `allow_anonymous` and set to true as such:\
 
 
 ## Order of Operations
-1. ** Run Local MQTT Server ** on one terminal window\
+1. **Run Local MQTT Server** on one terminal window\
    Run mqtt server with config file 
    `/opt/homebrew/opt/mosquitto/sbin/mosquitto -c /opt/homebrew/etc/mosquitto/mosquitto.conf`\
    match addresses of mosquitto and mosquitto.conf with local addresses
-2. ** Run main.py ** in separate terminal window\
+2. **Run main.py** in separate terminal window\
    `cd mqtt_gui`\
    `./main.py`\
     [Make sure PCB is plugged in]
-3. ** Run frontend ** in separate terminal window\
+3. **Run Frontend** in separate terminal window\
    `cd mqtt_gui/frontend`\
    `npm start`\
     Access GUI on localhost:3000
