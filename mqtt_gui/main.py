@@ -100,7 +100,7 @@ def read_serial_and_log_high_freq():
 
 def publish_data():
     while True:
-        time.sleep(0.1);
+        time.sleep(0.05)
         with data_lock:
             if datatopass[1] == 'ADS1015':
                 client.publish(b1_mqtt_log_1015, datatopass[2])
