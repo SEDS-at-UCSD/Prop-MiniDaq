@@ -1,35 +1,32 @@
 
 
-export const SwitchConfigure = ({switchStates, sendMessage}) => {
+export const SwitchConfigure = ({switchStates, sendMessage, editable}) => {
     return (
         <div>
             { Object.entries(switchStates).map(([entry,value], num) => {
                 return (
                 <p>
-                    {entry}: &nbsp;
+                    Switch {entry}: &nbsp;
                     <input 
                         className="number_input" 
                         type="radio" 
                         onChange={()=>{
-                            const newStates = switchStates;
-                            newStates[entry] = 1;
-                            sendMessage("switch_states",newStates);
+                            const message = entry + "1";
+                            sendMessage("switch_states_update",message);
                         }}
                         checked={value === 1}
+                        disabled={!editable}
                     ></input>
                     On
                     <input 
                         className="number_input" 
                         type="radio" 
                         onChange={()=>{
-                            sendMessage((prevStates)=>{
-                                prevStates[entry] = 0;
-                                return {
-                                    ...prevStates
-                                }
-                            });
+                            const message = entry + "0";
+                            sendMessage("switch_states_update",message);
                         }}
                         checked={value === 0}
+                        disabled={!editable}
                     ></input>
                     Off
                 </p>

@@ -21,11 +21,11 @@ function App() {
   const [b3_data_1115, setB3_1115Data] = useState(initialState);
 
   const [switchStates, setSwitchStates] = useState({
-    Switch1: 0,
-    Switch2: 0,
-    Switch3: 0,
-    Switch4: 0,
-    Swttch5: 0
+    0: 0,
+    1: 0,
+    2: 0,
+    3: 0,
+    4: 0
   });
 
   const [arrangable, setArrangable] = useState(false);
@@ -43,7 +43,8 @@ function App() {
   };
 
   const sendMessage = (topic, message) => {
-    client.publish(topic,JSON.stringify(message),(error)=>{
+    console.log(message);
+    client.publish(topic,message,(error)=>{
       if (error) {
         console.log("Publish to " + topic + " error", error)
         return
@@ -75,6 +76,7 @@ function App() {
         setConnectStatus('Connected');
         mqttSub("b1_log_data_1015");
         mqttSub("b1_log_data_1115");
+        mqttSub("switch_states_status");
       });
 
       client.on('error', (err) => {
@@ -91,8 +93,9 @@ function App() {
         message = JSON.parse(String(message));
         if (topic === 'b1_log_data_1015') {
           setB1_1015Data(message);
-        } else if (topic === "switch_states") {
-          setSwitchStates(message);
+        } else if (topic === "switch_states_status") {
+          console.log("here");
+          setSwitchStates((prev)=>{return {...prev, ...message}});
         } else {
           setB1_1115Data(message);
         }
@@ -108,11 +111,12 @@ function App() {
         <div className="min_max_settings">
           <button onClick={()=>setArrangable(!arrangable)} className="status"> {arrangable ? "Stop Arranging" : "Arrange Dials"} </button>
         </div>
-        <button onClick={()=>setConfigureSwitches(!configureSwitches)} className="status"> {configureSwitches ? "Hide Switch Config" : "Show Switch Config"} </button>
-        {isSub && configureSwitches && 
+        <button onClick={()=>setConfigureSwitches(!configureSwitches)} className="status"> {configureSwitches ? "Stop Changing States" : "Change Switch States"} </button>
+        {isSub && 
           <SwitchConfigure 
             switchStates={switchStates}
             sendMessage={sendMessage}
+            editable={configureSwitches}
           />
         }
       </div>
