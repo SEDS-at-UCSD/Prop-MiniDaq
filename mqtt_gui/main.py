@@ -12,6 +12,8 @@ mqtt_broker_address = "localhost"
 mqtt_topic_serial = "serial_data"
 b1_mqtt_log_1015 = "b1_log_data_1015"
 b1_mqtt_log_1115 = "b1_log_data_1115"
+mqtt_switch_states_update = "switch_states_update"
+mqtt_switch_states_status = "switch_states_status"
 
 
 with open('cf_config.json', 'r') as json_file:
@@ -41,6 +43,7 @@ data_lock = threading.Lock()
 def on_connect(client, userdata, flags, rc):
     print("Connected to MQTT broker with result code "+str(rc))
     client.subscribe(mqtt_topic_serial)
+    client.subscribe(mqtt_switch_states_update)
 
 def on_message(client, userdata, message):
     print(f"Received message on topic '{message.topic}': {message.payload.decode('utf-8')}")
