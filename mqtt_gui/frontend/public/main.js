@@ -13,6 +13,7 @@ const createWindow = () => {
       preload: path.join(__dirname, 'preload.js')
     }
   })
+  mainWindow.maximize();
 
   // and load the index.html of the app.
   mainWindow.loadURL('http://localhost:3000')
