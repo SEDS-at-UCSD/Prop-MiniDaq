@@ -6,7 +6,7 @@ export const SwitchConfigure = ({switchStates, sendMessage, editable}) => {
             { Object.entries(switchStates).map(([entry,value], num) => {
                 return (
                 <p>
-                    Switch {entry}: &nbsp;
+                    Sol {entry}: &nbsp;
                     <input 
                         className="number_input" 
                         type="radio" 

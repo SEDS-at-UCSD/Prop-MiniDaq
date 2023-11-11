@@ -19,6 +19,10 @@ function App() {
   const [b2_data_1115, setB2_1115Data] = useState(initialState);
   const [b3_data_1015, setB3_1015Data] = useState(initialState);
   const [b3_data_1115, setB3_1115Data] = useState(initialState);
+  const [b4_data_1015, setB4_1015Data] = useState(initialState);
+  const [b4_data_1115, setB4_1115Data] = useState(initialState);
+  const [b5_data_1015, setB5_1015Data] = useState(initialState);
+  const [b5_data_1115, setB5_1115Data] = useState(initialState);
 
   const [switchStates, setSwitchStates] = useState({
     0: 0,
@@ -165,7 +169,36 @@ function App() {
           sensor_name="ads_1115"
         />
       </div>
+
+      <div className="board_cluster">
+        <DialCluster 
+          label="Board 4 ADS1015"
+          data={b4_data_1015}
+          arrangable
+          sensor_name="ads_1015"
+        />
+        <DialCluster 
+          label="Board 4 ADS1115"
+          data={b4_data_1115}
+          arrangable
+          sensor_name="ads_1115"
+        />
+      </div>
       
+      <div className="board_cluster">
+        <DialCluster 
+          label="Board 5 ADS1015"
+          data={b5_data_1015}
+          arrangable
+          sensor_name="ads_1015"
+        />
+        <DialCluster 
+          label="Board 5 ADS1115"
+          data={b5_data_1115}
+          arrangable
+          sensor_name="ads_1115"
+        />
+      </div>
     </div>
   );
 }
