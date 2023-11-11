@@ -47,3 +47,21 @@
 .status {
   margin-bottom: 15px;
 }
+
+.solenoid_control {
+  font-size: 30px;
+}
+
+.on_selected {
+  background-color: rgb(28, 177, 28);
+}
+
+.off_selected {
+  background-color: red;
+}
+
+.sol_button {
+  font-size: 30px;
+  height: 60px;
+  width: 120px;
+}

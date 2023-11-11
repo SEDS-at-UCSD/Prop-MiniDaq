@@ -9,7 +9,6 @@ function App() {
   const [client, setClient] = useState(null);
   const [connectStatus, setConnectStatus] = useState("Not Connected");
   const [isSub, setIsSub] = useState(false);
-  const [configureSwitches, setConfigureSwitches] = useState(false);
 
   const initialState = {time: 0, sensor_readings: [0, 0, 0, 0]}
   
@@ -25,7 +24,7 @@ function App() {
   const [b5_data_1115, setB5_1115Data] = useState(initialState);
 
   const [switchStates, setSwitchStates] = useState({
-    0: 0,
+    0: 1,
     1: 0,
     2: 0,
     3: 0,
@@ -115,14 +114,11 @@ function App() {
         <div className="min_max_settings">
           <button onClick={()=>setArrangable(!arrangable)} className="status"> {arrangable ? "Stop Arranging" : "Arrange Dials"} </button>
         </div>
-        <button onClick={()=>setConfigureSwitches(!configureSwitches)} className="status"> {configureSwitches ? "Stop Changing States" : "Change Switch States"} </button>
-        {isSub && 
-          <SwitchConfigure 
-            switchStates={switchStates}
-            sendMessage={sendMessage}
-            editable={configureSwitches}
-          />
-        }
+        <SwitchConfigure 
+          switchStates={switchStates}
+          sendMessage={sendMessage}
+          editable={isSub}
+        />
       </div>
       
       <div className="board_cluster">
