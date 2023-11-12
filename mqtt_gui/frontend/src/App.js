@@ -23,7 +23,7 @@ function App() {
     b4_log_data_1015: initialState,
     b4_log_data_1115: initialState,
     b5_log_data_1015: initialState,
-    b5_log_data_1115: initialState
+    b5_log_data_1115: initialState,
   })
   const [switchStates, setSwitchStates] = useState({
     0: 0,
@@ -94,7 +94,6 @@ function App() {
       client.on('message', (topic, message) => {
 
         message = JSON.parse(String(message));
-
         if (topic === "switch_states_status") {
           setSwitchStates((prev)=>{return {...prev, ...message}});
         } else {
