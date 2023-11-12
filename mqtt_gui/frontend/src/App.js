@@ -79,6 +79,8 @@ function App() {
         setConnectStatus('Connected');
         mqttSub("b1_log_data_1015");
         mqttSub("b1_log_data_1115");
+        mqttSub("b2_log_data_1015");
+        mqttSub("b2_log_data_1115");
         mqttSub("switch_states_status");
       });
 
@@ -96,12 +98,19 @@ function App() {
         message = JSON.parse(String(message));
         if (topic === 'b1_log_data_1015') {
           setB1_1015Data(message);
-        } else if (topic === "switch_states_status") {
-          console.log("here");
-          setSwitchStates((prev)=>{return {...prev, ...message}});
-        } else {
+        } else if (topic === 'b1_log_data_1115') {
           setB1_1115Data(message);
         }
+        else if (topic === 'b2_log_data_1015') {
+          setB2_1015Data(message);
+        }
+        else if (topic === 'b2_log_data_1115') {
+          setB2_1115Data(message);
+        }
+        else if (topic === "switch_states_status") {
+          console.log("here");
+          setSwitchStates((prev)=>{return {...prev, ...message}});
+        } 
       });
     }
   }, [client]);
