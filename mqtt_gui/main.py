@@ -7,6 +7,7 @@ import threading
 from threading import Event
 
 
+
 # MQTT configuration
 mqtt_broker_address = "localhost"
 mqtt_topic_serial = "serial_data"
@@ -75,11 +76,12 @@ def on_connect(client, userdata, flags, rc):
 
 def on_message(client, userdata, message):
     print(f"Received message on topic '{message.topic}': {message.payload.decode('utf-8')}")
+    command = message.payload.decode('utf-8')
     if (message.topic == "switch_states_update"):
         print(command)
         ports[0].read_all()  # Read one line (you can also use ser.read() for binary data)
         ports[0].write(command.encode())
-        print("Command sent:", command);
+        print("Command sent:", command)
 
 
 def read_serial_and_log_high_freq_1():
