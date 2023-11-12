@@ -52,6 +52,16 @@ def open_serial_ports():
         ports[2] = serial.Serial('/dev/cu.usbserial-3', 921600)  
     except Exception as e:
             print(f"Port error: {e}")
+    
+    try:
+        ports[3] = serial.Serial('/dev/cu.usbserial-4', 921600)  
+    except Exception as e:
+            print(f"Port error: {e}")
+    
+    try:
+        ports[4] = serial.Serial('/dev/cu.usbserial-2', 921600)  
+    except Exception as e:
+            print(f"Port error: {e}")
 
 
 # Open a text file for appending
@@ -61,6 +71,8 @@ raw_log_file_2 = open('raw_serial_log_2.txt', 'a')
 raw_log_file_3 = open('raw_serial_log_3.txt', 'a')
 raw_log_file_4 = open('raw_serial_log_4.txt', 'a')
 raw_log_file_5 = open('raw_serial_log_5.txt', 'a')
+
+board_to_log_file_dict = {"Board 1": raw_log_file, "Board 2": raw_log_file_2, "Board 3": raw_log_file_3, "Board 4": raw_log_file_4, "Board 5": raw_log_file_5}
 
 event = Event()
 read_event = Event()
@@ -97,6 +109,7 @@ def read_serial_and_log_high_freq_1():
             data_dict = json.loads(data)
 
             datatopass[3] = data_dict['BoardID']
+            file_to_write = board_to_log_file_dict[data_dict['BoardID']]
             
             #print(data_dict)
             # Log the data to a text file
@@ -110,6 +123,10 @@ def read_serial_and_log_high_freq_1():
                 + "  ")
             for i in range(len(data_dict['Sensors'])):
                 data_formatted += str(data_dict['Sensors'][i]) + "  "
+            
+            data_formatted += "\n"
+
+
             
             #print (data_formatted)
             #print (publish_json)
@@ -134,8 +151,9 @@ def read_serial_and_log_high_freq_1():
                 publish_json += str(converted_values)
                 publish_json += '}'
                 datatopass[2] = publish_json
-                raw_log_file.write(data_formatted)
-                raw_log_file.flush()  # Flush the buffer to ensure data is written immediately
+
+                file_to_write.write(data_formatted)
+                file_to_write.flush()  # Flush the buffer to ensure data is written immediately
 
         except Exception as e:
             print(f"Serial read error: {e}")
@@ -153,6 +171,7 @@ def read_serial_and_log_high_freq_2():
 
 
             datatopass2[3] = data_dict['BoardID']
+            file_to_write = board_to_log_file_dict[data_dict['BoardID']]
             
             #print(data_dict)
             # Log the data to a text file
@@ -166,6 +185,8 @@ def read_serial_and_log_high_freq_2():
                 + "  ")
             for i in range(len(data_dict['Sensors'])):
                 data_formatted += str(data_dict['Sensors'][i]) + "  "
+            
+            data_formatted += "\n"
             
             #print (data_formatted)
             #print (publish_json)
@@ -190,8 +211,8 @@ def read_serial_and_log_high_freq_2():
                 publish_json += str(converted_values)
                 publish_json += '}'
                 datatopass2[2] = publish_json
-                raw_log_file_2.write(data_formatted)
-                raw_log_file_2.flush()  # Flush the buffer to ensure data is written immediately
+                file_to_write.write(data_formatted)
+                file_to_write.flush()  # Flush the buffer to ensure data is written immediately
 
         except Exception as e:
             print(f"Serial read error: {e}")
@@ -207,6 +228,7 @@ def read_serial_and_log_high_freq_3():
 
 
             datatopass3[3] = data_dict['BoardID']
+            file_to_write = board_to_log_file_dict[data_dict['BoardID']]
             
             #print(data_dict)
             # Log the data to a text file
@@ -220,6 +242,8 @@ def read_serial_and_log_high_freq_3():
                 + "  ")
             for i in range(len(data_dict['Sensors'])):
                 data_formatted += str(data_dict['Sensors'][i]) + "  "
+
+            data_formatted += "\n"
             
             #print (data_formatted)
             #print (publish_json)
@@ -244,8 +268,8 @@ def read_serial_and_log_high_freq_3():
                 publish_json += str(converted_values)
                 publish_json += '}'
                 datatopass3[2] = publish_json
-                raw_log_file_3.write(data_formatted)
-                raw_log_file_3.flush()  # Flush the buffer to ensure data is written immediately
+                file_to_write.write(data_formatted)
+                file_to_write.flush()  # Flush the buffer to ensure data is written immediately
 
         except Exception as e:
             print(f"Serial read error: {e}")
@@ -261,6 +285,7 @@ def read_serial_and_log_high_freq_4():
 
 
             datatopass4[3] = data_dict['BoardID']
+            file_to_write = board_to_log_file_dict[data_dict['BoardID']]
             
             #print(data_dict)
             # Log the data to a text file
@@ -274,6 +299,8 @@ def read_serial_and_log_high_freq_4():
                 + "  ")
             for i in range(len(data_dict['Sensors'])):
                 data_formatted += str(data_dict['Sensors'][i]) + "  "
+            
+            data_formatted += "\n"
             
             #print (data_formatted)
             #print (publish_json)
@@ -298,8 +325,8 @@ def read_serial_and_log_high_freq_4():
                 publish_json += str(converted_values)
                 publish_json += '}'
                 datatopass4[2] = publish_json
-                raw_log_file_4.write(data_formatted)
-                raw_log_file_4.flush()  # Flush the buffer to ensure data is written immediately
+                file_to_write.write(data_formatted)
+                file_to_write.flush()  # Flush the buffer to ensure data is written immediately
 
         except Exception as e:
             print(f"Serial read error: {e}")
@@ -315,6 +342,7 @@ def read_serial_and_log_high_freq_5():
 
 
             datatopass4[3] = data_dict['BoardID']
+            file_to_write = board_to_log_file_dict[data_dict['BoardID']]
             
             #print(data_dict)
             # Log the data to a text file
@@ -328,6 +356,8 @@ def read_serial_and_log_high_freq_5():
                 + "  ")
             for i in range(len(data_dict['Sensors'])):
                 data_formatted += str(data_dict['Sensors'][i]) + "  "
+            
+            data_formatted += "\n"
             
             #print (data_formatted)
             #print (publish_json)
@@ -352,8 +382,8 @@ def read_serial_and_log_high_freq_5():
                 publish_json += str(converted_values)
                 publish_json += '}'
                 datatopass4[2] = publish_json
-                raw_log_file_4.write(data_formatted)
-                raw_log_file_4.flush()  # Flush the buffer to ensure data is written immediately
+                file_to_write.write(data_formatted)
+                file_to_write.flush()  # Flush the buffer to ensure data is written immediately
 
         except Exception as e:
             print(f"Serial read error: {e}")
