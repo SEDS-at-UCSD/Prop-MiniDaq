@@ -88,7 +88,7 @@ function App() {
       });
 
       client.on('reconnect', () => {
-        setConnectStatus('Reconnecting');
+        setConnectStatus('Lost connection, attempting reconnect');
       });
 
       client.on('message', (topic, message) => {
