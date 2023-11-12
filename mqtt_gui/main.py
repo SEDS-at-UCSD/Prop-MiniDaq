@@ -47,6 +47,11 @@ def open_serial_ports():
         ports[1] = serial.Serial('/dev/cu.usbserial-1', 921600)  
     except Exception as e:
             print(f"Port error: {e}")
+    
+    try:
+        ports[2] = serial.Serial('/dev/cu.usbserial-3', 921600)  
+    except Exception as e:
+            print(f"Port error: {e}")
 
 
 # Open a text file for appending
@@ -190,7 +195,169 @@ def read_serial_and_log_high_freq_2():
 
         except Exception as e:
             print(f"Serial read error: {e}")
-            #, {data}")
+            #, {data}") 
+
+
+def read_serial_and_log_high_freq_3():
+    while True:
+        try:
+            # Read a line of data from the Serial Monitor
+            data = ports[2].readline().decode('utf-8').strip()
+            data_dict = json.loads(data)
+
+
+            datatopass3[3] = data_dict['BoardID']
+            
+            #print(data_dict)
+            # Log the data to a text file
+            
+            data_formatted = (
+                str(datetime.now())[11:] 
+                + " "
+                + str(data_dict['BoardID'])
+                + "  "
+                + str(data_dict['SensorType'])
+                + "  ")
+            for i in range(len(data_dict['Sensors'])):
+                data_formatted += str(data_dict['Sensors'][i]) + "  "
+            
+            #print (data_formatted)
+            #print (publish_json)
+            #print(data_dict)
+            #print (datatopass)                
+            
+            with data_lock:
+                datatopass3[0] = data_formatted
+                datatopass3[1] = data_dict['SensorType']
+                publish_json = (
+                "{\"time\": \"" + str(datetime.now())[11:22] 
+                + "\","
+                + "\"sensor_readings\": "
+                )
+                converted_values = []
+                for i in range(len(data_dict['Sensors'])):
+                    if datatopass3[1] == 'ADS1015':
+                        converted_values.append(round(data_dict['Sensors'][i] * cf_1015, 1))
+                    else:
+                        converted_values.append(round(data_dict['Sensors'][i] * cf_1115, 1))
+            
+                publish_json += str(converted_values)
+                publish_json += '}'
+                datatopass3[2] = publish_json
+                raw_log_file_3.write(data_formatted)
+                raw_log_file_3.flush()  # Flush the buffer to ensure data is written immediately
+
+        except Exception as e:
+            print(f"Serial read error: {e}")
+            #, {data}") 
+
+
+def read_serial_and_log_high_freq_4():
+    while True:
+        try:
+            # Read a line of data from the Serial Monitor
+            data = ports[3].readline().decode('utf-8').strip()
+            data_dict = json.loads(data)
+
+
+            datatopass4[3] = data_dict['BoardID']
+            
+            #print(data_dict)
+            # Log the data to a text file
+            
+            data_formatted = (
+                str(datetime.now())[11:] 
+                + " "
+                + str(data_dict['BoardID'])
+                + "  "
+                + str(data_dict['SensorType'])
+                + "  ")
+            for i in range(len(data_dict['Sensors'])):
+                data_formatted += str(data_dict['Sensors'][i]) + "  "
+            
+            #print (data_formatted)
+            #print (publish_json)
+            #print(data_dict)
+            #print (datatopass)                
+            
+            with data_lock:
+                datatopass4[0] = data_formatted
+                datatopass4[1] = data_dict['SensorType']
+                publish_json = (
+                "{\"time\": \"" + str(datetime.now())[11:22] 
+                + "\","
+                + "\"sensor_readings\": "
+                )
+                converted_values = []
+                for i in range(len(data_dict['Sensors'])):
+                    if datatopass4[1] == 'ADS1015':
+                        converted_values.append(round(data_dict['Sensors'][i] * cf_1015, 1))
+                    else:
+                        converted_values.append(round(data_dict['Sensors'][i] * cf_1115, 1))
+            
+                publish_json += str(converted_values)
+                publish_json += '}'
+                datatopass4[2] = publish_json
+                raw_log_file_4.write(data_formatted)
+                raw_log_file_4.flush()  # Flush the buffer to ensure data is written immediately
+
+        except Exception as e:
+            print(f"Serial read error: {e}")
+            #, {data}") 
+
+
+def read_serial_and_log_high_freq_5():
+    while True:
+        try:
+            # Read a line of data from the Serial Monitor
+            data = ports[4].readline().decode('utf-8').strip()
+            data_dict = json.loads(data)
+
+
+            datatopass4[3] = data_dict['BoardID']
+            
+            #print(data_dict)
+            # Log the data to a text file
+            
+            data_formatted = (
+                str(datetime.now())[11:] 
+                + " "
+                + str(data_dict['BoardID'])
+                + "  "
+                + str(data_dict['SensorType'])
+                + "  ")
+            for i in range(len(data_dict['Sensors'])):
+                data_formatted += str(data_dict['Sensors'][i]) + "  "
+            
+            #print (data_formatted)
+            #print (publish_json)
+            #print(data_dict)
+            #print (datatopass)                
+            
+            with data_lock:
+                datatopass4[0] = data_formatted
+                datatopass4[1] = data_dict['SensorType']
+                publish_json = (
+                "{\"time\": \"" + str(datetime.now())[11:22] 
+                + "\","
+                + "\"sensor_readings\": "
+                )
+                converted_values = []
+                for i in range(len(data_dict['Sensors'])):
+                    if datatopass4[1] == 'ADS1015':
+                        converted_values.append(round(data_dict['Sensors'][i] * cf_1015, 1))
+                    else:
+                        converted_values.append(round(data_dict['Sensors'][i] * cf_1115, 1))
+            
+                publish_json += str(converted_values)
+                publish_json += '}'
+                datatopass4[2] = publish_json
+                raw_log_file_4.write(data_formatted)
+                raw_log_file_4.flush()  # Flush the buffer to ensure data is written immediately
+
+        except Exception as e:
+            print(f"Serial read error: {e}")
+            #, {data}") 
             
 
 def publish_data_1():
@@ -251,7 +418,97 @@ def publish_data_2():
             if datatopass2[1] == 'ADS1115':
                 client.publish(board_topic_1115, datatopass2[2])
                 #print(datatopass)
-         
+
+
+def publish_data_3():
+    while True:
+        time.sleep(0.05)
+        board_topic_1015 = ""
+        board_topic_1115 = ""
+        if (datatopass3[3] == "Board 1"):
+            board_topic_1015 = b1_mqtt_log_1015
+            board_topic_1115 = b1_mqtt_log_1115
+        elif (datatopass3[3] == "Board 2"):
+            board_topic_1015 = b2_mqtt_log_1015
+            board_topic_1115 = b2_mqtt_log_1115
+        elif (datatopass3[3] == "Board 3"):
+            board_topic_1015 = b3_mqtt_log_1015
+            board_topic_1115 = b3_mqtt_log_1115
+        elif (datatopass3[3] == "Board 4"):
+            board_topic_1015 = b4_mqtt_log_1015
+            board_topic_1115 = b4_mqtt_log_1115
+        elif (datatopass3[3] == "Board 5"):
+            board_topic_1015 = b5_mqtt_log_1015
+            board_topic_1115 = b5_mqtt_log_1115
+
+        with data_lock:
+            if datatopass3[1] == 'ADS1015':
+                client.publish(board_topic_1015, datatopass3[2])
+                #print(datatopass)
+            if datatopass3[1] == 'ADS1115':
+                client.publish(board_topic_1115, datatopass3[2])
+                #print(datatopass)
+
+
+def publish_data_4():
+    while True:
+        time.sleep(0.05)
+        board_topic_1015 = ""
+        board_topic_1115 = ""
+        if (datatopass4[3] == "Board 1"):
+            board_topic_1015 = b1_mqtt_log_1015
+            board_topic_1115 = b1_mqtt_log_1115
+        elif (datatopass4[3] == "Board 2"):
+            board_topic_1015 = b2_mqtt_log_1015
+            board_topic_1115 = b2_mqtt_log_1115
+        elif (datatopass4[3] == "Board 3"):
+            board_topic_1015 = b3_mqtt_log_1015
+            board_topic_1115 = b3_mqtt_log_1115
+        elif (datatopass4[3] == "Board 4"):
+            board_topic_1015 = b4_mqtt_log_1015
+            board_topic_1115 = b4_mqtt_log_1115
+        elif (datatopass4[3] == "Board 5"):
+            board_topic_1015 = b5_mqtt_log_1015
+            board_topic_1115 = b5_mqtt_log_1115
+
+        with data_lock:
+            if datatopass4[1] == 'ADS1015':
+                client.publish(board_topic_1015, datatopass4[2])
+                #print(datatopass)
+            if datatopass4[1] == 'ADS1115':
+                client.publish(board_topic_1115, datatopass4[2])
+                #print(datatopass)
+
+
+def publish_data_5():
+    while True:
+        time.sleep(0.05)
+        board_topic_1015 = ""
+        board_topic_1115 = ""
+        if (datatopass5[3] == "Board 1"):
+            board_topic_1015 = b1_mqtt_log_1015
+            board_topic_1115 = b1_mqtt_log_1115
+        elif (datatopass5[3] == "Board 2"):
+            board_topic_1015 = b2_mqtt_log_1015
+            board_topic_1115 = b2_mqtt_log_1115
+        elif (datatopass5[3] == "Board 3"):
+            board_topic_1015 = b3_mqtt_log_1015
+            board_topic_1115 = b3_mqtt_log_1115
+        elif (datatopass5[3] == "Board 4"):
+            board_topic_1015 = b4_mqtt_log_1015
+            board_topic_1115 = b4_mqtt_log_1115
+        elif (datatopass5[3] == "Board 5"):
+            board_topic_1015 = b5_mqtt_log_1015
+            board_topic_1115 = b5_mqtt_log_1115
+
+        with data_lock:
+            if datatopass5[1] == 'ADS1015':
+                client.publish(board_topic_1015, datatopass5[2])
+                #print(datatopass)
+            if datatopass5[1] == 'ADS1115':
+                client.publish(board_topic_1115, datatopass5[2])
+                #print(datatopass)
+            
 
 def main():
     client.on_connect = on_connect
@@ -265,10 +522,18 @@ def main():
 
     t1 = threading.Thread(target=read_serial_and_log_high_freq_1)
     t2 = threading.Thread(target=read_serial_and_log_high_freq_2)
+    t3 = threading.Thread(target=read_serial_and_log_high_freq_3)
+    t4 = threading.Thread(target=read_serial_and_log_high_freq_4)
+    t5 = threading.Thread(target=read_serial_and_log_high_freq_5)
+
 
 
     t6 = threading.Thread(target=publish_data_1)
     t7 = threading.Thread(target=publish_data_2)
+    t8 = threading.Thread(target=publish_data_3)
+    t9 = threading.Thread(target=publish_data_4)
+    t10 = threading.Thread(target=publish_data_5)
+
 
     if (ports[0]):
         t1.start()
@@ -277,6 +542,18 @@ def main():
     if (ports[1]):
         t2.start()
         t7.start()
+
+    if (ports[2]):
+        t3.start()
+        t8.start()
+    
+    if (ports[3]):
+        t4.start()
+        t9.start()
+    
+    if (ports[4]):
+        t5.start()
+        t10.start()
     
 
 if __name__ == '__main__':
