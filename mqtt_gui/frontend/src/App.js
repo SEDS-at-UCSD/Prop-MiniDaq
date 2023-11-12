@@ -6,32 +6,32 @@ import { SwitchConfigure } from './components/SwitchConfigure';
 
 
 function App() {
+  const connectionurl = "ws://localhost:9001";
+  const initialState = {time: 0, sensor_readings: [0, 0, 0, 0]}
   const [client, setClient] = useState(null);
   const [connectStatus, setConnectStatus] = useState("Not Connected");
   const [isSub, setIsSub] = useState(false);
+  const [arrangable, setArrangable] = useState(false);
 
-  const initialState = {time: 0, sensor_readings: [0, 0, 0, 0]}
-  
-  const [b1_data_1015, setB1_1015Data] = useState(initialState);
-  const [b1_data_1115, setB1_1115Data] = useState(initialState);
-  const [b2_data_1015, setB2_1015Data] = useState(initialState);
-  const [b2_data_1115, setB2_1115Data] = useState(initialState);
-  const [b3_data_1015, setB3_1015Data] = useState(initialState);
-  const [b3_data_1115, setB3_1115Data] = useState(initialState);
-  const [b4_data_1015, setB4_1015Data] = useState(initialState);
-  const [b4_data_1115, setB4_1115Data] = useState(initialState);
-  const [b5_data_1015, setB5_1015Data] = useState(initialState);
-  const [b5_data_1115, setB5_1115Data] = useState(initialState);
-
+  const [boardData, setBoardData] = useState({
+    b1_log_data_1015: initialState,
+    b1_log_data_1115: initialState,
+    b2_log_data_1015: initialState,
+    b2_log_data_1115: initialState,
+    b3_log_data_1015: initialState,
+    b3_log_data_1115: initialState,
+    b4_log_data_1015: initialState,
+    b4_log_data_1115: initialState,
+    b5_log_data_1015: initialState,
+    b5_log_data_1115: initialState
+  })
   const [switchStates, setSwitchStates] = useState({
-    0: 1,
+    0: 0,
     1: 0,
     2: 0,
     3: 0,
     4: 0
   });
-
-  const [arrangable, setArrangable] = useState(false);
   
   const mqttSub = (topic) => {
     if (client) {
@@ -67,20 +67,18 @@ function App() {
       username: 'emqx_test',
       password: 'emqx_test',
     };
-  
-    const url = 'ws://localhost:9001';
 
-    mqttConnect(url,initialConnectionOptions);
+    mqttConnect(connectionurl,initialConnectionOptions);
   }, []);
 
   useEffect(() => {
     if (client) {
       client.on('connect', () => {
         setConnectStatus('Connected');
-        mqttSub("b1_log_data_1015");
-        mqttSub("b1_log_data_1115");
-        mqttSub("b2_log_data_1015");
-        mqttSub("b2_log_data_1115");
+        for (const key in boardData) {
+          mqttSub(key);
+          console.log("Subscribed to " + key);
+        }
         mqttSub("switch_states_status");
       });
 
@@ -96,21 +94,14 @@ function App() {
       client.on('message', (topic, message) => {
 
         message = JSON.parse(String(message));
-        if (topic === 'b1_log_data_1015') {
-          setB1_1015Data(message);
-        } else if (topic === 'b1_log_data_1115') {
-          setB1_1115Data(message);
-        }
-        else if (topic === 'b2_log_data_1015') {
-          setB2_1015Data(message);
-        }
-        else if (topic === 'b2_log_data_1115') {
-          setB2_1115Data(message);
-        }
-        else if (topic === "switch_states_status") {
-          console.log("here");
+
+        if (topic === "switch_states_status") {
           setSwitchStates((prev)=>{return {...prev, ...message}});
-        } 
+        } else {
+          setBoardData((prev)=>{
+            return { ...prev, [topic]: message };
+          })
+        }
       });
     }
   }, [client]);
@@ -129,80 +120,18 @@ function App() {
           editable={isSub}
         />
       </div>
-      
-      <div className="board_cluster">
-        <DialCluster 
-          label="Board 1 ADS1015"
-          data={b1_data_1015}
-          arrangable
-          sensor_name="ads_1015"
-        />
-        <DialCluster 
-          label="Board 1 ADS1115"
-          data={b1_data_1115}
-          arrangable
-          sensor_name="ads_1115"
-        />
-      </div>
 
       <div className="board_cluster">
-        <DialCluster 
-          label="Board 2 ADS1015"
-          data={b2_data_1015}
-          arrangable
-          sensor_name="ads_1015"
-        />
-        <DialCluster 
-          label="Board 2 ADS1115"
-          data={b2_data_1115}
-          arrangable
-          sensor_name="ads_1115"
-        />
-      </div>
-
-      <div className="board_cluster">
-        <DialCluster 
-          label="Board 3 ADS1015"
-          data={b3_data_1015}
-          arrangable
-          sensor_name="ads_1015"
-        />
-        <DialCluster 
-          label="Board 3 ADS1115"
-          data={b3_data_1115}
-          arrangable
-          sensor_name="ads_1115"
-        />
-      </div>
-
-      <div className="board_cluster">
-        <DialCluster 
-          label="Board 4 ADS1015"
-          data={b4_data_1015}
-          arrangable
-          sensor_name="ads_1015"
-        />
-        <DialCluster 
-          label="Board 4 ADS1115"
-          data={b4_data_1115}
-          arrangable
-          sensor_name="ads_1115"
-        />
-      </div>
-      
-      <div className="board_cluster">
-        <DialCluster 
-          label="Board 5 ADS1015"
-          data={b5_data_1015}
-          arrangable
-          sensor_name="ads_1015"
-        />
-        <DialCluster 
-          label="Board 5 ADS1115"
-          data={b5_data_1115}
-          arrangable
-          sensor_name="ads_1115"
-        />
+        {Object.entries(boardData).map(([key,value])=>{
+          return (
+            <DialCluster 
+              label={"Board " + key[1] + " ADS " + key.substring(12)}
+              data={value}
+              arrangable
+              sensor_name={key.substring(3)}
+            />
+          )
+        })}
       </div>
     </div>
   );

@@ -35,13 +35,12 @@
 }
 
 .dial_cluster {
-  width: fit-content;
-  margin-right: 100px;
+  margin-right: 50px;
 }
 
 .board_cluster {
-  display: inline-flex;
-  margin-bottom: 10px;
+  display: inline-grid;
+  grid-template-columns: repeat(2, auto);
 }
 
 .status {
