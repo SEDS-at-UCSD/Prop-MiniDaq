@@ -4,13 +4,13 @@ import time
 import json
 from datetime import datetime
 import threading
-from threading import Event
-
 
 
 # MQTT configuration
 mqtt_broker_address = "localhost"
 mqtt_topic_serial = "serial_data"
+
+# MQTT Topics
 b1_mqtt_log_1015 = "b1_log_data_1015"
 b1_mqtt_log_1115 = "b1_log_data_1115"
 b2_mqtt_log_1015 = "b2_log_data_1015"
@@ -34,6 +34,8 @@ cf_1115 = conv_configs['Conv_Factor_ADS1115']
 
 
 client = mqtt.Client("propdaq")
+
+# Port Management
 
 ports = [False, False, False, False, False]
 
@@ -64,19 +66,35 @@ def open_serial_ports():
             print(f"Port error: {e}")
 
 
-# Open a text file for appending
+# Open text files for appending
+
+# Unused but can be used to check what's being published to server for frontend
 gui_log_file = open('gui_serial.txt', 'w')
+
+# Mapped to boards
 raw_log_file = open('raw_serial_log.txt', 'a')
 raw_log_file_2 = open('raw_serial_log_2.txt', 'a')
 raw_log_file_3 = open('raw_serial_log_3.txt', 'a')
 raw_log_file_4 = open('raw_serial_log_4.txt', 'a')
 raw_log_file_5 = open('raw_serial_log_5.txt', 'a')
 
+
+# Switch Case Dicts
 board_to_log_file_dict = {"Board 1": raw_log_file, "Board 2": raw_log_file_2, "Board 3": raw_log_file_3, "Board 4": raw_log_file_4, "Board 5": raw_log_file_5}
+b1015_to_topic_dict = {"Board 1": b1_mqtt_log_1015, "Board 2": b2_mqtt_log_1015, "Board 3": b3_mqtt_log_1015, "Board 4": b4_mqtt_log_1015, "Board 5": b5_mqtt_log_1015}
+b1115_to_topic_dict = {"Board 1": b1_mqtt_log_1115, "Board 2": b2_mqtt_log_1115, "Board 3": b3_mqtt_log_1115, "Board 4": b4_mqtt_log_1115, "Board 5": b5_mqtt_log_1115}
 
-event = Event()
-read_event = Event()
 
+# Fast changing lists storing data from Board DAQ
+"""
+
+Data at each index
+0 - Formatted data for local file logging 
+1 - Sensor Type ('ADS1015' / 'ADS1115')
+2 - Publish JSON (To publish to mqtt for frontend of GUI)
+3 - Board ID ('Board 1', 'Board 2', 'Board 3', 'Board 4', 'Board 5')
+
+"""
 datatopass = ["", "", "", ""]
 datatopass2 = ["", "", "", ""]
 datatopass3 = ["", "", "", ""]
@@ -393,23 +411,8 @@ def read_serial_and_log_high_freq_5():
 def publish_data_1():
     while True:
         time.sleep(0.05)
-        board_topic_1015 = ""
-        board_topic_1115 = ""
-        if (datatopass[3] == "Board 1"):
-            board_topic_1015 = b1_mqtt_log_1015
-            board_topic_1115 = b1_mqtt_log_1115
-        elif (datatopass[3] == "Board 2"):
-            board_topic_1015 = b2_mqtt_log_1015
-            board_topic_1115 = b2_mqtt_log_1115
-        elif (datatopass[3] == "Board 3"):
-            board_topic_1015 = b3_mqtt_log_1015
-            board_topic_1115 = b3_mqtt_log_1115
-        elif (datatopass[3] == "Board 4"):
-            board_topic_1015 = b4_mqtt_log_1015
-            board_topic_1115 = b4_mqtt_log_1115
-        elif (datatopass[3] == "Board 5"):
-            board_topic_1015 = b5_mqtt_log_1015
-            board_topic_1115 = b5_mqtt_log_1115
+        board_topic_1015 = b1015_to_topic_dict[datatopass[3]]
+        board_topic_1115 = b1115_to_topic_dict[datatopass[3]]
 
         with data_lock:
             if datatopass[1] == 'ADS1015':
@@ -423,23 +426,8 @@ def publish_data_1():
 def publish_data_2():
     while True:
         time.sleep(0.05)
-        board_topic_1015 = ""
-        board_topic_1115 = ""
-        if (datatopass2[3] == "Board 1"):
-            board_topic_1015 = b1_mqtt_log_1015
-            board_topic_1115 = b1_mqtt_log_1115
-        elif (datatopass2[3] == "Board 2"):
-            board_topic_1015 = b2_mqtt_log_1015
-            board_topic_1115 = b2_mqtt_log_1115
-        elif (datatopass2[3] == "Board 3"):
-            board_topic_1015 = b3_mqtt_log_1015
-            board_topic_1115 = b3_mqtt_log_1115
-        elif (datatopass2[3] == "Board 4"):
-            board_topic_1015 = b4_mqtt_log_1015
-            board_topic_1115 = b4_mqtt_log_1115
-        elif (datatopass2[3] == "Board 5"):
-            board_topic_1015 = b5_mqtt_log_1015
-            board_topic_1115 = b5_mqtt_log_1115
+        board_topic_1015 = b1015_to_topic_dict[datatopass2[3]]
+        board_topic_1115 = b1115_to_topic_dict[datatopass2[3]]
 
         with data_lock:
             if datatopass2[1] == 'ADS1015':
@@ -453,23 +441,8 @@ def publish_data_2():
 def publish_data_3():
     while True:
         time.sleep(0.05)
-        board_topic_1015 = ""
-        board_topic_1115 = ""
-        if (datatopass3[3] == "Board 1"):
-            board_topic_1015 = b1_mqtt_log_1015
-            board_topic_1115 = b1_mqtt_log_1115
-        elif (datatopass3[3] == "Board 2"):
-            board_topic_1015 = b2_mqtt_log_1015
-            board_topic_1115 = b2_mqtt_log_1115
-        elif (datatopass3[3] == "Board 3"):
-            board_topic_1015 = b3_mqtt_log_1015
-            board_topic_1115 = b3_mqtt_log_1115
-        elif (datatopass3[3] == "Board 4"):
-            board_topic_1015 = b4_mqtt_log_1015
-            board_topic_1115 = b4_mqtt_log_1115
-        elif (datatopass3[3] == "Board 5"):
-            board_topic_1015 = b5_mqtt_log_1015
-            board_topic_1115 = b5_mqtt_log_1115
+        board_topic_1015 = b1015_to_topic_dict[datatopass3[3]]
+        board_topic_1115 = b1115_to_topic_dict[datatopass3[3]]
 
         with data_lock:
             if datatopass3[1] == 'ADS1015':
@@ -483,23 +456,8 @@ def publish_data_3():
 def publish_data_4():
     while True:
         time.sleep(0.05)
-        board_topic_1015 = ""
-        board_topic_1115 = ""
-        if (datatopass4[3] == "Board 1"):
-            board_topic_1015 = b1_mqtt_log_1015
-            board_topic_1115 = b1_mqtt_log_1115
-        elif (datatopass4[3] == "Board 2"):
-            board_topic_1015 = b2_mqtt_log_1015
-            board_topic_1115 = b2_mqtt_log_1115
-        elif (datatopass4[3] == "Board 3"):
-            board_topic_1015 = b3_mqtt_log_1015
-            board_topic_1115 = b3_mqtt_log_1115
-        elif (datatopass4[3] == "Board 4"):
-            board_topic_1015 = b4_mqtt_log_1015
-            board_topic_1115 = b4_mqtt_log_1115
-        elif (datatopass4[3] == "Board 5"):
-            board_topic_1015 = b5_mqtt_log_1015
-            board_topic_1115 = b5_mqtt_log_1115
+        board_topic_1015 = b1015_to_topic_dict[datatopass4[3]]
+        board_topic_1115 = b1115_to_topic_dict[datatopass4[3]]
 
         with data_lock:
             if datatopass4[1] == 'ADS1015':
@@ -513,23 +471,8 @@ def publish_data_4():
 def publish_data_5():
     while True:
         time.sleep(0.05)
-        board_topic_1015 = ""
-        board_topic_1115 = ""
-        if (datatopass5[3] == "Board 1"):
-            board_topic_1015 = b1_mqtt_log_1015
-            board_topic_1115 = b1_mqtt_log_1115
-        elif (datatopass5[3] == "Board 2"):
-            board_topic_1015 = b2_mqtt_log_1015
-            board_topic_1115 = b2_mqtt_log_1115
-        elif (datatopass5[3] == "Board 3"):
-            board_topic_1015 = b3_mqtt_log_1015
-            board_topic_1115 = b3_mqtt_log_1115
-        elif (datatopass5[3] == "Board 4"):
-            board_topic_1015 = b4_mqtt_log_1015
-            board_topic_1115 = b4_mqtt_log_1115
-        elif (datatopass5[3] == "Board 5"):
-            board_topic_1015 = b5_mqtt_log_1015
-            board_topic_1115 = b5_mqtt_log_1115
+        board_topic_1015 = b1015_to_topic_dict[datatopass5[3]]
+        board_topic_1115 = b1115_to_topic_dict[datatopass5[3]]
 
         with data_lock:
             if datatopass5[1] == 'ADS1015':
