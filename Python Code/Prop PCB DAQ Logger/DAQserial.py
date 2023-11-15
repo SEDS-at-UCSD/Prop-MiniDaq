@@ -5,10 +5,15 @@ import time
 import os
 import math
 from datetime import datetime
+from serial.tools import list_ports
+
+
+[print(port) for port in list_ports.comports()]
 
 data = {}
 channels = ['Ch0:', 'Ch1:', 'Ch2:', 'Ch3:']
-comport = '/dev/cu.usbserial-0001'
+comport = '/dev/cu.wchusbserial56292564361'
+#comport = '/dev/cu.usbserial-0001'
 #comport = '/dev/cu.usbserial-8'
 readcountpersecond = [0];
 

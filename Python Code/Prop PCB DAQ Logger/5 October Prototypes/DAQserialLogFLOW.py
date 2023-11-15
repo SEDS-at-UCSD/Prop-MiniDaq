@@ -27,8 +27,11 @@ def read_and_log_data(ser, csv_writer,csv_file):
         csv_file.close()
 
 # Define the COM port names for your devices
-com_port1 = '/dev/cu.wchusbserial56292564361'  #Double ADS for PT
-com_port2 = '/dev/cu.wchusbserial55770170291'  #Single ADS for Flow Meter
+#com_port1 = '/dev/cu.wchusbserial56292564361'  #Double ADS for PT
+#com_port2 = '/dev/cu.usbserial-8'  #Double ADS for PT
+com_port2 = '/dev/cu.wchusbserial56292564361'  #Double ADS for PT
+com_port1 = '/dev/cu.usbserial-8'  #Double ADS for PT
+#com_port2 = '/dev/cu.wchusbserial55770170291'  #Single ADS for Flow Meter
 
 # Define the baud rate
 baud_rate = 921600

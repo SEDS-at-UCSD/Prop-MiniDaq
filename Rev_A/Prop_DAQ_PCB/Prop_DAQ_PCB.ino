@@ -54,7 +54,7 @@ int sendCAN = 1;
 //printing helper variables
 int waitforADS = 0;
 int printADS[4] = {1,1,1,1};
-int printCAN = 0;
+int printCAN = 1;
 
 String loopprint;
 
@@ -99,7 +99,7 @@ void setup() {
   pinMode(47,INPUT_PULLUP);
 
   twai_general_config_t g_config = TWAI_GENERAL_CONFIG_DEFAULT((gpio_num_t)CAN_TX, (gpio_num_t)CAN_RX, TWAI_MODE_NORMAL);
-  twai_timing_config_t t_config = TWAI_TIMING_CONFIG_250KBITS();
+  twai_timing_config_t t_config = TWAI_TIMING_CONFIG_500KBITS();
   twai_filter_config_t f_config = TWAI_FILTER_CONFIG_ACCEPT_ALL();
 
   // Install and start the TWAI driver
@@ -156,7 +156,8 @@ void transmitTask(void *pvParameters) {
     Serial.println("--- start ADS read ---");
     for (int channel = 0; channel < 4; ++channel) {
       float f = ads_1015_1.toVoltage(); 
-      //int value = ads_1015_1.readADC(channel); //11 bit Mantissa, one bit for sign
+      int value = ads_1015_1.readADC(channel); //11 bit Mantissa, one bit for sign
+      /*
       int value = 0; //
       if (channel == 0){
         value = ads_1015_1.readADC_Differential_0_1(); //11 bit Mantissa, one bit for sign
@@ -167,7 +168,7 @@ void transmitTask(void *pvParameters) {
       }else if (channel == 3){
         value = ads_1015_1.readADC_Differential_2_3(); //11 bit Mantissa, one bit for sign
       }
-
+      */
       for (int j = (cols-1); j > 0; --j) {
         ADS1015_1_Data[channel][j] = ADS1015_1_Data[channel][j-1]; //shift buffer, LSB is newest data
       }
@@ -196,13 +197,15 @@ void transmitTask(void *pvParameters) {
 
     if (sendCAN == 1){
       twai_transmit(&txMessage, pdMS_TO_TICKS(1));
+      Serial.println("sent");
+    
     }
 
     for (int channel = 0; channel < 4; ++channel) {
       float f = ads_1015_2.toVoltage();
 
-      // int value = ads_1015_2.readADC(channel); //11 bit Mantissa, one bit for sign
-      
+      int value = ads_1015_2.readADC(channel); //11 bit Mantissa, one bit for sign
+      /*
       int value = 0;
       if (channel == 0){
         value = ads_1015_2.readADC_Differential_0_1(); //11 bit Mantissa, one bit for sign
@@ -213,6 +216,7 @@ void transmitTask(void *pvParameters) {
       }else if (channel == 3){
         value = ads_1015_2.readADC_Differential_2_3(); //11 bit Mantissa, one bit for sign
       }
+      */
 
       for (int j = (cols-1); j > 0; --j) {
         ADS1015_2_Data[channel][j] = ADS1015_2_Data[channel][j-1]; //shift buffer, LSB is newest data
@@ -241,6 +245,7 @@ void transmitTask(void *pvParameters) {
     }
     if (sendCAN == 1){
       twai_transmit(&txMessage, pdMS_TO_TICKS(1));
+      Serial.println("sent");
     }
     // Read and print values from ADS1115 devices
     int v1,v2;
@@ -249,7 +254,7 @@ void transmitTask(void *pvParameters) {
       float f = ads_1115_1.toVoltage();
       f_val = f;
 
-      //      int value = ads_1115_1.readADC(channel); //11 bit Mantissa, one bit for sign
+      int value = ads_1115_1.readADC(channel); //11 bit Mantissa, one bit for sign
       
       /***int value = 0; //
       if (channel == 0){
@@ -263,7 +268,7 @@ void transmitTask(void *pvParameters) {
       }
       value += (0.0/f);
       ***/
-
+      /*
       int value = 0;
       if (channel == 0){
         value = ads_1115_1.readADC_Differential_0_1(); //11 bit Mantissa, one bit for sign
@@ -274,7 +279,7 @@ void transmitTask(void *pvParameters) {
       }else if (channel == 3){
         value = ads_1115_1.readADC_Differential_2_3(); //11 bit Mantissa, one bit for sign
       }
-
+      */
 
       for (int j = (cols-1); j > 0; --j) {
         ADS1115_1_Data[channel][j] = ADS1115_1_Data[channel][j-1]; //shift buffer, LSB is newest data
@@ -324,13 +329,15 @@ void transmitTask(void *pvParameters) {
 
     if (sendCAN == 1){
       twai_transmit(&txMessage, pdMS_TO_TICKS(1));
+      Serial.println("sent");
     }
 
     for (int channel = 0; channel < 4; ++channel) {
       float f = ads_1115_2.toVoltage();
       f_val = f;
-      //int value = ads_1115_2.readADC(channel); //11 bit Mantissa, one bit for sign
+      int value = ads_1115_2.readADC(channel); //11 bit Mantissa, one bit for sign
 
+      /*
       int value = 0;
       if (channel == 0){
         value = ads_1115_2.readADC_Differential_0_1(); //11 bit Mantissa, one bit for sign
@@ -341,7 +348,8 @@ void transmitTask(void *pvParameters) {
       }else if (channel == 3){
         value = ads_1115_2.readADC_Differential_2_3(); //11 bit Mantissa, one bit for sign
       }
-
+      */
+      
       for (int j = (cols-1); j > 0; --j) {
         ADS1115_2_Data[channel][j] = ADS1115_2_Data[channel][j-1]; //shift buffer, LSB is newest data
       }
@@ -375,6 +383,7 @@ void transmitTask(void *pvParameters) {
     }
     if (sendCAN == 1){
       twai_transmit(&txMessage, pdMS_TO_TICKS(1));
+      Serial.println("sent");
     }
 
     Serial.println("--- end ADS read ---");

@@ -5,6 +5,15 @@
 #include <FreeRTOS.h>
 #include <task.h>
 #include <queue.h>
+#include "driver/twai.h"
+
+// CAN TWAI message to send
+twai_message_t txMessage;
+
+// Pins used to connect to CAN bus transceiver:
+#define CAN_RX 10
+#define CAN_TX 9
+int canTXRXcount[2] = {0,0};
 
 StaticJsonDocument<512> sensorData;
 DynamicJsonDocument doc0(1024);
@@ -35,9 +44,37 @@ SemaphoreHandle_t mutex_v;
 
 void ADS1015TaskFunction(void* parameter);
 void ADS1115TaskFunction(void* parameter);
+void sendSerialData(int16_t ADCs[], double data[], String SensorType, int FPS);
 
 void setup() {
   Serial.begin(921600);
+
+  twai_general_config_t g_config = TWAI_GENERAL_CONFIG_DEFAULT((gpio_num_t)CAN_TX, (gpio_num_t)CAN_RX, TWAI_MODE_NORMAL);
+  twai_timing_config_t t_config = TWAI_TIMING_CONFIG_500KBITS();
+  twai_filter_config_t f_config = TWAI_FILTER_CONFIG_ACCEPT_ALL();
+
+  // Install and start the TWAI driver
+  esp_err_t canStatus = twai_driver_install(&g_config, &t_config, &f_config);
+  if (canStatus == ESP_OK) {
+    Serial.println("CAN Driver installed");
+  } else {
+    Serial.println("CAN Driver installation failed");
+  }
+  twai_start();
+  // Prepare the message to send
+  txMessage.identifier = 0x10;           // Example identifier
+  txMessage.flags = TWAI_MSG_FLAG_EXTD;  // Example flags (extended frame)
+  txMessage.data_length_code = 8;        // Example data length (8 bytes)
+  txMessage.data[0] = 0xFF;              // Reserved for message type
+  txMessage.data[1] = 0xFF;              // Sensor 1: Temperature
+  txMessage.data[2] = 0xFF;              // Sensor 2: Humidity
+  txMessage.data[3] = 0xFF;              // Sensor 3: X axis Acceleration
+  txMessage.data[4] = 0xFF;              // Sensor 4: Y axis Acceleration
+  txMessage.data[5] = 0xFF;              // Sensor 5: Z axis Acceleration
+  txMessage.data[6] = 0xFF;              // Sensor 6: Power Use in W
+  txMessage.data[7] = 0xFF;              // Reserved for message Count
+
+  Serial.println("CAN Started");
 
   mutex_v = xSemaphoreCreateMutex(); 
   if (mutex_v == NULL) { 
@@ -112,6 +149,7 @@ void setup() {
   0
   );
 
+
   xTaskCreatePinnedToCore(
   ADS1115TaskFunction,
   "ADS1115Task",
@@ -121,7 +159,6 @@ void setup() {
   &ADS1115Task,
   1
   );
-  
 
 }
 
@@ -135,8 +172,8 @@ void ADS1015TaskFunction(void* parameter) {
     int16_t adc0_1 = ADS1.readADC_Differential_0_1();
     int16_t adc1 = ADS0.readADC_Differential_2_3();
     int16_t adc1_1 = ADS1.readADC_Differential_2_3();
-    
-    //Serial.print("In0: "); Serial.print(voltage0); Serial.print("\t In1: "); Serial.print(voltage1);
+  
+    int16_t ADC_16bit[4] = {adc0,adc1,adc0_1,adc1_1};
 
     double voltage0 = (ADS0.toVoltage(adc0)); // Calculate voltage in mV 6.144/2048
     double voltage1 = (ADS0.toVoltage(adc1)); // Calculate voltage in mV 6.144/2048
@@ -149,6 +186,7 @@ void ADS1015TaskFunction(void* parameter) {
     // sensor0doc["PT3"] = voltage1_1;
     double data[4] = {voltage0, voltage1, voltage0_1, voltage1_1};
 
+    //Serial.print("In0: "); Serial.print(voltage0); Serial.print("\t In1: "); Serial.print(voltage1);
     //Serial.print("\t In0_1: "); Serial.print(voltage0_1); Serial.print("\t In1_1: "); Serial.print(voltage1_1);
     unsigned long currentTime = millis();
     unsigned long timePassed = currentTime - startTime0;
@@ -157,7 +195,8 @@ void ADS1015TaskFunction(void* parameter) {
     //String sensorjson0;
     xSemaphoreTake(mutex_v, portMAX_DELAY); 
     // serializeJson(sensor0doc, Serial);
-     sendSerialData(data, "ADS1015", 1000*1/(timePassed));
+    sendSerialData(ADC_16bit, data, "ADS1015", 1000*1/(timePassed));
+    //Serial.print("\t FPS: "); Serial.println(1000*1/(timePassed));
     xSemaphoreGive(mutex_v); 
   }
 }
@@ -172,6 +211,8 @@ void ADS1115TaskFunction(void* parameter) {
 
     int16_t adc1 = ADS2.readADC_Differential_2_3();
     int16_t adc1_1 = ADS3.readADC_Differential_2_3();
+
+    int16_t ADC_16bit[4] = {adc0,adc1,adc0_1,adc1_1};
     
     //Serial.print("In0: "); Serial.print(voltage0); Serial.print("\t In1: "); Serial.print(voltage1);
 
@@ -188,7 +229,7 @@ void ADS1115TaskFunction(void* parameter) {
     sampleIndex = 0;
     xSemaphoreTake(mutex_v, portMAX_DELAY); 
     // serializeJson(sensor1doc, Serial);
-    sendSerialData(data, "ADS1115", 1000*1/(timePassed));
+    sendSerialData(ADC_16bit, data, "ADS1115", 1000*1/(timePassed));
     // Serial.print("\t FPS: "); Serial.println(1000*1/(timePassed));
     xSemaphoreGive(mutex_v); 
   }
@@ -198,19 +239,29 @@ void loop() {
   //doc["BoardID"] = "PT Board";
 }
 
-void sendSerialData(double data[], String SensorType, int FPS) {
+void sendSerialData(int16_t ADC_16bit[], double data[], String SensorType, int FPS) {
   //JSON doc
   int data_arr_size = 4;
 
   sensorData["BoardID"] = "Board 1";
   sensorData["SensorType"] = SensorType;
 
+  if (SensorType == "ADS1015"){
+    txMessage.identifier = 0x11;      
+  }
+  if (SensorType == "ADS1115"){
+    txMessage.identifier = 0x12;      
+  }
+
   for (int i = 0; i < data_arr_size; i++) {
     sensorData["Sensors"][i] = data[i];
+    txMessage.data[2*i] = ADC_16bit[i]/(0xFF);              // Reserved for message type
+    txMessage.data[2*i+1] = (ADC_16bit[i] - (txMessage.data[2*i]*(0xFF)));
   }
   // doc["Sensors"][1] = data[1];
   sensorData["FPS"] = 
 
   serializeJson(sensorData, Serial);
   Serial.println();
+  twai_transmit(&txMessage, pdMS_TO_TICKS(1));
 }

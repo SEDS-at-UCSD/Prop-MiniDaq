@@ -16,8 +16,8 @@ unsigned long startTime;
 
 void setup() {
   Serial.begin(921600);
-  //I2C_one.begin(13, 14);
-  I2C_one.begin(16, 17);
+  I2C_one.begin(13, 14);
+  //I2C_one.begin(16, 17);
   //I2C_one.begin(5, 4);
   I2C_one.setClock(400000);
   startTime = millis();
