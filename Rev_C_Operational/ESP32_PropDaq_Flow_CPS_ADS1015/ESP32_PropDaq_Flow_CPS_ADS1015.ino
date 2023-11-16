@@ -52,7 +52,7 @@ void loop() {
     int16_t adc0 = ADS.getValue();
     double voltage = (ADS.toVoltage(adc0)); // Calculate voltage in mV
     
-    String outputstr = "{\"BoardID\":\"Flow\",\"mV\":";
+    String outputstr = "{\"BoardID\":\"Board 3\",\"mV\":";
     outputstr += String(voltage);
     outputstr += ", \"FPS\":";
     outputstr += String(samplefps);
