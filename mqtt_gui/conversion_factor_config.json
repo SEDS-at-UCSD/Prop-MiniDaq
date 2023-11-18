@@ -1,0 +1,21 @@
+{
+    "B1_Conv_Factor_ADS1015": [1000, 1000, 1000, 1000, 1000],
+    "B1_Conv_Factor_ADS1115": [1000, 1000, 1000, 1000, 1000],
+    "B1_Thermocouple": 1,
+
+    "B2_Conv_Factor_ADS1015": [1000, 1000, 1000, 1000, 1000],
+    "B2_Conv_Factor_ADS1115": [1000, 1000, 1000, 1000, 1000],
+    "B2_Thermocouple": 1,
+
+    "B3_Conv_Factor_ADS1015": [1000, 1000, 1000, 1000, 1000],
+    "B3_Conv_Factor_ADS1115": [1000, 1000, 1000, 1000, 1000],
+    "B3_Thermocouple": 1,
+
+    "B4_Conv_Factor_ADS1015": [1000, 1000, 1000, 1000, 1000],
+    "B4_Conv_Factor_ADS1115": [1000, 1000, 1000, 1000, 1000],
+    "B4_Thermocouple": 1,
+
+    "B5_Conv_Factor_ADS1015": [1000, 1000, 1000, 1000, 1000],
+    "B5_Conv_Factor_ADS1115": [1000, 1000, 1000, 1000, 1000],
+    "B5_Thermocouple": 1
+}
