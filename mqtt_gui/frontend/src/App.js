@@ -34,7 +34,7 @@ function App() {
     4: 0
   });
 
-  const [solenoidBoardsData4, setSolenoidBoardsData4] = useState({
+  const [solenoidBoardsData, setSolenoidBoardsData] = useState({
     4: {
       0: 0,
       1: 0,
