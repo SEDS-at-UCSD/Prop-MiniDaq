@@ -175,13 +175,17 @@ def on_message(client, userdata, message):
     # MAP SOLENOID BOARDS HERE
     solenoid_Boards = {'4': ports[0], '5': ports[3]}
     print(f"Received message on topic '{message.topic}': {message.payload.decode('utf-8')}")
-    command = message.payload.decode('utf-8')
-    send_command = command.encode('utf-8')
+    
     if (message.topic == "switch_states_update_4"):
+        command = "4" + message.payload.decode('utf-8')
+        send_command = command.encode('utf-8')
         write(solenoid_write, solenoid_Boards['4'], send_command)
+        print(send_command)
     if (message.topic == "switch_states_update_5"):
+        command = "5" + message.payload.decode('utf-8')
+        send_command = command.encode('utf-8')
         write(solenoid_write, solenoid_Boards['5'], send_command)
-        print("Command sent:", command)
+        print(send_command)
         
 
 
@@ -306,6 +310,7 @@ class Board_DAQ():
                     
                     if(valueSolenoidUpdates != ""):
                         client.publish(board_topic_Solenoid, valueSolenoidUpdates)
+                        #print(valueSolenoidUpdates)
                     else:
                         if(value1015 != ""):
                             client.publish(board_topic_1015, value1015)
