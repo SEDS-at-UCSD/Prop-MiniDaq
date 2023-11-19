@@ -114,18 +114,20 @@ function App() {
         message = JSON.parse(String(message));
         if (topic === "switch_states_status_4") {
           setSolenoidBoardsData((prev)=>{
+            const newSolenoidData = { ...prev };
             for (let i = 0; i < 5; i++){
-              prev[4][i] = message.sensor_readings[i]; 
+              newSolenoidData[4][i] = message.sensor_readings[i]; 
             }
-            return prev
+            return newSolenoidData
           });
         }
         else if (topic === "switch_states_status_5") {
           setSolenoidBoardsData((prev)=>{
+            const newSolenoidData = { ...prev };
             for (let i = 0; i < 5; i++){
-              prev[5][i] = message.sensor_readings[i]; 
+              newSolenoidData[5][i] = message.sensor_readings[i]; 
             }
-            return prev
+            return newSolenoidData
           });
         }
         else {
