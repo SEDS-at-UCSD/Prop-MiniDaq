@@ -22,8 +22,11 @@ b4_mqtt_log_1115 = "b4_log_data_1115"
 b5_mqtt_log_1015 = "b5_log_data_1015"
 b5_mqtt_log_1115 = "b5_log_data_1115"
 
-mqtt_switch_states_update = "switch_states_update"
-mqtt_switch_states_status = "switch_states_status"
+mqtt_switch_states_update_4 = "switch_states_update_4"
+mqtt_switch_states_status_4 = "switch_states_status_4"
+mqtt_switch_states_update_5 = "switch_states_update_5"
+mqtt_switch_states_status_5 = "switch_states_status_5"
+
 
 
 with open('conversion_factor_config.json', 'r') as json_file:
@@ -113,8 +116,6 @@ def open_serial_ports():
             print(f"Port error: {e}")
 
 
-# Open text files for appending
-
 # Unused but can be used to check what's being published to server for frontend
 gui_log_file = open('gui_serial.txt', 'w')
 
@@ -130,6 +131,7 @@ raw_log_file_5 = open('log/raw_serial_log_5.txt', 'a')
 board_to_log_file_dict = {"Board 1": raw_log_file, "Board 2": raw_log_file_2, "Board 3": raw_log_file_3, "Board 4": raw_log_file_4, "Board 5": raw_log_file_5}
 b1015_to_topic_dict = {"Board 1": b1_mqtt_log_1015, "Board 2": b2_mqtt_log_1015, "Board 3": b3_mqtt_log_1015, "Board 4": b4_mqtt_log_1015, "Board 5": b5_mqtt_log_1015}
 b1115_to_topic_dict = {"Board 1": b1_mqtt_log_1115, "Board 2": b2_mqtt_log_1115, "Board 3": b3_mqtt_log_1115, "Board 4": b4_mqtt_log_1115, "Board 5": b5_mqtt_log_1115}
+b_to_solenoid_status_topic_dict = {"Board 4": 'switch_states_status_4', "Board 5": 'switch_states_status_4'}
 
 b1015_conv_factor_dict = {"Board 1": b1_cf_1015, "Board 2": b2_cf_1015, "Board 3": b3_cf_1015, "Board 4": b4_cf_1015, "Board 5": b5_cf_1015}
 b1115_conv_factor_dict = {"Board 1": b1_cf_1115, "Board 2": b2_cf_1115, "Board 3": b3_cf_1115, "Board 4": b4_cf_1115, "Board 5": b5_cf_1115}
@@ -137,6 +139,8 @@ bTC_conv_factor_dict = {"Board 1": b1_thermocouple, "Board 2": b2_thermocouple, 
 
 b1015_add_factor_dict = {"Board 1": b1_cf_1015_add, "Board 2": b2_cf_1015_add, "Board 3": b3_cf_1015_add, "Board 4": b4_cf_1015_add, "Board 5": b5_cf_1015_add}
 b1115_add_factor_dict = {"Board 1": b1_cf_1115_add, "Board 2": b2_cf_1115_add, "Board 3": b3_cf_1115_add, "Board 4": b4_cf_1115_add, "Board 5": b5_cf_1115_add}
+
+
 
 
 # Fast changing lists storing data from Board DAQ
@@ -159,17 +163,27 @@ data_lock = threading.Lock()
 
 def on_connect(client, userdata, flags, rc):
     print("Connected to MQTT broker with result code " + str(rc))
-    client.subscribe(mqtt_switch_states_update)
+    client.subscribe(mqtt_switch_states_update_4)
+    client.subscribe(mqtt_switch_states_update_5)
     
 
+def write(self, port, message):
+        port.write(message)
+
+
 def on_message(client, userdata, message):
+    # MAP SOLENOID BOARDS HERE
+    solenoid_Boards = {'4': ports[0], '5': ports[3]}
     print(f"Received message on topic '{message.topic}': {message.payload.decode('utf-8')}")
     command = message.payload.decode('utf-8')
-    if (message.topic == "switch_states_update"):
-        print(command)
-        ports[0].read_all()  # Read one line (you can also use ser.read() for binary data)
-        ports[0].write(command.encode())
+    send_command = command.encode('utf-8')
+    if (message.topic == "switch_states_update_4"):
+        write(solenoid_write, solenoid_Boards['4'], send_command)
+    if (message.topic == "switch_states_update_5"):
+        write(solenoid_write, solenoid_Boards['5'], send_command)
         print("Command sent:", command)
+        
+
 
 class Board_DAQ():
     def __init__(self, port_index, data_array):
@@ -217,6 +231,7 @@ class Board_DAQ():
                     data_array[1] = data_dict['SensorType']
 
                     converted_values = [0, 0, 0, 0, 0]
+
                     publish_json_dict = {"time": str(datetime.now())[11:22], "sensor_readings": converted_values}
 
 
@@ -227,8 +242,11 @@ class Board_DAQ():
                             converted_values[i] = (round((data_dict['Sensors'][i] * conv_factor_1115[i]) + add_factor_1115[i], 1))
                         elif data_array[1] == 'Thermocouple':
                             converted_values[i] = (round(data_dict['Sensors'][i] * conv_factor_TC[i], 1))
+                        elif data_array[1] == 'Solenoids':
+                            converted_values[i] = data_dict['Sensors'][i]
                         else:
                             converted_values[i] = (round(data_dict['Sensors'][i] * -1000, 1))
+                        
                 
 
                     publish_json = json.dumps(publish_json_dict)
@@ -249,11 +267,10 @@ class Board_DAQ():
         data_array = self.data_array
         value1015 = ""
         value1115 = ""
+        valueSolenoidUpdates = ""
 
         ## REFERENCE DOESN'T ACTUALLY ASSIGN 
         
-        
-
         while True:
 
             time.sleep(0.001)
@@ -262,6 +279,7 @@ class Board_DAQ():
             if (Board_ID in b1015_to_topic_dict):
                 board_topic_1015 = b1015_to_topic_dict[Board_ID]
                 board_topic_1115 = b1115_to_topic_dict[Board_ID]
+                board_topic_Solenoid = b_to_solenoid_status_topic_dict[Board_ID]
             else:
                 toPublish = False
                 
@@ -276,19 +294,32 @@ class Board_DAQ():
                 elif data_array[1] == 'Thermocouple':
                     value1015 = data_array[2]
 
+                elif data_array[1] == 'Solenoids':
+                    valueSolenoidUpdates = data_array[2]
+
 
             time_passed = time.time()-curr_time
             if toPublish:
                 if (time_passed >= 0.05):
                     curr_time = time.time()
                     #print(data_array)
-                    print(value1015)
-                    print(value1115)
-                    if(value1015 != ""):
-                        client.publish(board_topic_1015, value1015)
-                    if(value1115 != ""):
-                        client.publish(board_topic_1115, value1115)
+                    
+                    if(valueSolenoidUpdates != ""):
+                        client.publish(board_topic_Solenoid, valueSolenoidUpdates)
+                    else:
+                        if(value1015 != ""):
+                            client.publish(board_topic_1015, value1015)
+                        if(value1115 != ""):
+                            client.publish(board_topic_1115, value1115)
 
+                    
+                        #print(valueSolenoidUpdates)
+                    
+
+
+def solenoid_write(self, message):
+        ports[self.port_index].write(message)
+    
 
 # CHANGED FOR FLOWMETER BOARD DON'T CHANGE PORT AND PORT INDEX
 def read_serial_and_log_high_freq_flowmeter():
@@ -303,15 +334,6 @@ def read_serial_and_log_high_freq_flowmeter():
             """
             
             # print(data_dict)
-            # Log the data to a text file
-            
-            """data_formatted = (
-                str(datetime.now())[11:] 
-                + " "
-                + str(data_dict['BoardID'])
-                + "  "
-                + str(data_dict['SensorType'])
-                + "  ")"""
                 
             # COMMENTED FOR FLOWMETER BOARD TO WORK
             """
@@ -336,10 +358,6 @@ def read_serial_and_log_high_freq_flowmeter():
                 
                 """
                 for i in range(len(data_dict['Sensors'])):
-                    if datatopass2[1] == 'ADS1015':
-                        converted_values.append(round(data_dict['Sensors'][i] * cf_1015, 1))
-                    else:
-                        converted_values.append(round(data_dict['Sensors'][i] * cf_1115, 1))
             
                 publish_json += str(converted_values)
                 publish_json += '}'
@@ -360,26 +378,20 @@ def read_serial_and_log_high_freq_flowmeter():
 def publish_data_flowmeter():
     curr_time = time.time()
     value1015 = ""
-    value1115 = ""
     while True:
         time.sleep(0.001)
         #time.sleep(0.05)
         topublish = True
         if (datatopass1[3] == "Board 1"):
             board_topic_1015 = b1_mqtt_log_1015
-            board_topic_1115 = b1_mqtt_log_1115
         elif (datatopass1[3] == "Board 2"):
             board_topic_1015 = b2_mqtt_log_1015
-            board_topic_1115 = b2_mqtt_log_1115
         elif (datatopass1[3] == "Board 3"):
             board_topic_1015 = b3_mqtt_log_1015
-            board_topic_1115 = b3_mqtt_log_1115
         elif (datatopass1[3] == "Board 4"):
             board_topic_1015 = b4_mqtt_log_1015
-            board_topic_1115 = b4_mqtt_log_1115
         elif (datatopass1[3] == "Board 5"):
             board_topic_1015 = b5_mqtt_log_1015
-            board_topic_1115 = b5_mqtt_log_1115
         else:
             topublish = False
             
@@ -391,13 +403,6 @@ def publish_data_flowmeter():
             #if datatopass2[1] == 'ADS1015':
                 value1015 = datatopass2[2]
                 #client.publish(board_topic_1015, datatopass3[2])
-                #print(datatopass)
-            """if datatopass1[1] == 'ADS1115':
-                value1115 = datatopass2[2]"""
-                #client.publish(board_topic_1115, datatopass3[2])
-                #print(datatopass)
-            #print(datatopass3)
-
 
         time_passed = time.time()-curr_time
         if topublish:
@@ -432,7 +437,6 @@ def main():
     t5 = threading.Thread(target=port4.read_serial_and_log_high_freq)
 
 
-
     t6 = threading.Thread(target=port0.publish_data)
     t7 = threading.Thread(target=publish_data_flowmeter)
     t8 = threading.Thread(target=port2.publish_data)
@@ -448,7 +452,7 @@ def main():
     if (ports[1]):
         print("Port 1 functional")
         t2.start()
-        #t7.start()
+        t7.start()
 
     if (ports[2]):
         print("Port 2 functional")

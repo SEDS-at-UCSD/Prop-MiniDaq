@@ -44,6 +44,12 @@
   grid-template-columns: repeat(2, auto);
 }
 
+.solenoid_cluster{
+  display: inline-grid;
+  grid-template-columns: repeat(2, auto);
+  column-gap: 30px
+}
+
 .status {
   margin-bottom: 15px;
 }

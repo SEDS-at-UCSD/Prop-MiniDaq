@@ -25,12 +25,30 @@ function App() {
     b5_log_data_1015: initialState,
     b5_log_data_1115: initialState,
   })
+
   const [switchStates, setSwitchStates] = useState({
     0: 0,
     1: 0,
     2: 0,
     3: 0,
     4: 0
+  });
+
+  const [solenoidBoardsData4, setSolenoidBoardsData4] = useState({
+    4: {
+      0: 0,
+      1: 0,
+      2: 0,
+      3: 0,
+      4: 0
+    },
+    5: {
+      0: 0,
+      1: 0,
+      2: 0,
+      3: 0,
+      4: 0
+    }
   });
   
   const mqttSub = (topic) => {
@@ -79,7 +97,8 @@ function App() {
           mqttSub(key);
           console.log("Subscribed to " + key);
         }
-        mqttSub("switch_states_status");
+        mqttSub("switch_states_status_4");
+        mqttSub("switch_states_status_5");
       });
 
       client.on('error', (err) => {
@@ -92,15 +111,30 @@ function App() {
       });
 
       client.on('message', (topic, message) => {
-
         message = JSON.parse(String(message));
-        if (topic === "switch_states_status") {
-          setSwitchStates((prev)=>{return {...prev, ...message}});
-        } else {
+        if (topic === "switch_states_status_4") {
+          setSolenoidBoardsData((prev)=>{
+            for (let i = 0; i < 5; i++){
+              prev[4][i] = message.sensor_readings[i]; 
+            }
+            return prev
+          });
+        }
+        else if (topic === "switch_states_status_5") {
+          setSolenoidBoardsData((prev)=>{
+            for (let i = 0; i < 5; i++){
+              prev[5][i] = message.sensor_readings[i]; 
+            }
+            return prev
+          });
+        }
+        else {
           setBoardData((prev)=>{
             return { ...prev, [topic]: message };
           })
         }
+        console.log(solenoidBoardsData[4]);
+        console.log(solenoidBoardsData[5]);
       });
     }
   }, [client]);
@@ -109,15 +143,22 @@ function App() {
     <div className="App">
       <div className="settings">
         <p className="status">{connectStatus}</p>
-        <p className="status">Recieving data: {isSub ? "True" : "False"}</p>
+        <p className="status">Receiving data: {isSub ? "True" : "False"}</p>
         <div className="min_max_settings">
           <button onClick={()=>setArrangable(!arrangable)} className="status"> {arrangable ? "Stop Arranging" : "Arrange Dials"} </button>
+        </div> 
+        <div className='solenoid_cluster'>
+        {Object.entries(solenoidBoardsData).map(([key,value])=>{
+          return (
+            <SwitchConfigure 
+              label={key}
+              switchStates={solenoidBoardsData[key]}
+              sendMessage={sendMessage}
+              editable={isSub}
+            />
+          )
+        })}
         </div>
-        <SwitchConfigure 
-          switchStates={switchStates}
-          sendMessage={sendMessage}
-          editable={isSub}
-        />
       </div>
 
       <div className="board_cluster">
