@@ -101,7 +101,7 @@ function App() {
           setSolenoidBoardsData((prev)=>{
             const newSolenoidData = { ...prev };
             for (let i = 0; i < 5; i++){
-              newSolenoidData[4][i] = message.sensor_readings[i]; 
+              newSolenoidData[4] = {...newSolenoidData[4], [i]:message.sensor_readings[i]}; 
             }
             return newSolenoidData
           });
@@ -110,7 +110,7 @@ function App() {
           setSolenoidBoardsData((prev)=>{
             const newSolenoidData = { ...prev };
             for (let i = 0; i < 5; i++){
-              newSolenoidData[5][i] = message.sensor_readings[i]; 
+              newSolenoidData[5] = {...newSolenoidData[5], [i]:message.sensor_readings[i]}; 
             }
             return newSolenoidData
           });
