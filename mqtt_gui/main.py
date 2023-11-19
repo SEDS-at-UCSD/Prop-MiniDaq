@@ -29,8 +29,38 @@ mqtt_switch_states_status = "switch_states_status"
 with open('conversion_factor_config.json', 'r') as json_file:
     conv_configs = json.load(json_file)
 
-cf_1015 = conv_configs['Conv_Factor_ADS1015']
-cf_1115 = conv_configs['Conv_Factor_ADS1115']
+# CONV FACTORS LISTS
+b1_cf_1015 = conv_configs['B1_Conv_Factor_ADS1015']
+b1_cf_1115 = conv_configs['B1_Conv_Factor_ADS1115']
+b1_thermocouple = conv_configs['B1_Thermocouple']
+
+b2_cf_1015 = conv_configs['B2_Conv_Factor_ADS1015']
+b2_cf_1115 = conv_configs['B2_Conv_Factor_ADS1115']
+b2_thermocouple = conv_configs['B2_Thermocouple']
+
+b3_cf_1015 = conv_configs['B3_Conv_Factor_ADS1015']
+b3_cf_1115 = conv_configs['B3_Conv_Factor_ADS1115']
+b3_thermocouple = conv_configs['B3_Thermocouple']
+
+b4_cf_1015 = conv_configs['B4_Conv_Factor_ADS1015']
+b4_cf_1115 = conv_configs['B4_Conv_Factor_ADS1115']
+b4_thermocouple = conv_configs['B4_Thermocouple']
+
+b5_cf_1015 = conv_configs['B5_Conv_Factor_ADS1015']
+b5_cf_1115 = conv_configs['B5_Conv_Factor_ADS1115']
+b5_thermocouple = conv_configs['B5_Thermocouple']
+
+# ADD FACTORS LISTS
+b1_cf_1015_add = conv_configs['B1_1015_ADD']
+b1_cf_1115_add = conv_configs['B1_1115_ADD']
+b2_cf_1015_add = conv_configs['B2_1015_ADD']
+b2_cf_1115_add = conv_configs['B2_1115_ADD']
+b3_cf_1015_add = conv_configs['B3_1015_ADD']
+b3_cf_1115_add = conv_configs['B3_1115_ADD']
+b4_cf_1015_add = conv_configs['B4_1015_ADD']
+b4_cf_1115_add = conv_configs['B4_1115_ADD']
+b5_cf_1015_add = conv_configs['B5_1015_ADD']
+b5_cf_1115_add = conv_configs['B5_1115_ADD']
 
 
 client = mqtt.Client("propdaq")
@@ -42,9 +72,9 @@ ports = [False, False, False, False, False]
 def open_serial_ports():
     try:
         #MAC
-        #ports[0] = serial.Serial('/dev/cu.usbserial-0001', 921600)  
+        ports[0] = serial.Serial('/dev/cu.usbserial-0001', 921600)  
         #WINDOWS
-        ports[0] = serial.Serial('COM6', 921600) 
+        #ports[0] = serial.Serial('COM6', 921600) 
     except Exception as e:
             print(f"Port error: {e}")
         
@@ -52,33 +82,33 @@ def open_serial_ports():
         #FLOWMETER BOARD DON'T CHANGE PORT AND PORT INDEX
         """ MAKE SURE THIS IS PORT OF FLOWMETER BOARD """
         #MAC
-        #ports[1] = serial.Serial('/dev/cu.usbmodem56292564361', 921600)  
+        ports[1] = serial.Serial('/dev/cu.usbmodem56292564361', 921600)  
         #WINDOWS
-        ports[1] = serial.Serial('COM5', 921600) 
+        #ports[1] = serial.Serial('COM5', 921600) 
     except Exception as e:
             print(f"Port error: {e}")
     
     try:
         # MAC 
-        #ports[2] = serial.Serial('/dev/cu.usbserial-3', 921600)  
+        ports[2] = serial.Serial('/dev/cu.usbserial-3', 921600)  
         # WINDOWS
-        ports[2] = serial.Serial('COM4', 921600) 
+        #ports[2] = serial.Serial('COM4', 921600) 
     except Exception as e:
             print(f"Port error: {e}")
     
     try:
         # MAC
-        #ports[3] = serial.Serial('/dev/cu.usbserial-4', 921600)  
+        ports[3] = serial.Serial('/dev/cu.usbserial-4', 921600)  
         # WINDOWS
-        ports[3] = serial.Serial('COM7', 921600)  
+        #ports[3] = serial.Serial('COM7', 921600)  
     except Exception as e:
             print(f"Port error: {e}")
     
     try:
         # MAC
-        # ports[4] = serial.Serial('/dev/cu.usbserial-5', 921600)  
+        ports[4] = serial.Serial('/dev/cu.usbserial-5', 921600)  
         # WINDOWS
-        ports[4] = serial.Serial('COM8', 921600)  
+        #ports[4] = serial.Serial('COM8', 921600)  
     except Exception as e:
             print(f"Port error: {e}")
 
@@ -103,7 +133,10 @@ b1115_to_topic_dict = {"Board 1": b1_mqtt_log_1115, "Board 2": b2_mqtt_log_1115,
 
 b1015_conv_factor_dict = {"Board 1": b1_cf_1015, "Board 2": b2_cf_1015, "Board 3": b3_cf_1015, "Board 4": b4_cf_1015, "Board 5": b5_cf_1015}
 b1115_conv_factor_dict = {"Board 1": b1_cf_1115, "Board 2": b2_cf_1115, "Board 3": b3_cf_1115, "Board 4": b4_cf_1115, "Board 5": b5_cf_1115}
-bTC_conv_factor_dict = {"Board 1": b1_cf_1115, "Board 2": b2_cf_1115, "Board 3": b3_cf_1115, "Board 4": b4_cf_1115, "Board 5": b5_cf_1115}
+bTC_conv_factor_dict = {"Board 1": b1_thermocouple, "Board 2": b2_thermocouple, "Board 3": b3_thermocouple, "Board 4": b4_thermocouple, "Board 5": b5_thermocouple}
+
+b1015_add_factor_dict = {"Board 1": b1_cf_1015_add, "Board 2": b2_cf_1015_add, "Board 3": b3_cf_1015_add, "Board 4": b4_cf_1015_add, "Board 5": b5_cf_1015_add}
+b1115_add_factor_dict = {"Board 1": b1_cf_1115_add, "Board 2": b2_cf_1115_add, "Board 3": b3_cf_1115_add, "Board 4": b4_cf_1115_add, "Board 5": b5_cf_1115_add}
 
 
 # Fast changing lists storing data from Board DAQ
@@ -138,7 +171,7 @@ def on_message(client, userdata, message):
         ports[0].write(command.encode())
         print("Command sent:", command)
 
-class Board_DAQ ():
+class Board_DAQ():
     def __init__(self, port_index, data_array):
         self.port_index = port_index
         self.data_array = data_array
@@ -147,7 +180,6 @@ class Board_DAQ ():
     def read_serial_and_log_high_freq(self):
         while True:
             try:
-                # Read a line of data from the Serial Monitor
                 data = ports[self.port_index].readline().decode('utf-8').strip()
                 data_dict = json.loads(data)
                 data_array = self.data_array
@@ -160,6 +192,8 @@ class Board_DAQ ():
                 conv_factor_1015 = b1015_conv_factor_dict[Board_ID]
                 conv_factor_1115 = b1015_conv_factor_dict[Board_ID]
                 conv_factor_TC = bTC_conv_factor_dict[Board_ID]
+                add_factor_1015 = b1015_add_factor_dict[Board_ID]
+                add_factor_1115 = b1115_add_factor_dict[Board_ID]
                 
                 """Update array so can check at time of publish"""
                 data_array[3] = Board_ID
@@ -183,21 +217,22 @@ class Board_DAQ ():
                     data_array[1] = data_dict['SensorType']
 
                     converted_values = [0, 0, 0, 0, 0]
-                    publish_json_dict = {"time": datetime.now()[11:22], "sensor_readings": converted_values}
+                    publish_json_dict = {"time": str(datetime.now())[11:22], "sensor_readings": converted_values}
 
 
                     for i in range(len(data_dict['Sensors'])):
                         if data_array[1] == 'ADS1015':
-                            converted_values[i] = (round(data_dict['Sensors'][i] * conv_factor_1015[i], 1))
+                            converted_values[i] = (round((data_dict['Sensors'][i] * conv_factor_1015[i]) + add_factor_1015[i], 1))
                         elif data_array[1] == 'ADS1115':
-                            converted_values[i] = (round(data_dict['Sensors'][i] * conv_factor_1115[i], 1))
+                            converted_values[i] = (round((data_dict['Sensors'][i] * conv_factor_1115[i]) + add_factor_1115[i], 1))
                         elif data_array[1] == 'Thermocouple':
                             converted_values[i] = (round(data_dict['Sensors'][i] * conv_factor_TC[i], 1))
                         else:
                             converted_values[i] = (round(data_dict['Sensors'][i] * -1000, 1))
                 
 
-                    publish_json = json.dumps(publish_json_dict, indent=4)
+                    publish_json = json.dumps(publish_json_dict)
+                    #print(publish_json)
 
                     data_array[2] = publish_json
 
@@ -205,19 +240,25 @@ class Board_DAQ ():
                     file_to_write.flush()  # Flush the buffer to ensure data is written immediately
 
             except Exception as e:
-                print(f"Serial read error: {e}, {data}")    
+                print(f"Serial read error: {e}")  
+                # , {data}")
+
 
     def publish_data(self):
         curr_time = time.time()
         data_array = self.data_array
         value1015 = ""
         value1115 = ""
-        Board_ID = data_array[3]
+
+        ## REFERENCE DOESN'T ACTUALLY ASSIGN 
+        
+        
 
         while True:
+
             time.sleep(0.001)
             toPublish = True
-
+            Board_ID = data_array[3]
             if (Board_ID in b1015_to_topic_dict):
                 board_topic_1015 = b1015_to_topic_dict[Board_ID]
                 board_topic_1115 = b1115_to_topic_dict[Board_ID]
@@ -240,6 +281,7 @@ class Board_DAQ ():
             if toPublish:
                 if (time_passed >= 0.05):
                     curr_time = time.time()
+                    #print(data_array)
                     print(value1015)
                     print(value1115)
                     if(value1015 != ""):
@@ -252,24 +294,24 @@ class Board_DAQ ():
 def read_serial_and_log_high_freq_flowmeter():
     while True:
         try:
-            # Read a line of data from the Serial Monitor
             data = ports[1].readline().decode('utf-8').strip()
             data_dict = json.loads(data) 
-
-
-            datatopass1[3] = data_dict['BoardID']
             file_to_write = board_to_log_file_dict[data_dict['BoardID']]
+
+            """
+            datatopass1[3] = data_dict['BoardID']
+            """
             
-            #print(data_dict)
+            # print(data_dict)
             # Log the data to a text file
             
-            data_formatted = (
+            """data_formatted = (
                 str(datetime.now())[11:] 
                 + " "
                 + str(data_dict['BoardID'])
                 + "  "
                 + str(data_dict['SensorType'])
-                + "  ")
+                + "  ")"""
                 
             # COMMENTED FOR FLOWMETER BOARD TO WORK
             """
@@ -280,17 +322,17 @@ def read_serial_and_log_high_freq_flowmeter():
             
             with data_lock:
                 
-                datatopass1[0] = data_formatted
+                """datatopass1[0] = data_formatted"""
                 #datatopass2[1] = data_dict['SensorType']
-                publish_json = (
+                """publish_json = (
                 "{\"time\": \"" + str(datetime.now())[11:22] 
                 + "\","
                 + "\"sensor_readings\": "
-                )
+                )"""
 
                 #converted_values = [0, 0, 0, 0, 0]
 
-                datatopass1[1] = 'mV'
+                """datatopass1[1] = 'mV'"""
                 
                 """
                 for i in range(len(data_dict['Sensors'])):
@@ -305,11 +347,11 @@ def read_serial_and_log_high_freq_flowmeter():
                 """
                 #print(publish_json)
 
-                file_to_write.write(str(datetime.now())[11:25] + datatopass1[0] + "\n")
+                file_to_write.write(str(datetime.now())[11:] + " " + str(data_dict) + "\n")
                 file_to_write.flush()  # Flush the buffer to ensure data is written immediately
 
         except Exception as e:
-            print(f"Serial read error: {e}")
+            print(f"Serial read error - Flowmeter: {e}")
             #, {data}") 
 
 
@@ -399,22 +441,27 @@ def main():
 
 
     if (ports[0]):
+        print("Port 0 functional")
         t1.start()
         t6.start()
 
     if (ports[1]):
+        print("Port 1 functional")
         t2.start()
         #t7.start()
 
     if (ports[2]):
+        print("Port 2 functional")
         t3.start()
         t8.start()
     
     if (ports[3]):
+        print("Port 3 functional")
         t4.start()
         t9.start()
     
     if (ports[4]):
+        print("Port 4 functional")
         t5.start()
         t10.start()
     
