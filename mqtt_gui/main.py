@@ -7,7 +7,7 @@ import threading
 
 
 # MQTT configuration
-mqtt_broker_address = "localhost"
+mqtt_broker_address = "169.254.32.191"
 mqtt_topic_serial = "serial_data"
 
 # MQTT Topics
@@ -75,9 +75,11 @@ ports = [False, False, False, False, False]
 def open_serial_ports():
     try:
         #MAC
-        ports[0] = serial.Serial('/dev/cu.usbserial-0001', 921600)  
+        #ports[0] = serial.Serial('/dev/cu.usbserial-0001', 921600)  
         #WINDOWS
-        #ports[0] = serial.Serial('COM6', 921600) 
+
+        #TC
+        ports[0] = serial.Serial('COM6', 921600) 
     except Exception as e:
             print(f"Port error: {e}")
         
@@ -85,33 +87,34 @@ def open_serial_ports():
         #FLOWMETER BOARD DON'T CHANGE PORT AND PORT INDEX
         """ MAKE SURE THIS IS PORT OF FLOWMETER BOARD """
         #MAC
-        ports[1] = serial.Serial('/dev/cu.usbmodem56292564361', 921600)  
+        #ports[1] = serial.Serial('/dev/cu.usbmodem56292564361', 921600)  
         #WINDOWS
-        #ports[1] = serial.Serial('COM5', 921600) 
+        ports[1] = serial.Serial('COM5', 921600) 
     except Exception as e:
             print(f"Port error: {e}")
     
     try:
         # MAC 
-        ports[2] = serial.Serial('/dev/cu.usbserial-3', 921600)  
+        #ports[2] = serial.Serial('/dev/cu.usbserial-3', 921600)  
         # WINDOWS
-        #ports[2] = serial.Serial('COM4', 921600) 
+        ports[2] = serial.Serial('COM10', 921600) 
     except Exception as e:
             print(f"Port error: {e}")
     
     try:
         # MAC
-        ports[3] = serial.Serial('/dev/cu.usbserial-4', 921600)  
+        #ports[3] = serial.Serial('/dev/cu.usbserial-4', 921600)  
         # WINDOWS
-        #ports[3] = serial.Serial('COM7', 921600)  
+        ports[3] = serial.Serial('COM7', 921600)  
     except Exception as e:
             print(f"Port error: {e}")
     
     try:
         # MAC
-        ports[4] = serial.Serial('/dev/cu.usbserial-5', 921600)  
+        #ports[4] = serial.Serial('/dev/cu.usbserial-5', 921600)  
         # WINDOWS
-        #ports[4] = serial.Serial('COM8', 921600)  
+
+        ports[4] = serial.Serial('COM11', 921600)  
     except Exception as e:
             print(f"Port error: {e}")
 
@@ -120,18 +123,18 @@ def open_serial_ports():
 gui_log_file = open('gui_serial.txt', 'w')
 
 # Mapped to boards
-raw_log_file = open('log/raw_serial_log.txt', 'a')
-raw_log_file_2 = open('log/raw_serial_log_2.txt', 'a')
-raw_log_file_3 = open('log/raw_serial_log_3.txt', 'a')
-raw_log_file_4 = open('log/raw_serial_log_4.txt', 'a')
-raw_log_file_5 = open('log/raw_serial_log_5.txt', 'a')
+raw_log_file = open('raw_serial_log.txt', 'a')
+raw_log_file_2 = open('raw_serial_log_2.txt', 'a')
+raw_log_file_3 = open('raw_serial_log_3.txt', 'a')
+raw_log_file_4 = open('raw_serial_log_4.txt', 'a')
+raw_log_file_5 = open('raw_serial_log_5.txt', 'a')
 
 
 # Switch Case Dicts
 board_to_log_file_dict = {"Board 1": raw_log_file, "Board 2": raw_log_file_2, "Board 3": raw_log_file_3, "Board 4": raw_log_file_4, "Board 5": raw_log_file_5}
 b1015_to_topic_dict = {"Board 1": b1_mqtt_log_1015, "Board 2": b2_mqtt_log_1015, "Board 3": b3_mqtt_log_1015, "Board 4": b4_mqtt_log_1015, "Board 5": b5_mqtt_log_1015}
 b1115_to_topic_dict = {"Board 1": b1_mqtt_log_1115, "Board 2": b2_mqtt_log_1115, "Board 3": b3_mqtt_log_1115, "Board 4": b4_mqtt_log_1115, "Board 5": b5_mqtt_log_1115}
-b_to_solenoid_status_topic_dict = {"Board 4": 'switch_states_status_4', "Board 5": 'switch_states_status_4'}
+b_to_solenoid_status_topic_dict = {"Board 4": 'switch_states_status_4', "Board 5": 'switch_states_status_5'}
 
 b1015_conv_factor_dict = {"Board 1": b1_cf_1015, "Board 2": b2_cf_1015, "Board 3": b3_cf_1015, "Board 4": b4_cf_1015, "Board 5": b5_cf_1015}
 b1115_conv_factor_dict = {"Board 1": b1_cf_1115, "Board 2": b2_cf_1115, "Board 3": b3_cf_1115, "Board 4": b4_cf_1115, "Board 5": b5_cf_1115}
@@ -173,19 +176,19 @@ def write(self, port, message):
 
 def on_message(client, userdata, message):
     # MAP SOLENOID BOARDS HERE
-    solenoid_Boards = {'4': ports[0], '5': ports[3]}
+    """solenoid_Boards = {'4': ports[0], '5': ports[3]}
     print(f"Received message on topic '{message.topic}': {message.payload.decode('utf-8')}")
     
     if (message.topic == "switch_states_update_4"):
-        command = "4" + message.payload.decode('utf-8')
+        command = message.payload.decode('utf-8')
         send_command = command.encode('utf-8')
         write(solenoid_write, solenoid_Boards['4'], send_command)
         print(send_command)
     if (message.topic == "switch_states_update_5"):
-        command = "5" + message.payload.decode('utf-8')
+        command = message.payload.decode('utf-8')
         send_command = command.encode('utf-8')
         write(solenoid_write, solenoid_Boards['5'], send_command)
-        print(send_command)
+        print(send_command)"""
         
 
 
@@ -224,8 +227,9 @@ class Board_DAQ():
                     + str(data_dict['SensorType'])
                     + "  ")
 
-                for i in range(len(data_dict['Sensors'])):
-                    data_formatted += str(data_dict['Sensors'][i]) + "  "
+                if data_dict['Sensors'] != "Current" and data_dict['Sensors'] != "Voltage":
+                    for i in range(len(data_dict['Sensors'])):
+                        data_formatted += str(data_dict['Sensors'][i]) + "  "
                 
                 data_formatted += "\n"
                 
@@ -238,18 +242,18 @@ class Board_DAQ():
 
                     publish_json_dict = {"time": str(datetime.now())[11:22], "sensor_readings": converted_values}
 
-
-                    for i in range(len(data_dict['Sensors'])):
-                        if data_array[1] == 'ADS1015':
-                            converted_values[i] = (round((data_dict['Sensors'][i] * conv_factor_1015[i]) + add_factor_1015[i], 1))
-                        elif data_array[1] == 'ADS1115':
-                            converted_values[i] = (round((data_dict['Sensors'][i] * conv_factor_1115[i]) + add_factor_1115[i], 1))
-                        elif data_array[1] == 'Thermocouple':
-                            converted_values[i] = (round(data_dict['Sensors'][i] * conv_factor_TC[i], 1))
-                        elif data_array[1] == 'Solenoids':
-                            converted_values[i] = data_dict['Sensors'][i]
-                        else:
-                            converted_values[i] = (round(data_dict['Sensors'][i] * -1000, 1))
+                    if data_dict['Sensors'] != "Current" and data_dict['Sensors'] != "Voltage":
+                        for i in range(len(data_dict['Sensors'])):
+                            if data_array[1] == 'ADS1015':
+                                converted_values[i] = (round((data_dict['Sensors'][i] * conv_factor_1015[i]) + add_factor_1015[i], 1))
+                            elif data_array[1] == 'ADS1115':
+                                converted_values[i] = (round((data_dict['Sensors'][i] * conv_factor_1115[i]) + add_factor_1115[i], 1))
+                            elif data_array[1] == 'Thermocouple':
+                                converted_values[i] = (round(data_dict['Sensors'][i] * conv_factor_TC[i], 1))
+                            elif data_array[1] == 'Solenoids':
+                                converted_values[i] = data_dict['Sensors'][i]
+                            else:
+                                converted_values[i] = (round(data_dict['Sensors'][i] * -1000, 1))
                         
                 
 
@@ -283,6 +287,7 @@ class Board_DAQ():
             if (Board_ID in b1015_to_topic_dict):
                 board_topic_1015 = b1015_to_topic_dict[Board_ID]
                 board_topic_1115 = b1115_to_topic_dict[Board_ID]
+            if (Board_ID in b_to_solenoid_status_topic_dict):
                 board_topic_Solenoid = b_to_solenoid_status_topic_dict[Board_ID]
             else:
                 toPublish = False
@@ -310,12 +315,14 @@ class Board_DAQ():
                     
                     if(valueSolenoidUpdates != ""):
                         client.publish(board_topic_Solenoid, valueSolenoidUpdates)
-                        #print(valueSolenoidUpdates)
+                        print(valueSolenoidUpdates)
                     else:
                         if(value1015 != ""):
                             client.publish(board_topic_1015, value1015)
+                            print(value1015)
                         if(value1115 != ""):
                             client.publish(board_topic_1115, value1115)
+                            print(value1115)
 
                     
                         #print(valueSolenoidUpdates)

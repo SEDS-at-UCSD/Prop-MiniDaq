@@ -6,7 +6,8 @@ import { SwitchConfigure } from './components/SwitchConfigure';
 
 
 function App() {
-  const connectionurl = "ws://localhost:9001";
+  //const connectionurl = "ws://localhost:9001";
+  const connectionurl = "ws://169.254.32.191:9001"
   const initialState = {time: 0, sensor_readings: [0, 0, 0, 0]}
   const [client, setClient] = useState(null);
   const [connectStatus, setConnectStatus] = useState("Not Connected");
