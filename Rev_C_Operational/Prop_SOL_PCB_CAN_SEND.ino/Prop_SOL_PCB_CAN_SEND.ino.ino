@@ -54,7 +54,7 @@ void powerTask(void *pvParameters) {
     // Send power data to the queue
     xQueueSend(powerQueue, &data, portMAX_DELAY);
 
-    vTaskDelay(1000 / portTICK_PERIOD_MS); // Adjust the delay as needed
+    vTaskDelay(100 / portTICK_PERIOD_MS); // Adjust the delay as needed
   }
 }
 
@@ -250,19 +250,20 @@ void loop() {
     Serial.print(" V, Current: ");
     Serial.print(data.current);
     Serial.println(" A");
-
+    */
     for (int i = 0; i < 5; i++){
       txMessage.data[i] = pinStatus[i];
+      /*
       Serial.print("\t Pin ");
       Serial.print(i);
       Serial.print(":");
       Serial.print(pinStatus[i]);
-      }
       Serial.println();
-
-      twai_transmit(&txMessage, pdMS_TO_TICKS(1));
-      Serial.println("CAN sent");
       */
+    }
+    twai_transmit(&txMessage, pdMS_TO_TICKS(1));
+    //Serial.println("CAN sent");
+  
   }
 
   

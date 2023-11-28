@@ -14,7 +14,7 @@ void transmitTask(void *pvParameters);
 void receiveTask(void *pvParameters);
 void commandTask(void *pvParameters);
 
-volatile int pinStatus[5] = {0,0,0,0,0};
+volatile int pinStatus[6][5] = {};
 
 StaticJsonDocument<512> sensorData;
 
@@ -139,15 +139,15 @@ void command2pin(char solboardIDnum, char command, char mode){
   else if (command == '4') {statusPin = 4;}
 
   if (mode == '0') {
-    pinStatus[statusPin] = 0;
+    pinStatus[ID][statusPin] = 0;
   } else if (mode == '1') {
-    pinStatus[statusPin] = 1;
+    pinStatus[ID][statusPin] = 1;
   } else {
     Serial.println("Invalid mode");
   }
 
   for (int i = 0; i < 5; i++){
-    txMessage_command.data[i] = pinStatus[i];
+    txMessage_command.data[i] = pinStatus[ID][i];
     /*
     Serial.print("\t Pin ");
     Serial.print(i);
@@ -173,11 +173,18 @@ void receiveTask(void *pvParameters) {
       twai_message_t rxMessage;
       esp_err_t receiveerror = twai_receive(&rxMessage, pdMS_TO_TICKS(50));
       if (receiveerror == ESP_OK) {
+        
+        if (String(rxMessage.identifier, HEX) == "41"){ //Check if Write Command issued at 0x41 (Current Status)
+        //char modes[2] = {'0','1'};
+          for (int i = 0; i < 5; i++){
+            pinStatus[4][i] = rxMessage.data[i];
+          }
+        }
 
         if (String(rxMessage.identifier, HEX) == "51"){ //Check if Write Command issued at 0x51 (Current Status)
-        char modes[2] = {'0','1'};
+        //char modes[2] = {'0','1'};
           for (int i = 0; i < 5; i++){
-            pinStatus[i] = rxMessage.data[i];
+            pinStatus[5][i] = rxMessage.data[i];
           }
         }
         
@@ -199,6 +206,10 @@ void receiveTask(void *pvParameters) {
           sensorData["Sensors"][i] = rxMessage.data[i];
         }
         receivedCANmessagetoprint += "\n";
+        /*if ((String(rxMessage.identifier, HEX) == "41")||(String(rxMessage.identifier, HEX) == "51")){
+          serializeJson(sensorData, Serial);
+          Serial.println();
+        }*/
         serializeJson(sensorData, Serial);
         Serial.println();
         //Serial.println(receivedCANmessagetoprint);

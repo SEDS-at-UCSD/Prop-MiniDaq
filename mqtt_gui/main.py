@@ -6,6 +6,7 @@ from datetime import datetime
 import threading
 from threading import Event
 
+flag_write = 0;
 
 # MQTT configuration
 mqtt_broker_address = "localhost"
@@ -66,7 +67,7 @@ def read_serial_and_log_high_freq():
                 + str(data_dict['SensorType'])
                 + "  ")
             for i in range(len(data_dict['Sensors'])):
-                data_formatted += str(data_dict['Sensors'][i]) + "  "
+                data_formatted += str(data_dict['Sensors'][i]) + ","
             
 
             #print (data_formatted)
@@ -94,8 +95,9 @@ def read_serial_and_log_high_freq():
                 publish_json += str(converted_values)
                 publish_json += '}'
                 datatopass[2] = publish_json
-                raw_log_file.write(data_formatted)
-                raw_log_file.flush()  # Flush the buffer to ensure data is written immediately
+                if (flag_write == 1):
+                    raw_log_file.write(data_formatted)
+                    raw_log_file.flush()  # Flush the buffer to ensure data is written immediately
 
         except Exception as e:
             print(f"Serial read error: {e}, {data}")
