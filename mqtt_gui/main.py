@@ -237,11 +237,12 @@ class Board_DAQ():
                 if int(sensor_type) in range(1, 4):
                     raw_byte_array = data_dict['Sensors']
                     converted_array = []
-                    for i in range(len(raw_byte_array)):
-                        converted_array += raw_byte_array[i]*255 + raw_byte_array[1]
-                        i+=2
-                
 
+                    for i in range(0, len(raw_byte_array), 2):
+                        value_to_append = 0
+                        value_to_append += raw_byte_array[i]*256 + raw_byte_array[i+1]
+                        converted_array.append(value_to_append)
+                
 
                 for i in range(len(converted_array)):
                     data_formatted += converted_array[i] + " "
