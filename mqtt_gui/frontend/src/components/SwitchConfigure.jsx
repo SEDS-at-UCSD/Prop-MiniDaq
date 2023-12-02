@@ -1,10 +1,12 @@
 import '../App.css';
 
-export const SwitchConfigure = ({switchStates, sendMessage, editable}) => {
+export const SwitchConfigure = ({label, switchStates, sendMessage, editable}) => {
     return (
         <div>
             { Object.entries(switchStates).map(([entry,value], num) => {
                 return (
+                <div>
+                <h3 className="solenoid_board">Board {label}</h3>
                 <p className="solenoid_control">
                     Sol {entry}: &nbsp;
                     <button 
@@ -12,7 +14,7 @@ export const SwitchConfigure = ({switchStates, sendMessage, editable}) => {
                         type="radio" 
                         onClick={()=>{
                             const message = entry + "1";
-                            sendMessage("switch_states_update",message);
+                            sendMessage("switch_states_update_" + label ,message);
                         }}
                         disabled={!editable}
                     >
@@ -23,13 +25,14 @@ export const SwitchConfigure = ({switchStates, sendMessage, editable}) => {
                         type="radio" 
                         onClick={()=>{
                             const message = entry + "0";
-                            sendMessage("switch_states_update",message);
+                            sendMessage("switch_states_update_" + label,message);
                         }}
                         disabled={!editable}
                     >
                     Off
                     </button>
                 </p>
+                </div>
                 )
             })
             }

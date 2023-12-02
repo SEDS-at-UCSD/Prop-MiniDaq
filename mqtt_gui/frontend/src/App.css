@@ -35,13 +35,19 @@
 }
 
 .dial_cluster {
-  width: fit-content;
-  margin-right: 100px;
+  margin-right: 50px;
+  margin-top: 10px;
 }
 
 .board_cluster {
-  display: inline-flex;
-  margin-bottom: 10px;
+  display: inline-grid;
+  grid-template-columns: repeat(2, auto);
+}
+
+.solenoid_cluster{
+  display: inline-grid;
+  grid-template-columns: repeat(2, auto);
+  column-gap: 30px
 }
 
 .status {

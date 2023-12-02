@@ -12,7 +12,7 @@ run `npm install`
 Download mosquitto from https://mosquitto.org/download/
 
 ### Make following changes to config file `mosquitto.conf`
-In the "choose protocol to use when listening section" add:
+In the "choose the protocol to use when listening section" add:
 ```
 listener 1883
 protocol mqtt
@@ -27,8 +27,12 @@ Uncomment `allow_anonymous` and set to true as such:\
 
 ## Order of Operations
 1. **Run Local MQTT Server** on one terminal window\
-   Run mqtt server with config file 
+   Run mqtt server with config file\
+   Unix/Linux Command:\
    `/opt/homebrew/opt/mosquitto/sbin/mosquitto -c /opt/homebrew/etc/mosquitto/mosquitto.conf`\
+   Windows Command:\
+   `C:\PROGRA~1\mosquitto\mosquitto -v -c C:\PROGRA~1\mosquitto\mosquitto.conf`\
+
    match addresses of mosquitto and mosquitto.conf with local addresses
 2. **Run main.py** in separate terminal window\
    `cd mqtt_gui`\

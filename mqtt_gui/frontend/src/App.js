@@ -6,32 +6,28 @@ import { SwitchConfigure } from './components/SwitchConfigure';
 
 
 function App() {
+  //const connectionurl = "ws://localhost:9001";
+  const connectionurl = "ws://169.254.32.191:9001"
+  const initialState = {time: 0, sensor_readings: [0, 0, 0, 0]}
   const [client, setClient] = useState(null);
   const [connectStatus, setConnectStatus] = useState("Not Connected");
   const [isSub, setIsSub] = useState(false);
-
-  const initialState = {time: 0, sensor_readings: [0, 0, 0, 0]}
-  
-  const [b1_data_1015, setB1_1015Data] = useState(initialState);
-  const [b1_data_1115, setB1_1115Data] = useState(initialState);
-  const [b2_data_1015, setB2_1015Data] = useState(initialState);
-  const [b2_data_1115, setB2_1115Data] = useState(initialState);
-  const [b3_data_1015, setB3_1015Data] = useState(initialState);
-  const [b3_data_1115, setB3_1115Data] = useState(initialState);
-  const [b4_data_1015, setB4_1015Data] = useState(initialState);
-  const [b4_data_1115, setB4_1115Data] = useState(initialState);
-  const [b5_data_1015, setB5_1015Data] = useState(initialState);
-  const [b5_data_1115, setB5_1115Data] = useState(initialState);
-
-  const [switchStates, setSwitchStates] = useState({
-    0: 1,
-    1: 0,
-    2: 0,
-    3: 0,
-    4: 0
-  });
-
   const [arrangable, setArrangable] = useState(false);
+
+  const [boardData, setBoardData] = useState({
+    b1_log_data_1015: initialState,
+    b1_log_data_1115: initialState,
+    b2_log_data_1015: initialState,
+    b2_log_data_1115: initialState,
+    b3_log_data_1015: initialState,
+    b3_log_data_1115: initialState,
+    b4_log_data_1015: initialState,
+    b4_log_data_1115: initialState,
+    b5_log_data_1015: initialState,
+    b5_log_data_1115: initialState,
+  })
+
+  const [solenoidBoardsData, setSolenoidBoardsData] = useState({});
   
   const mqttSub = (topic) => {
     if (client) {
@@ -67,19 +63,20 @@ function App() {
       username: 'emqx_test',
       password: 'emqx_test',
     };
-  
-    const url = 'ws://localhost:9001';
 
-    mqttConnect(url,initialConnectionOptions);
+    mqttConnect(connectionurl,initialConnectionOptions);
   }, []);
 
   useEffect(() => {
     if (client) {
       client.on('connect', () => {
         setConnectStatus('Connected');
-        mqttSub("b1_log_data_1015");
-        mqttSub("b1_log_data_1115");
-        mqttSub("switch_states_status");
+        for (const key in boardData) {
+          mqttSub(key);
+          console.log("Subscribed to " + key);
+        }
+        mqttSub("switch_states_status_4");
+        mqttSub("switch_states_status_5");
       });
 
       client.on('error', (err) => {
@@ -88,20 +85,36 @@ function App() {
       });
 
       client.on('reconnect', () => {
-        setConnectStatus('Reconnecting');
+        setConnectStatus('Lost connection, attempting to reconnect');
       });
 
       client.on('message', (topic, message) => {
-
         message = JSON.parse(String(message));
-        if (topic === 'b1_log_data_1015') {
-          setB1_1015Data(message);
-        } else if (topic === "switch_states_status") {
-          console.log("here");
-          setSwitchStates((prev)=>{return {...prev, ...message}});
-        } else {
-          setB1_1115Data(message);
+        if (topic === "switch_states_status_4") {
+          setSolenoidBoardsData((prev)=>{
+            const newSolenoidData = { ...prev };
+            for (let i = 0; i < 5; i++){
+              newSolenoidData[4] = {...newSolenoidData[4], [i]:message.sensor_readings[i]}; 
+            }
+            return newSolenoidData
+          });
         }
+        else if (topic === "switch_states_status_5") {
+          setSolenoidBoardsData((prev)=>{
+            const newSolenoidData = { ...prev };
+            for (let i = 0; i < 5; i++){
+              newSolenoidData[5] = {...newSolenoidData[5], [i]:message.sensor_readings[i]}; 
+            }
+            return newSolenoidData
+          });
+        }
+        else {
+          setBoardData((prev)=>{
+            return { ...prev, [topic]: message };
+          })
+        }
+        console.log(solenoidBoardsData[4]);
+        console.log(solenoidBoardsData[5]);
       });
     }
   }, [client]);
@@ -110,90 +123,35 @@ function App() {
     <div className="App">
       <div className="settings">
         <p className="status">{connectStatus}</p>
-        <p className="status">Recieving data: {isSub ? "True" : "False"}</p>
+        <p className="status">Receiving data: {isSub ? "True" : "False"}</p>
         <div className="min_max_settings">
           <button onClick={()=>setArrangable(!arrangable)} className="status"> {arrangable ? "Stop Arranging" : "Arrange Dials"} </button>
+        </div> 
+        <div className='solenoid_cluster'>
+        {Object.entries(solenoidBoardsData).map(([key,value])=>{
+          return (
+            <SwitchConfigure 
+              label={key}
+              switchStates={solenoidBoardsData[key]}
+              sendMessage={sendMessage}
+              editable={isSub}
+            />
+          )
+        })}
         </div>
-        <SwitchConfigure 
-          switchStates={switchStates}
-          sendMessage={sendMessage}
-          editable={isSub}
-        />
-      </div>
-      
-      <div className="board_cluster">
-        <DialCluster 
-          label="Board 1 ADS1015"
-          data={b1_data_1015}
-          arrangable
-          sensor_name="ads_1015"
-        />
-        <DialCluster 
-          label="Board 1 ADS1115"
-          data={b1_data_1115}
-          arrangable
-          sensor_name="ads_1115"
-        />
       </div>
 
       <div className="board_cluster">
-        <DialCluster 
-          label="Board 2 ADS1015"
-          data={b2_data_1015}
-          arrangable
-          sensor_name="ads_1015"
-        />
-        <DialCluster 
-          label="Board 2 ADS1115"
-          data={b2_data_1115}
-          arrangable
-          sensor_name="ads_1115"
-        />
-      </div>
-
-      <div className="board_cluster">
-        <DialCluster 
-          label="Board 3 ADS1015"
-          data={b3_data_1015}
-          arrangable
-          sensor_name="ads_1015"
-        />
-        <DialCluster 
-          label="Board 3 ADS1115"
-          data={b3_data_1115}
-          arrangable
-          sensor_name="ads_1115"
-        />
-      </div>
-
-      <div className="board_cluster">
-        <DialCluster 
-          label="Board 4 ADS1015"
-          data={b4_data_1015}
-          arrangable
-          sensor_name="ads_1015"
-        />
-        <DialCluster 
-          label="Board 4 ADS1115"
-          data={b4_data_1115}
-          arrangable
-          sensor_name="ads_1115"
-        />
-      </div>
-      
-      <div className="board_cluster">
-        <DialCluster 
-          label="Board 5 ADS1015"
-          data={b5_data_1015}
-          arrangable
-          sensor_name="ads_1015"
-        />
-        <DialCluster 
-          label="Board 5 ADS1115"
-          data={b5_data_1115}
-          arrangable
-          sensor_name="ads_1115"
-        />
+        {Object.entries(boardData).map(([key,value])=>{
+          return (
+            <DialCluster 
+              label={"Board " + key[1] + " ADS " + key.substring(12)}
+              data={value}
+              arrangable
+              sensor_name={key.substring(3)}
+            />
+          )
+        })}
       </div>
     </div>
   );
