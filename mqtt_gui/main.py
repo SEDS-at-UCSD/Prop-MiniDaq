@@ -145,6 +145,11 @@ b1115_add_factor_dict = {"Board 1": b1_cf_1115_add, "Board 2": b2_cf_1115_add, "
 
 
 
+number_to_sensor_type = {"1": "ADS 1015", "2": "ADS 1115", "3": "TC"}
+bit_to_V_factor = {"1": 32768, "2": 2048, "3": 1}
+
+
+
 
 # Fast changing lists storing data from Board DAQ
 """
@@ -195,7 +200,7 @@ def on_message(client, userdata, message):
 class Board_DAQ():
     def __init__(self, port_index, data_array):
         self.port_index = port_index
-        self.data_array = data_array
+        #self.data_array = data_array
         self.data_lock = threading.Lock()
     
     def read_serial_and_log_high_freq(self):
@@ -205,7 +210,8 @@ class Board_DAQ():
                 data_dict = json.loads(data)
                 data_array = self.data_array
 
-                Board_ID = data_dict['BoardID']
+                Board_ID = data_dict['BoardID'][0]
+                sensor_type = data_dict['SensorType'] 
 
                 file_to_write = board_to_log_file_dict[data_dict['BoardID']]
 
@@ -224,16 +230,30 @@ class Board_DAQ():
                     + " "
                     + str(data_dict['BoardID'])
                     + "  "
-                    + str(data_dict['SensorType'])
+                    + str(number_to_sensor_type[sensor_type])
                     + "  ")
 
-                if data_dict['Sensors'] != "Current" and data_dict['Sensors'] != "Voltage":
-                    for i in range(len(data_dict['Sensors'])):
-                        data_formatted += str(data_dict['Sensors'][i]) + "  "
+                # CHANGE FOR CONVERSIONS
+                if int(sensor_type) in range(1, 4):
+                    raw_byte_array = data_dict['Sensors']
+                    converted_array = []
+                    for i in range(len(raw_byte_array)):
+                        converted_array += raw_byte_array[i]*255 + raw_byte_array[1]
+                        i+=2
                 
+
+
+                for i in range(len(converted_array)):
+                    data_formatted += converted_array[i] + " "
+
                 data_formatted += "\n"
+
+                conversion_factor_V = bit_to_V_factor[sensor_type]
+                for i in range(len(converted_array):
+
                 
-                
+
+                #CONVERT HERE 
                 with data_lock:
                     data_array[0] = data_formatted
                     data_array[1] = data_dict['SensorType']
@@ -350,21 +370,9 @@ def read_serial_and_log_high_freq_flowmeter():
             # COMMENTED FOR FLOWMETER BOARD TO WORK
             """
             for i in range(len(data_dict['Sensors'])):
-<<<<<<< HEAD
-                data_formatted += str(data_dict['Sensors'][i]) + ","
-            
-
-            #print (data_formatted)
-            #print (publish_json)
-            #print(data_dict)
-            #print (datatopass)
-
-                        
-=======
                 data_formatted += str(data_dict['Sensors'][i]) + ""
             """
                            
->>>>>>> multi-board-daq
             
             with data_lock:
                 
@@ -385,19 +393,12 @@ def read_serial_and_log_high_freq_flowmeter():
             
                 publish_json += str(converted_values)
                 publish_json += '}'
-<<<<<<< HEAD
-                datatopass[2] = publish_json
-                if (flag_write == 1):
-                    raw_log_file.write(data_formatted)
-                    raw_log_file.flush()  # Flush the buffer to ensure data is written immediately
-=======
                 datatopass1[2] = publish_json
                 """
                 #print(publish_json)
 
                 file_to_write.write(str(datetime.now())[11:] + " " + str(data_dict) + "\n")
                 file_to_write.flush()  # Flush the buffer to ensure data is written immediately
->>>>>>> multi-board-daq
 
         except Exception as e:
             print(f"Serial read error - Flowmeter: {e}")
