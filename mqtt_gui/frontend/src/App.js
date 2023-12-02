@@ -25,7 +25,6 @@ function App() {
           console.log("Subscribe to " + topic + " error", error)
           return
         }
-        setIsSub(true);
       });
     }
   };
@@ -76,12 +75,13 @@ function App() {
 
       client.on('message', (topic, message) => {
         message = JSON.parse(String(message));
-        if (topic === "topics_list") {
+        if (!isSub && topic === "topics_list") {
           message.topics.forEach((subscription)=>{
             mqttSub(subscription);
             setBoardData((prev)=>{
               return { ...prev, [subscription]: initialState };
             })
+            setIsSub(true);
           })
         }
         else if (topic === "switch_states_status_4") {
