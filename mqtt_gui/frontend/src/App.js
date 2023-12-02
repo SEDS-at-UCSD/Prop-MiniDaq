@@ -14,6 +14,18 @@ function App() {
   const [isSub, setIsSub] = useState(false);
   const [arrangable, setArrangable] = useState(false);
 
+  const topics_list = [
+    "b1_log_data_1015",
+    "b1_log_data_1115",
+    "b1_log_data_TC",
+    "b2_log_data_1015",
+    "b2_log_data_1115",
+    "b2_log_data_TC",
+    "b3_log_data_1015",
+    "b3_log_data_1115",
+    "b3_log_data_TC"
+  ]
+
   const [boardData, setBoardData] = useState({})
 
   const [solenoidBoardsData, setSolenoidBoardsData] = useState({});
@@ -59,7 +71,9 @@ function App() {
     if (client) {
       client.on('connect', () => {
         setConnectStatus('Connected');
-        mqttSub("topics_list");
+        topics_list.forEach((topic)=>{
+          mqttSub(topic);
+        })
         mqttSub("switch_states_status_4");
         mqttSub("switch_states_status_5");
       });
@@ -78,11 +92,8 @@ function App() {
         if (!isSub && topic === "topics_list") {
           message.topics.forEach((subscription)=>{
             mqttSub(subscription);
-            setBoardData((prev)=>{
-              return { ...prev, [subscription]: initialState };
-            })
-            setIsSub(true);
-          })
+          });
+          setIsSub(true);
         }
         else if (topic === "switch_states_status_4") {
           setSolenoidBoardsData((prev)=>{
