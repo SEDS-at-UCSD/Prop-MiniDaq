@@ -98,18 +98,14 @@ function App() {
         else if (topic === "switch_states_status_4") {
           setSolenoidBoardsData((prev)=>{
             const newSolenoidData = { ...prev };
-            for (let i = 0; i < 5; i++){
-              newSolenoidData[4] = {...newSolenoidData[4], [i]:message.sensor_readings[i]}; 
-            }
+            newSolenoidData[4] = message.sensor_readings;
             return newSolenoidData
           });
         }
         else if (topic === "switch_states_status_5") {
           setSolenoidBoardsData((prev)=>{
             const newSolenoidData = { ...prev };
-            for (let i = 0; i < 5; i++){
-              newSolenoidData[5] = {...newSolenoidData[5], [i]:message.sensor_readings[i]}; 
-            }
+            newSolenoidData[5] = message.sensor_readings; 
             return newSolenoidData
           });
         }
@@ -135,12 +131,15 @@ function App() {
         <div className='solenoid_cluster'>
         {Object.entries(solenoidBoardsData).map(([key,value])=>{
           return (
-            <SwitchConfigure 
-              label={key}
-              switchStates={solenoidBoardsData[key]}
-              sendMessage={sendMessage}
-              editable={isSub}
-            />
+            <>
+              <h3 className="solenoid_board">Board {key}</h3>
+              <SwitchConfigure 
+                boardlabel={key}
+                switchStates={value}
+                sendMessage={sendMessage}
+                editable={isSub}
+              />
+            </>
           )
         })}
         </div>
