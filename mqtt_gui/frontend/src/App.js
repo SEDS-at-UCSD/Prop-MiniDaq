@@ -42,7 +42,6 @@ function App() {
   };
 
   const sendMessage = (topic, message) => {
-    console.log(message);
     client.publish(topic,message,(error)=>{
       if (error) {
         console.log("Publish to " + topic + " error", error)
@@ -115,8 +114,6 @@ function App() {
             return { ...prev, [topic]: message };
           })
         }
-        console.log(solenoidBoardsData[4]);
-        console.log(solenoidBoardsData[5]);
       });
     }
   }, [client]);
