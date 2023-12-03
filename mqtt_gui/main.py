@@ -220,8 +220,6 @@ class Board_DAQ():
                     elif (Board_ID == '5'):
                         self.publish_dict[mqtt_switch_states_status_5] = publish_json
 
-                    continue
-
                 else if (int(Board_ID) in range(1,4)):        
                     raw_byte_array = data_dict['Sensors']
                     converted_array = []
