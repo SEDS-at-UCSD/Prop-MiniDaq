@@ -220,9 +220,9 @@ class Board_DAQ():
                     elif (Board_ID == '5'):
                         self.publish_dict[mqtt_switch_states_status_5] = publish_json
 
-                        
-                # RAW BYTE ARRAY TO VOLT CONVERSION
-                if int(Board_ID) in range(1, 4):
+                    continue
+
+                else if (int(Board_ID) in range(1,4)):        
                     raw_byte_array = data_dict['Sensors']
                     converted_array = []
 
@@ -240,43 +240,34 @@ class Board_DAQ():
                     for i in range(len(converted_array)):
                         converted_array[i] /= conversion_factor_V
 
-    
-                #COFIG CONVERSIONS
-                final_values = []
+        
+                    #COFIG CONVERSIONS
+                    final_values = []
 
-                if int(Board_ID) in range(1, 4):
                     int_sensor_type = int(sensor_type)
                     conv_factor = board_id_to_conv_factor[Board_ID][int_sensor_type - 1]
                     offset = board_id_to_conv_offset[Board_ID][int_sensor_type - 1]
                     for i in range(len(converted_array)):     
                         final_values.append(round((converted_array[i] * conv_factor[i]) + offset[i], 2))
-                
+                    
 
-                data_formatted += "Converted: "
-                for i in range(len(final_values)):
-                    data_formatted += str(final_values[i]) + " "
+                    data_formatted += "Converted: "
+                    for i in range(len(final_values)):
+                        data_formatted += str(final_values[i]) + " "
 
-                data_formatted += "\n"
+                    data_formatted += "\n"
 
-                file_to_write.write(data_formatted)
-                file_to_write.flush()  
+                    file_to_write.write(data_formatted)
+                    file_to_write.flush()  
 
-                 
-                # PUBLISH 
+                    
+                    # PUBLISH 
 
-                publish_json_dict = {"time": str(datetime.now())[11:22], "sensor_readings": final_values}
-                publish_json = json.dumps(publish_json_dict)
+                    publish_json_dict = {"time": str(datetime.now())[11:22], "sensor_readings": final_values}
+                    publish_json = json.dumps(publish_json_dict)
 
-                
-                toPublish = True
-
-                if int(Board_ID) in range(1, 4):
                     topic = "b" + Board_ID + "_log_data_" + number_to_sensor_type_publish[sensor_type]
-                else:
-                    toPublish = False
 
-
-                if toPublish:
                     self.publish_dict[topic] = publish_json
             
             except Exception as e:
