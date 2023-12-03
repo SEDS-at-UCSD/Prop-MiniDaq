@@ -1,7 +1,7 @@
 # Set Up Instructions
   
 ## Non Front End Dependencies
-npm \
+Install Node.js \
 pyserial \
 paho-mqtt 
 
