@@ -12,7 +12,7 @@ export const SwitchConfigure = ({boardlabel, switchStates, sendMessage, editable
                         className={value !== 0 ? "on_selected sol_button": "sol_button"}
                         type="radio" 
                         onClick={()=>{
-                            const message = boardlabel + i  + "1";
+                            const message = i  + "1";
                             sendMessage("switch_states_update_" + boardlabel,message);
                         }}
                         disabled={!editable}
