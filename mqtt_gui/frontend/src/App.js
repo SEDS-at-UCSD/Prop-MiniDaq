@@ -76,6 +76,7 @@ function App() {
         })
         mqttSub("switch_states_status_4");
         mqttSub("switch_states_status_5");
+        setIsSub(true);
       });
 
       client.on('error', (err) => {
