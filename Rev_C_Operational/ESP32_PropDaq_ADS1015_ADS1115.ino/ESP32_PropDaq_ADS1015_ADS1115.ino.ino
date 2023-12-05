@@ -257,8 +257,8 @@ void sendSerialData(int16_t ADC_16bit[], double data[], String SensorType, int F
 
   for (int i = 0; i < data_arr_size; i++) {
     sensorData["Sensors"][i] = data[i];
-    txMessage.data[2*i] = ADC_16bit[i]/(0xFF);              // Reserved for message type
-    txMessage.data[2*i+1] = (ADC_16bit[i] - (txMessage.data[2*i]*(0xFF)));
+    txMessage.data[2*i] = ADC_16bit[i]/(256);              // Reserved for message type
+    txMessage.data[2*i+1] = (ADC_16bit[i] - (txMessage.data[2*i]*(256)));
   }
   // doc["Sensors"][1] = data[1];
   sensorData["FPS"] = FPS;
