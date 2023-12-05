@@ -82,7 +82,7 @@ def open_serial_ports():
         #MAC
         #ports[0] = serial.Serial('/dev/cu.usbserial-0001', 921600)  
         #WINDOWS
-        ports[0] = serial.Serial('COM6', 921600)
+        ports[0] = serial.Serial('COM6', 921600,timeout=1)
         #TC
         #ports[0] = serial.Serial('COM6', 921600) 
     except Exception as e:
