@@ -4,7 +4,7 @@ import time
 import json
 from datetime import datetime
 import threading
-
+import numpy as np
 
 # MQTT configuration
 #mqtt_broker_address = "169.254.32.191"
@@ -80,9 +80,9 @@ ports = [False, False, False, False, False]
 def open_serial_ports():
     try:
         #MAC
-        ports[0] = serial.Serial('/dev/cu.usbserial-0001', 921600)  
+        #ports[0] = serial.Serial('/dev/cu.usbserial-0001', 921600)  
         #WINDOWS
-
+        ports[0] = serial.Serial('COM6', 921600)
         #TC
         #ports[0] = serial.Serial('COM6', 921600) 
     except Exception as e:
@@ -127,7 +127,7 @@ b1115_add_factor_dict = {"Board 1": b1_cf_1115_add, "Board 2": b2_cf_1115_add, "
 number_to_sensor_type = {"1": "ADS 1015", "2": "ADS 1115", "3": "TC"}
 number_to_sensor_type_publish = {"1": "1015", "2": "1115", "3": "TC"}
 
-bit_to_V_factor = {"1": 32768, "2": 2048, "3": 1}
+bit_to_V_factor = {"1": 2048, "2": 32768, "3": 1}
 
 
 
@@ -230,6 +230,7 @@ class Board_DAQ():
                     for i in range(0, len(raw_byte_array), 2):
                         value_to_append = 0.0
                         value_to_append += raw_byte_array[i]*256 + raw_byte_array[i+1]
+                        value_to_append = int(np.int16(value_to_append))
                         converted_array.append(value_to_append)
                 
                     data_formatted += "V: "
