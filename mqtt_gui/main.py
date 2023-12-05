@@ -80,7 +80,7 @@ ports = [False, False, False, False, False]
 def open_serial_ports():
     try:
         #MAC
-        ports[0] = serial.Serial('/dev/cu.usbmodem56292564391', 921600)  
+        ports[0] = serial.Serial('/dev/cu.usbserial-0001', 921600)  
         #WINDOWS
 
         #TC
@@ -152,24 +152,24 @@ def on_connect(client, userdata, flags, rc):
     client.subscribe(mqtt_switch_states_update_5)
     
 
-def write(self, port, message):
-        port.write(message)
-
 
 def on_message(client, userdata, message):
     # MAP SOLENOID BOARDS HERE
-    solenoid_Boards = {'4': ports[0], '5': ports[3]}
     print(f"Received message on topic '{message.topic}': {message.payload.decode('utf-8')}")
     
     if (message.topic == "switch_states_update_4"):
-        command = "4" + message.payload.decode('utf-8')
+        command = "4" + message.payload.decode('utf-8') + "\n"
         send_command = command.encode('utf-8')
         ports[0].write(send_command)
+        ports[0].flush()
+        print(command)
         print(send_command)
     if (message.topic == "switch_states_update_5"):
-        command = "5" + message.payload.decode('utf-8')
+        command = "5" + message.payload.decode('utf-8') + "\n"
         send_command = command.encode('utf-8')
         ports[0].write(send_command)
+        ports[0].flush()
+        print(command)
         print(send_command)
         
 
@@ -208,19 +208,22 @@ class Board_DAQ():
                     + str(number_to_sensor_type[sensor_type])
                     + "  ")
 
-                
+                # SOLENOID BOARDS 
                 if int(Board_ID) in range(4, 6):
                     raw_byte_array = data_dict['Sensors']
                     publish_array = raw_byte_array[0:5]
                     publish_json_dict = {"time": str(datetime.now())[11:22], "sensor_readings": publish_array}
                     publish_json = json.dumps(publish_json_dict)
+                    print(Board_ID + " " + publish_json)
 
                     if (Board_ID == '4'):
                         self.publish_dict[mqtt_switch_states_status_4] = publish_json
                     elif (Board_ID == '5'):
                         self.publish_dict[mqtt_switch_states_status_5] = publish_json
 
-                else if (int(Board_ID) in range(1,4)):        
+                    
+                # DAQ BOARDS
+                elif (int(Board_ID) in range(1,4)):        
                     raw_byte_array = data_dict['Sensors']
                     converted_array = []
 
@@ -239,7 +242,7 @@ class Board_DAQ():
                         converted_array[i] /= conversion_factor_V
 
         
-                    #COFIG CONVERSIONS
+                    #CONFIG CONVERSIONS
                     final_values = []
 
                     int_sensor_type = int(sensor_type)
