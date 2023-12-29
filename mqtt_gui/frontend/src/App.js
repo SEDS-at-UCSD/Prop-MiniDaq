@@ -150,7 +150,7 @@ function App() {
             <DialCluster 
               label={"Board " + key[1] + " ADS " + key.substring(12)}
               data={value}
-              arrangable
+              arrangable={arrangable}
               sensor_name={key.substring(3)}
             />
           )
