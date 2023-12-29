@@ -225,23 +225,41 @@ class Board_DAQ():
                 # DAQ BOARDS
                 elif (int(Board_ID) in range(1,4)):        
                     raw_byte_array = data_dict['Sensors']
-                    converted_array = []
+                    converted_array = np.array([],dtype=np.uint16)
 
-                    for i in range(0, len(raw_byte_array), 2):
-                        value_to_append = 0.0
-                        value_to_append += raw_byte_array[i]*256 + raw_byte_array[i+1]
-                        value_to_append = int(np.int16(value_to_append))
-                        converted_array.append(value_to_append)
-                
+                    
+                    if (data_dict['SensorType']  == "3"):
+                        for i in range(0, len(raw_byte_array), 2):
+                            #print(raw_byte_array[i],raw_byte_array[i+1])
+                            value_to_append = np.uint16(0)
+                            value_to_append += np.uint16(raw_byte_array[i])*np.uint16(256) + np.uint16(raw_byte_array[i+1])
+                            #value_to_append = float(np.array(np.uint16(value_to_append)).astype(np.float16))
+                            converted_array = np.append(converted_array,value_to_append)
+                        converted_array = converted_array.view(np.float16)
+                        for i in range(len(converted_array)):     
+                            if (np.isnan(converted_array[i])):
+                                converted_array[i] = 0
+                    else:
+                        for i in range(0, len(raw_byte_array), 2):
+                            value_to_append = np.uint16(0)
+                            value_to_append += np.uint16(raw_byte_array[i])*np.uint16(256) + np.uint16(raw_byte_array[i+1])
+                            #value_to_append += raw_byte_array[i]*256 + raw_byte_array[i+1]
+                            #value_to_append = float(np.array(np.uint16(value_to_append)).astype(np.int16))
+                            converted_array = np.append(converted_array,value_to_append)
+                        converted_array = converted_array.view(np.int16)
+                        for i in range(len(converted_array)):     
+                            converted_array[i] *= 6.144/5 #ADS PGA voltage 6.144V max range / 0-5V operational range
+
+                    converted_array = converted_array.tolist()
+                    #print(converted_array)
                     data_formatted += "V: "
                     for i in range(len(converted_array)):
                         data_formatted += str(converted_array[i]) + " "
 
-
+                    #print(converted_array)
                     conversion_factor_V = bit_to_V_factor[sensor_type]
                     for i in range(len(converted_array)):
                         converted_array[i] /= conversion_factor_V
-
         
                     #CONFIG CONVERSIONS
                     final_values = []
@@ -251,7 +269,6 @@ class Board_DAQ():
                     offset = board_id_to_conv_offset[Board_ID][int_sensor_type - 1]
                     for i in range(len(converted_array)):     
                         final_values.append(round((converted_array[i] * conv_factor[i]) + offset[i], 2))
-                    
 
                     data_formatted += "Converted: "
                     for i in range(len(final_values)):
