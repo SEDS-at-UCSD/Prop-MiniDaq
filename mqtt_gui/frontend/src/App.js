@@ -125,7 +125,7 @@ function App() {
         <p className="status">Receiving data: {isSub ? "True" : "False"}</p>
         <div className="min_max_settings">
           <button onClick={()=>setArrangable(!arrangable)} className="status"> {arrangable ? "Stop Arranging" : "Arrange Dials"} </button>
-          <button onClick={()=>setArrangable(!solenoidControl)} className="status"> {solenoidControl ? "Disable Buttons" : "Enable Buttons"} </button>
+          <button onClick={()=>setSolenoidControl(!solenoidControl)} className="status"> {solenoidControl ? "Disable Buttons" : "Enable Buttons"} </button>
         </div> 
         <div className='solenoid_cluster'>
         {Object.entries(solenoidBoardsData).map(([key,value])=>{
