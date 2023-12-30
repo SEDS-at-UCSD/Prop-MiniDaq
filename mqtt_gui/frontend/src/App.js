@@ -156,6 +156,7 @@ function App() {
           )
         })}
       </div>
+      <img src="../seds_logo.png" alt="SEDS Logo" className="logo"/>
     </div>
   );
 }

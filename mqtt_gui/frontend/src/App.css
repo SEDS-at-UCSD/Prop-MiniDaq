@@ -72,3 +72,11 @@
   height: 45px;
   width: 90px;
 }
+
+.logo {
+  width: 150px;
+  height: 150px;
+  position: absolute;
+  bottom: 5px;
+  right: 5px;
+}
