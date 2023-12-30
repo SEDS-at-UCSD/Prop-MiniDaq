@@ -130,7 +130,7 @@ function App() {
         <div className='solenoid_cluster'>
         {Object.entries(solenoidBoardsData).map(([key,value])=>{
           return (
-            <>
+            <div>
               <h3 className="solenoid_board">Board {key}</h3>
               <SwitchConfigure 
                 boardlabel={key}
@@ -138,7 +138,7 @@ function App() {
                 sendMessage={sendMessage}
                 editable={solenoidControl}
               />
-            </>
+            </div>
           )
         })}
         </div>

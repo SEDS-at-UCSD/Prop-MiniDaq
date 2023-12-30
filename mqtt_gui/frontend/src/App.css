@@ -53,7 +53,8 @@ body {
 .solenoid_cluster{
   display: inline-grid;
   grid-template-columns: repeat(2, auto);
-  column-gap: 30px
+  column-gap: 30px;
+  text-align: left;
 }
 
 .status {
