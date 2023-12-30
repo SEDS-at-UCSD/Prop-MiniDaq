@@ -303,7 +303,7 @@ def main():
     client.on_connect = on_connect
     client.on_message = on_message
 
-    client.connect(mqtt_broker_address, 1883, 60)
+    client.connect(mqtt_broker_address, 1884, 60)
     client.loop_start()
 
     open_serial_ports()
