@@ -59,6 +59,9 @@ body {
 
 .status {
   margin-bottom: 15px;
+}
+
+.control_button {
   font-size: 30px;
   width: 45px;
   height: 90px;
