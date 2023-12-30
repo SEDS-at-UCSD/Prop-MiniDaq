@@ -59,6 +59,9 @@ body {
 
 .status {
   margin-bottom: 15px;
+  font-size: 30px;
+  width: 45px;
+  height: 90px;
 }
 
 .solenoid_control {
@@ -85,4 +88,5 @@ body {
   position: absolute;
   bottom: 5px;
   right: 5px;
+  z-index: -1;
 }
