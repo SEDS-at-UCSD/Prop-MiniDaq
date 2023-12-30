@@ -17,6 +17,7 @@ export const DialCluster = ({label, data, sensor_name, arrangable}) => {
                                 valueColor={reading < 0 ? "red" : "black"}
                                 min = {settings[sensor_name + "_min"]}
                                 max = {settings[sensor_name + "_max"]}
+                                textColor="white"
                             />
                             <p>{label.includes("TC") ? "°C" : "PSI"}</p>
                         </div>
