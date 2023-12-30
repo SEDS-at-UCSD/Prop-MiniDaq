@@ -2,6 +2,11 @@
   text-align: left;
 }
 
+body {
+  background-color: black;
+  color: white;
+}
+
 .chart-container {
   height: 450px;
   width: 600px;
