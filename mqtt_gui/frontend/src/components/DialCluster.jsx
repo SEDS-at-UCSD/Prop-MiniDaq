@@ -18,6 +18,7 @@ export const DialCluster = ({label, data, sensor_name, arrangable}) => {
                                 min = {settings[sensor_name + "_min"]}
                                 max = {settings[sensor_name + "_max"]}
                             />
+                            <p>{label.includes("TC") ? "C" : "PSI"}</p>
                         </div>
                     );
                     })}
