@@ -77,7 +77,8 @@ void loop() {
       dataFile.close();
     } else {
       // Skip saving if file opening fails
-      Serial.println("Error opening file");
+      Serial.println("Failed to read CAN and Error opening file");
+      digitalWrite(48,HIGH);
     }
     return;
   }
@@ -93,7 +94,7 @@ void loop() {
   Serial.println();
 
   // Open file for writing
-  File dataFile = SD.open("can_data.txt", FILE_WRITE);
+  File dataFile = SD.open("/can_data.txt", FILE_APPEND, true);
 
   // If the file is available, write to it
   if (dataFile) {
@@ -110,34 +111,47 @@ void loop() {
     dataFile.print(", Converted: ");
     if (message.identifier < 0x40){ //boards 1-3
       if ((message.identifier % 0x10) == 1){ //sensor ID 1: ADS1015
+        Serial.print("ADS1015: ");
         for (int i = 0; i < message.data_length_code; i+=2) {
-          int16_t msg_value = (uint16_t)message.data[2*i]*0xFF + (uint16_t)message.data[2*i+1];
+          int16_t msg_value = (uint8_t)(message.data[i+1]) | ((uint8_t)message.data[i] << 8);
+          //int msg_value = (uint8_t)message.data[2*i]*0xFF + (uint8_t)message.data[2*i+1];
           float value = msg_value*(6.144/(5*2048));
+          Serial.print(value);
+          Serial.print(" ");
           dataFile.print(value);
           dataFile.print(" ");
         }
       } else if ((message.identifier % 0x10) == 2){ //sensor ID 2: ADS1115
+        Serial.print("ADS1115: ");
         for (int i = 0; i < message.data_length_code; i+=2) {
-          int16_t msg_value = (uint16_t)message.data[2*i]*0xFF + (uint16_t)message.data[2*i+1];
+          int16_t msg_value = (uint8_t)(message.data[i+1]) | ((uint8_t)message.data[i] << 8);
+          //int msg_value = (uint8_t)message.data[2*i]*0xFF + (uint8_t)message.data[2*i+1];
           float value = msg_value*(6.144/(5*32768));
+          Serial.print(value);
+          Serial.print(" ");
           dataFile.print(value);
           dataFile.print(" ");
         }
       }
       else if ((message.identifier % 0x10) == 3){ //sensor ID 3 : TC
+        Serial.print("TCs: ");
         for (int i = 0; i < message.data_length_code; i+=2) {
-          uint16_t msg_value = (uint16_t)message.data[2*i]*0xFF + (uint16_t)message.data[2*i+1];
+          int16_t msg_value = (uint8_t)(message.data[i+1]) | ((uint8_t)message.data[i] << 8);
           float value = ieee754ToFloat(msg_value);
+          Serial.print(value);
+          Serial.print(" ");
           dataFile.print(value);
           dataFile.print(" ");
         }
       }
     }
+    Serial.println();
     dataFile.println();
     dataFile.close();
   } else {
     // Skip saving if file opening fails
     Serial.println("Error opening file");
+    digitalWrite(48,HIGH);
   }
 }
 
