@@ -4,7 +4,6 @@ import * as mqtt from 'mqtt/dist/mqtt.min';
 import { DialCluster } from './components/DialCluster';
 import { SwitchConfigure } from './components/SwitchConfigure';
 
-
 function App() {
   //const connectionurl = "ws://localhost:9002";
   const connectionurl = "ws://169.254.32.191:9002"
@@ -13,6 +12,11 @@ function App() {
   const [isSub, setIsSub] = useState(false);
   const [arrangable, setArrangable] = useState(false);
   const [solenoidControl, setSolenoidControl] = useState(false);
+
+  const solenoidLabels = {
+    "4": ['LOX DOME IN', 'LNG VENT NO', 'LNG MAIN NC', 'LOX MAIN NC', 'LOX VENT NO'],
+    "5": ['LNG DOME IN', 'LNG DOME OUT', '12V: NIL', '12V: NIL', 'LOX DOME OUT']
+  };
 
   const topics_list = [
     "b1_log_data_1015",
@@ -137,6 +141,7 @@ function App() {
                 switchStates={value}
                 sendMessage={sendMessage}
                 editable={solenoidControl}
+                solLabels={solenoidLabels} 
               />
             </div>
           )

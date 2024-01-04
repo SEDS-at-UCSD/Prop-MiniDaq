@@ -47,7 +47,7 @@ body {
 
 .board_cluster {
   display: inline-grid;
-  grid-template-columns: repeat(2, auto);
+  grid-template-columns: repeat(1, auto);
 }
 
 .solenoid_cluster{
