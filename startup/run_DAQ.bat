@@ -39,8 +39,17 @@ if exist "c:\Users\Admin\Documents\GitHub\PropMiniDaq\Python Code\Prop PCB DAQ L
 )
 
 :end
+
+REM Activate Python CAM2IP
+if exist "c:\Users\Admin\Documents\GitHub\PropMiniDaq\mqtt_gui\cam2ip.py" (
+    start "Activate CAM2IP"  cmd /k "c:\Users\Admin\Documents\GitHub\PropMiniDaq\Python Code\Prop PCB DAQ Logger\.daqvenv\bin\Activate.ps1 & cd c:\Users\Admin\Documents\GitHub\PropMiniDaq\mqtt_gui & py c:\Users\Admin\Documents\GitHub\PropMiniDaq\mqtt_gui\cam2ip.py"
+) else (
+    echo Python Virtual IP CAM failed
+)
+
 echo "Running... 5 Seconds Waiting for NPM to start"
 REM Wait for 5 seconds
 timeout /t 5 /nobreak
 start msedge --start-fullscreen http://localhost:3000/
+
 pause
