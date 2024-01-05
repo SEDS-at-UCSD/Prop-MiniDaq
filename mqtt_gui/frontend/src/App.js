@@ -15,12 +15,12 @@ function App() {
 
   const solenoidLabels = {
     "4": ['LOX DOME IN', 'LNG VENT NO', 'LNG MAIN NC', 'LOX MAIN NC', 'LOX VENT NO'],
-    "5": ['LNG DOME IN', 'LNG DOME OUT', '12V: NIL', '12V: NIL', 'LOX DOME OUT']
+    "5": ['LNG DOME IN ', 'LNG DOME OUT', '12V: NIL', '12V: NIL', 'LOX DOME OUT']
   };
 
   const PTLabels = {
-    "log_data_1015": ['IGN LOX (PSI)', 'LNG COOL (PSI)', 'LNG MAIN (PSI)', 'IGN (PSI)'],
-    "log_data_1115": ['LNG DOME 2K (PSI)', 'LNG TANK 2K (PSI)', 'LOX TANK (PSI)', 'LOX DOME (PSI)']
+    "log_data_1015": ['LOX INJ  1K (PSI)', 'LNG INJ  1K (PSI)', 'LNG COOL 1K (PSI)', 'IGN PREC 1K (PSI)'],
+    "log_data_1115": ['LNG DOME 2K (PSI)', 'LNG TANK 2K (PSI)', 'LOX TANK 1K (PSI)', 'LOX DOME 1K (PSI)']
   };
 
   const topics_list = [
