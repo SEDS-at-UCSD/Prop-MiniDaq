@@ -18,6 +18,11 @@ function App() {
     "5": ['LNG DOME IN', 'LNG DOME OUT', '12V: NIL', '12V: NIL', 'LOX DOME OUT']
   };
 
+  const PTLabels = {
+    "log_data_1015": ['IGN LOX (PSI)', 'IGN LNG COOL (PSI)', 'IGN LNG MAIN (PSI)', 'IGN (PSI)'],
+    "log_data_1115": ['LNG DOME (2K) (PSI)', 'LNG TANK (PSI)', 'LOX TANK (PSI)', 'LOX DOME (2K) (PSI)']
+  };
+
   const topics_list = [
     "b1_log_data_1015",
     "b1_log_data_1115",
@@ -157,6 +162,7 @@ function App() {
               data={value}
               arrangable={arrangable}
               sensor_name={key.substring(3)}
+              psiLabels={PTLabels} 
             />
           )
         })}
