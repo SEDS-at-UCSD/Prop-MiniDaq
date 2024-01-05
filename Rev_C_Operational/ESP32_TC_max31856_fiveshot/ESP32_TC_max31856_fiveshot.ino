@@ -26,7 +26,7 @@ Adafruit_MAX31856 maxthermo3 = Adafruit_MAX31856(38, 3, 48, 45);
 Adafruit_MAX31856 maxthermo4 = Adafruit_MAX31856(39, 3, 48, 45);
 
 Adafruit_MAX31856 maxthermo[4] = {maxthermo0,maxthermo1,maxthermo2,maxthermo3};
-max31856_thermocoupletype_t MAXCases[4] = {MAX31856_TCTYPE_K,MAX31856_TCTYPE_K,MAX31856_TCTYPE_K,MAX31856_TCTYPE_T};
+max31856_thermocoupletype_t MAXCases[4] = {MAX31856_TCTYPE_K,MAX31856_TCTYPE_K,MAX31856_TCTYPE_T,MAX31856_TCTYPE_T};
 bool MAXActive[4] = {1,1,1,1};
 
 unsigned long startTime;
