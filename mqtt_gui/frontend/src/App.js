@@ -19,8 +19,8 @@ function App() {
   };
 
   const PTLabels = {
-    "log_data_1015": ['IGN LOX (PSI)', 'IGN LNG COOL (PSI)', 'IGN LNG MAIN (PSI)', 'IGN (PSI)'],
-    "log_data_1115": ['LNG DOME (2K) (PSI)', 'LNG TANK (PSI)', 'LOX TANK (PSI)', 'LOX DOME (2K) (PSI)']
+    "log_data_1015": ['IGN LOX (PSI)', 'LNG COOL (PSI)', 'LNG MAIN (PSI)', 'IGN (PSI)'],
+    "log_data_1115": ['LNG DOME 2K (PSI)', 'LNG TANK (PSI)', 'LOX TANK (PSI)', 'LOX DOME 2K (PSI)']
   };
 
   const topics_list = [
