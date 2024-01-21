@@ -5,6 +5,9 @@
 #include <ctime>
 #include <sstream>
 #include <iomanip>
+#include <windows.h>
+#include <iostream>
+using namespace std;
 
 std::string getCurrentTime() {
     // Get current time as time_point
@@ -33,6 +36,46 @@ int main() {
 
     std::vector<std::string> buffer;
     buffer.reserve(2000); // Reserve space for 2000 timestamps
+
+    HANDLE h_Serial;
+    h_Serial = CreateFile("COM1", GENERIC_READ | GENERIC_WRITE, 0, 0, OPEN_EXISTING,
+                        FILE_ATTRIBUTE_NORMAL, 0);
+    if (h_Serial == INVALID_HANDLE_VALUE) {
+        if (GetLastError() == ERROR_FILE_NOT_FOUND) {
+            // serial port not found. Handle error here.
+            cout << "Serial port not found";
+            return -1;
+        }
+        // any other error. Handle error here.
+        cout << "Error opening serial port to read";
+        return -1;
+    }
+
+    DCB dcbSerialParam = {0};
+    dcbSerialParam.DCBlength = sizeof(dcbSerialParam);
+
+    if (!GetCommState(h_Serial, &dcbSerialParam)) {
+    // handle error here
+    }
+
+    dcbSerialParam.BaudRate = CBR_19200;
+    dcbSerialParam.ByteSize = 8;
+    dcbSerialParam.StopBits = ONESTOPBIT;
+    dcbSerialParam.Parity = NOPARITY;
+
+    if (!SetCommState(h_Serial, &dcbSerialParam)) {
+    // handle error here
+    }
+
+    COMMTIMEOUTS timeout = {0};
+    timeout.ReadIntervalTimeout = 60;
+    timeout.ReadTotalTimeoutConstant = 60;
+    timeout.ReadTotalTimeoutMultiplier = 15;
+    timeout.WriteTotalTimeoutConstant = 60;
+    timeout.WriteTotalTimeoutMultiplier = 8;
+    if (!SetCommTimeouts(h_Serial, &timeout)) {
+    // handle error here
+    }
 
     auto next = std::chrono::high_resolution_clock::now();
     while (true) {
