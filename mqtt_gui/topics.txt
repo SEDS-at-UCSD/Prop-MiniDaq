@@ -4,23 +4,32 @@ Board Data:
     Board 1:
         ADS1015: b1_log_data_1015
         ADS11015: b1_log_data_1115
+        TC: b1_log_data_TC
 
     Board 2:
         ADS1015: b2_log_data_1015
         ADS11015: b2_log_data_1115
+        TC: b2_log_data_TC
 
     Board 3:
         ADS1015: b3_log_data_1015
         ADS11015: b3_log_data_1115
+        TC: b3_log_data_TC
 
     Board 4:
         ADS1015: b4_log_data_1015
         ADS11015: b4_log_data_1115
+        TC: b4_log_data_TC
 
     Board 5:
         ADS1015: b5_log_data_1015
         ADS11015: b5_log_data_1115
+        TC: b5_log_data_TC
 
 Solenoid Control/States:
-    Frontend sending updates to backend: switch_states_update
-    Backend sending current state: switch_states_status
+    Frontend sending updates to backend: 
+    switch_states_update_4
+    switch_states_update_5
+    Backend sending current state: 
+    switch_states_status_4
+    switch_states_status_5

@@ -3,7 +3,7 @@
 #include <arduinoFFT.h>
 
 TwoWire I2C_one(0);
-ADS1115 ADS(0x48, &I2C_one); // ADS1115 object using TwoWire
+ADS1015 ADS(0x48, &I2C_one); // ADS1115 object using TwoWire
 
 const int numSamples = 200; // Number of samples for FFT
 double samplingFrequency = 8.0; // Maximum sampling rate in Hz, usually 868.0

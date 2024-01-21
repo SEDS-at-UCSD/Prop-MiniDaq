@@ -1,9 +1,10 @@
 # Set Up Instructions
   
 ## Non Front End Dependencies
-npm \
+Install Node.js \
 pyserial \
-paho-mqtt 
+paho-mqtt \
+numpy
 
 ## Front End Dependencies
 run `npm install` 
@@ -14,10 +15,10 @@ Download mosquitto from https://mosquitto.org/download/
 ### Make following changes to config file `mosquitto.conf`
 In the "choose the protocol to use when listening section" add:
 ```
-listener 1883
+listener 1884
 protocol mqtt
 
-listener 9001
+listener 9002
 protocol websockets
 ```
 

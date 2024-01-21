@@ -4,28 +4,38 @@ import * as mqtt from 'mqtt/dist/mqtt.min';
 import { DialCluster } from './components/DialCluster';
 import { SwitchConfigure } from './components/SwitchConfigure';
 
-
 function App() {
-  //const connectionurl = "ws://localhost:9001";
-  const connectionurl = "ws://169.254.32.191:9001"
-  const initialState = {time: 0, sensor_readings: [0, 0, 0, 0]}
+  //const connectionurl = "ws://localhost:9002";
+  const connectionurl = "ws://169.254.32.191:9002"
   const [client, setClient] = useState(null);
   const [connectStatus, setConnectStatus] = useState("Not Connected");
   const [isSub, setIsSub] = useState(false);
   const [arrangable, setArrangable] = useState(false);
+  const [solenoidControl, setSolenoidControl] = useState(false);
 
-  const [boardData, setBoardData] = useState({
-    b1_log_data_1015: initialState,
-    b1_log_data_1115: initialState,
-    b2_log_data_1015: initialState,
-    b2_log_data_1115: initialState,
-    b3_log_data_1015: initialState,
-    b3_log_data_1115: initialState,
-    b4_log_data_1015: initialState,
-    b4_log_data_1115: initialState,
-    b5_log_data_1015: initialState,
-    b5_log_data_1115: initialState,
-  })
+  const solenoidLabels = {
+    "4": ['LOX DOME IN', 'LNG VENT NO', 'LNG MAIN NC', 'LOX MAIN NC', 'LOX VENT NO'],
+    "5": ['LNG DOME IN ', 'LNG DOME OUT', '12V: NIL', '12V: NIL', 'LOX DOME OUT']
+  };
+
+  const PTLabels = {
+    "log_data_1015": ['LOX INJ  1K (PSI)', 'LNG INJ  1K (PSI)', 'LNG COOL 1K (PSI)', 'IGN PREC 1K (PSI)'],
+    "log_data_1115": ['LNG DOME 2K (PSI)', 'LNG TANK 2K (PSI)', 'LOX TANK 1K (PSI)', 'LOX DOME 1K (PSI)']
+  };
+
+  const topics_list = [
+    "b1_log_data_1015",
+    "b1_log_data_1115",
+    "b1_log_data_TC",
+    "b2_log_data_1015",
+    "b2_log_data_1115",
+    "b2_log_data_TC",
+    "b3_log_data_1015",
+    "b3_log_data_1115",
+    "b3_log_data_TC"
+  ]
+
+  const [boardData, setBoardData] = useState({})
 
   const [solenoidBoardsData, setSolenoidBoardsData] = useState({});
   
@@ -36,13 +46,11 @@ function App() {
           console.log("Subscribe to " + topic + " error", error)
           return
         }
-        setIsSub(true);
       });
     }
   };
 
   const sendMessage = (topic, message) => {
-    console.log(message);
     client.publish(topic,message,(error)=>{
       if (error) {
         console.log("Publish to " + topic + " error", error)
@@ -71,12 +79,12 @@ function App() {
     if (client) {
       client.on('connect', () => {
         setConnectStatus('Connected');
-        for (const key in boardData) {
-          mqttSub(key);
-          console.log("Subscribed to " + key);
-        }
+        topics_list.forEach((topic)=>{
+          mqttSub(topic);
+        })
         mqttSub("switch_states_status_4");
         mqttSub("switch_states_status_5");
+        setIsSub(true);
       });
 
       client.on('error', (err) => {
@@ -90,21 +98,23 @@ function App() {
 
       client.on('message', (topic, message) => {
         message = JSON.parse(String(message));
-        if (topic === "switch_states_status_4") {
+        if (!isSub && topic === "topics_list") {
+          message.topics.forEach((subscription)=>{
+            mqttSub(subscription);
+          });
+          setIsSub(true);
+        }
+        else if (topic === "switch_states_status_4") {
           setSolenoidBoardsData((prev)=>{
             const newSolenoidData = { ...prev };
-            for (let i = 0; i < 5; i++){
-              newSolenoidData[4] = {...newSolenoidData[4], [i]:message.sensor_readings[i]}; 
-            }
+            newSolenoidData[4] = message.sensor_readings;
             return newSolenoidData
           });
         }
         else if (topic === "switch_states_status_5") {
           setSolenoidBoardsData((prev)=>{
             const newSolenoidData = { ...prev };
-            for (let i = 0; i < 5; i++){
-              newSolenoidData[5] = {...newSolenoidData[5], [i]:message.sensor_readings[i]}; 
-            }
+            newSolenoidData[5] = message.sensor_readings; 
             return newSolenoidData
           });
         }
@@ -113,8 +123,6 @@ function App() {
             return { ...prev, [topic]: message };
           })
         }
-        console.log(solenoidBoardsData[4]);
-        console.log(solenoidBoardsData[5]);
       });
     }
   }, [client]);
@@ -125,17 +133,22 @@ function App() {
         <p className="status">{connectStatus}</p>
         <p className="status">Receiving data: {isSub ? "True" : "False"}</p>
         <div className="min_max_settings">
-          <button onClick={()=>setArrangable(!arrangable)} className="status"> {arrangable ? "Stop Arranging" : "Arrange Dials"} </button>
+          <button onClick={()=>setArrangable(!arrangable)} className="status control_button"> {arrangable ? "Stop Arranging" : "Arrange Dials"} </button>
+          <button onClick={()=>setSolenoidControl(!solenoidControl)} className="status control_button"> {solenoidControl ? "Disable Buttons" : "Enable Buttons"} </button>
         </div> 
         <div className='solenoid_cluster'>
         {Object.entries(solenoidBoardsData).map(([key,value])=>{
           return (
-            <SwitchConfigure 
-              label={key}
-              switchStates={solenoidBoardsData[key]}
-              sendMessage={sendMessage}
-              editable={isSub}
-            />
+            <div>
+              <h3 className="solenoid_board">Board {key}</h3>
+              <SwitchConfigure 
+                boardlabel={key}
+                switchStates={value}
+                sendMessage={sendMessage}
+                editable={solenoidControl}
+                solLabels={solenoidLabels} 
+              />
+            </div>
           )
         })}
         </div>
@@ -147,12 +160,14 @@ function App() {
             <DialCluster 
               label={"Board " + key[1] + " ADS " + key.substring(12)}
               data={value}
-              arrangable
+              arrangable={arrangable}
               sensor_name={key.substring(3)}
+              psiLabels={PTLabels} 
             />
           )
         })}
       </div>
+      <img src="../seds_logo.png" alt="SEDS Logo" className="logo"/>
     </div>
   );
 }
