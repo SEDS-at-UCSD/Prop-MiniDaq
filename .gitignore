@@ -23,3 +23,7 @@ mqtt_gui/raw_serial_log.txt
 mqtt_gui/raw_serial_log.txt
 mqtt_gui/raw_serial_log.txt
 mqtt_gui/raw_serial_log.txt
+mqtt_gui/output.txt
+.vscode/c_cpp_properties.json
+.vscode/settings.json
+mqtt_gui/main
