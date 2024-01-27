@@ -14,8 +14,10 @@ function App() {
   const [solenoidControl, setSolenoidControl] = useState(false);
 
   const solenoidLabels = {
-    "4": ['LOX DOME IN', 'LNG VENT NO', 'LNG MAIN NC', 'LOX MAIN NC', 'LOX VENT NO'],
-    "5": ['LNG DOME IN ', 'LNG DOME OUT', '12V: NIL', '12V: NIL', 'LOX DOME OUT']
+    // "4": ['LOX DOME IN', 'LNG VENT NO', 'LNG MAIN NC', 'LOX MAIN NC', 'LOX VENT NO'],
+    // "5": ['LNG DOME IN ', 'LNG DOME OUT', '12V: NIL', '12V: NIL', 'LOX DOME OUT']
+    "4": ['0','1','2','3','4'],
+    "5": ['0','1','2','3','4'],
   };
 
   const PTLabels = {
