@@ -4,34 +4,42 @@ import * as mqtt from 'mqtt/dist/mqtt.min';
 import { DialCluster } from './components/DialCluster';
 import { SwitchConfigure } from './components/SwitchConfigure';
 
-
 function App() {
+  //const connectionurl = "ws://localhost:9002";
+  const connectionurl = "ws://169.254.32.191:9002"
   const [client, setClient] = useState(null);
   const [connectStatus, setConnectStatus] = useState("Not Connected");
   const [isSub, setIsSub] = useState(false);
-
-  const initialState = {time: 0, sensor_readings: [0, 0, 0, 0]}
-  
-  const [b1_data_1015, setB1_1015Data] = useState(initialState);
-  const [b1_data_1115, setB1_1115Data] = useState(initialState);
-  const [b2_data_1015, setB2_1015Data] = useState(initialState);
-  const [b2_data_1115, setB2_1115Data] = useState(initialState);
-  const [b3_data_1015, setB3_1015Data] = useState(initialState);
-  const [b3_data_1115, setB3_1115Data] = useState(initialState);
-  const [b4_data_1015, setB4_1015Data] = useState(initialState);
-  const [b4_data_1115, setB4_1115Data] = useState(initialState);
-  const [b5_data_1015, setB5_1015Data] = useState(initialState);
-  const [b5_data_1115, setB5_1115Data] = useState(initialState);
-
-  const [switchStates, setSwitchStates] = useState({
-    0: 1,
-    1: 0,
-    2: 0,
-    3: 0,
-    4: 0
-  });
-
   const [arrangable, setArrangable] = useState(false);
+  const [solenoidControl, setSolenoidControl] = useState(false);
+
+  const solenoidLabels = {
+    // "4": ['LOX DOME IN', 'LNG VENT NO', 'LNG MAIN NC', 'LOX MAIN NC', 'LOX VENT NO'],
+    // "5": ['LNG DOME IN ', 'LNG DOME OUT', '12V: NIL', '12V: NIL', 'LOX DOME OUT']
+    "4": ['0','1','2','3','4'],
+    "5": ['0','1','2','3','4']
+  };
+
+  const PTLabels = {
+    "log_data_1015": ['LOX INJ  1K (PSI)', 'LNG INJ  1K (PSI)', 'LNG COOL 1K (PSI)', 'IGN PREC 1K (PSI)'],
+    "log_data_1115": ['LNG DOME 2K (PSI)', 'LNG TANK 2K (PSI)', 'LOX TANK 1K (PSI)', 'LOX DOME 1K (PSI)']
+  };
+
+  const topics_list = [
+    "b1_log_data_1015",
+    "b1_log_data_1115",
+    "b1_log_data_TC",
+    "b2_log_data_1015",
+    "b2_log_data_1115",
+    "b2_log_data_TC",
+    "b3_log_data_1015",
+    "b3_log_data_1115",
+    "b3_log_data_TC"
+  ]
+
+  const [boardData, setBoardData] = useState({})
+
+  const [solenoidBoardsData, setSolenoidBoardsData] = useState({});
   
   const mqttSub = (topic) => {
     if (client) {
@@ -40,13 +48,11 @@ function App() {
           console.log("Subscribe to " + topic + " error", error)
           return
         }
-        setIsSub(true);
       });
     }
   };
 
   const sendMessage = (topic, message) => {
-    console.log(message);
     client.publish(topic,message,(error)=>{
       if (error) {
         console.log("Publish to " + topic + " error", error)
@@ -67,19 +73,20 @@ function App() {
       username: 'emqx_test',
       password: 'emqx_test',
     };
-  
-    const url = 'ws://localhost:9001';
 
-    mqttConnect(url,initialConnectionOptions);
+    mqttConnect(connectionurl,initialConnectionOptions);
   }, []);
 
   useEffect(() => {
     if (client) {
       client.on('connect', () => {
         setConnectStatus('Connected');
-        mqttSub("b1_log_data_1015");
-        mqttSub("b1_log_data_1115");
-        mqttSub("switch_states_status");
+        topics_list.forEach((topic)=>{
+          mqttSub(topic);
+        })
+        mqttSub("switch_states_status_4");
+        mqttSub("switch_states_status_5");
+        setIsSub(true);
       });
 
       client.on('error', (err) => {
@@ -88,19 +95,35 @@ function App() {
       });
 
       client.on('reconnect', () => {
-        setConnectStatus('Reconnecting');
+        setConnectStatus('Lost connection, attempting to reconnect');
       });
 
       client.on('message', (topic, message) => {
-
         message = JSON.parse(String(message));
-        if (topic === 'b1_log_data_1015') {
-          setB1_1015Data(message);
-        } else if (topic === "switch_states_status") {
-          console.log("here");
-          setSwitchStates((prev)=>{return {...prev, ...message}});
-        } else {
-          setB1_1115Data(message);
+        if (!isSub && topic === "topics_list") {
+          message.topics.forEach((subscription)=>{
+            mqttSub(subscription);
+          });
+          setIsSub(true);
+        }
+        else if (topic === "switch_states_status_4") {
+          setSolenoidBoardsData((prev)=>{
+            const newSolenoidData = { ...prev };
+            newSolenoidData[4] = message.sensor_readings;
+            return newSolenoidData
+          });
+        }
+        else if (topic === "switch_states_status_5") {
+          setSolenoidBoardsData((prev)=>{
+            const newSolenoidData = { ...prev };
+            newSolenoidData[5] = message.sensor_readings; 
+            return newSolenoidData
+          });
+        }
+        else {
+          setBoardData((prev)=>{
+            return { ...prev, [topic]: message };
+          })
         }
       });
     }
@@ -110,91 +133,43 @@ function App() {
     <div className="App">
       <div className="settings">
         <p className="status">{connectStatus}</p>
-        <p className="status">Recieving data: {isSub ? "True" : "False"}</p>
+        <p className="status">Receiving data: {isSub ? "True" : "False"}</p>
         <div className="min_max_settings">
-          <button onClick={()=>setArrangable(!arrangable)} className="status"> {arrangable ? "Stop Arranging" : "Arrange Dials"} </button>
+          <button onClick={()=>setArrangable(!arrangable)} className="status control_button"> {arrangable ? "Stop Arranging" : "Arrange Dials"} </button>
+          <button onClick={()=>setSolenoidControl(!solenoidControl)} className="status control_button"> {solenoidControl ? "Disable Buttons" : "Enable Buttons"} </button>
+        </div> 
+        <div className='solenoid_cluster'>
+        {Object.entries(solenoidBoardsData).map(([key,value])=>{
+          return (
+            <div>
+              <h3 className="solenoid_board">Board {key}</h3>
+              <SwitchConfigure 
+                boardlabel={key}
+                switchStates={value}
+                sendMessage={sendMessage}
+                editable={solenoidControl}
+                solLabels={solenoidLabels} 
+              />
+            </div>
+          )
+        })}
         </div>
-        <SwitchConfigure 
-          switchStates={switchStates}
-          sendMessage={sendMessage}
-          editable={isSub}
-        />
-      </div>
-      
-      <div className="board_cluster">
-        <DialCluster 
-          label="Board 1 ADS1015"
-          data={b1_data_1015}
-          arrangable
-          sensor_name="ads_1015"
-        />
-        <DialCluster 
-          label="Board 1 ADS1115"
-          data={b1_data_1115}
-          arrangable
-          sensor_name="ads_1115"
-        />
       </div>
 
       <div className="board_cluster">
-        <DialCluster 
-          label="Board 2 ADS1015"
-          data={b2_data_1015}
-          arrangable
-          sensor_name="ads_1015"
-        />
-        <DialCluster 
-          label="Board 2 ADS1115"
-          data={b2_data_1115}
-          arrangable
-          sensor_name="ads_1115"
-        />
+        {Object.entries(boardData).map(([key,value])=>{
+          return (
+            <DialCluster 
+              label={"Board " + key[1] + " ADS " + key.substring(12)}
+              data={value}
+              arrangable={arrangable}
+              sensor_name={key.substring(3)}
+              psiLabels={PTLabels} 
+            />
+          )
+        })}
       </div>
-
-      <div className="board_cluster">
-        <DialCluster 
-          label="Board 3 ADS1015"
-          data={b3_data_1015}
-          arrangable
-          sensor_name="ads_1015"
-        />
-        <DialCluster 
-          label="Board 3 ADS1115"
-          data={b3_data_1115}
-          arrangable
-          sensor_name="ads_1115"
-        />
-      </div>
-
-      <div className="board_cluster">
-        <DialCluster 
-          label="Board 4 ADS1015"
-          data={b4_data_1015}
-          arrangable
-          sensor_name="ads_1015"
-        />
-        <DialCluster 
-          label="Board 4 ADS1115"
-          data={b4_data_1115}
-          arrangable
-          sensor_name="ads_1115"
-        />
-      </div>
-      
-      <div className="board_cluster">
-        <DialCluster 
-          label="Board 5 ADS1015"
-          data={b5_data_1015}
-          arrangable
-          sensor_name="ads_1015"
-        />
-        <DialCluster 
-          label="Board 5 ADS1115"
-          data={b5_data_1115}
-          arrangable
-          sensor_name="ads_1115"
-        />
-      </div>
+      <img src="../seds_logo.png" alt="SEDS Logo" className="logo"/>
     </div>
   );
 }

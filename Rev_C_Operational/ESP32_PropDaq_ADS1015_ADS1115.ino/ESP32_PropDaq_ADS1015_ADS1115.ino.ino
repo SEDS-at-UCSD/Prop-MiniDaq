@@ -42,6 +42,8 @@ unsigned long startTime1;
 
 SemaphoreHandle_t mutex_v;
 
+int baseID = 0x20;
+
 void ADS1015TaskFunction(void* parameter);
 void ADS1115TaskFunction(void* parameter);
 void sendSerialData(int16_t ADCs[], double data[], String SensorType, int FPS);
@@ -62,7 +64,7 @@ void setup() {
   }
   twai_start();
   // Prepare the message to send
-  txMessage.identifier = 0x10;           // Example identifier
+  txMessage.identifier = baseID;           // Example identifier
   txMessage.flags = TWAI_MSG_FLAG_EXTD;  // Example flags (extended frame)
   txMessage.data_length_code = 8;        // Example data length (8 bytes)
   txMessage.data[0] = 0xFF;              // Reserved for message type
@@ -247,16 +249,16 @@ void sendSerialData(int16_t ADC_16bit[], double data[], String SensorType, int F
   sensorData["SensorType"] = SensorType;
 
   if (SensorType == "ADS1015"){
-    txMessage.identifier = 0x11;      
+    txMessage.identifier = baseID + 0x01;      
   }
   if (SensorType == "ADS1115"){
-    txMessage.identifier = 0x12;      
+    txMessage.identifier = baseID + 0x02;      
   }
 
   for (int i = 0; i < data_arr_size; i++) {
     sensorData["Sensors"][i] = data[i];
-    txMessage.data[2*i] = ADC_16bit[i]/(0xFF);              // Reserved for message type
-    txMessage.data[2*i+1] = (ADC_16bit[i] - (txMessage.data[2*i]*(0xFF)));
+    txMessage.data[2*i] = (ADC_16bit[i] >> 8) & 0xFF;  // High byte
+    txMessage.data[2*i+1] = ADC_16bit[i] & 0xFF;       // Low byte
   }
   // doc["Sensors"][1] = data[1];
   sensorData["FPS"] = FPS;

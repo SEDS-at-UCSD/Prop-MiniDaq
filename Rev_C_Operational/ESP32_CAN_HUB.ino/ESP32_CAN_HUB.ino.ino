@@ -14,7 +14,7 @@ void transmitTask(void *pvParameters);
 void receiveTask(void *pvParameters);
 void commandTask(void *pvParameters);
 
-volatile int pinStatus[5] = {0,0,0,0,0};
+volatile int pinStatus[6][5] = {};
 
 StaticJsonDocument<512> sensorData;
 
@@ -22,8 +22,10 @@ StaticJsonDocument<512> sensorData;
 twai_message_t txMessage;
 
 // Pins used to connect to CAN bus transceiver:
-#define CAN_RX 2 //using protoboard pins, RevA onwards://10
-#define CAN_TX 1 //using protoboard pins, RevA onwards://9
+//#define CAN_RX 2 //using protoboard pins, RevA onwards://10
+//#define CAN_TX 1 //using protoboard pins, RevA onwards://9
+#define CAN_RX 10 //using protoboard pins, RevA onwards://10
+#define CAN_TX 9 //using protoboard pins, RevA onwards://9
 int canTXRXcount[2] = { 0, 0 };
 
 
@@ -114,19 +116,20 @@ void transmitTask(void *pvParameters) {
   }
 }
 
-void command2pin(char command, char mode){
+void command2pin(char solboardIDnum, char command, char mode){
   twai_message_t txMessage_command;
-  txMessage_command.identifier = 0x5F;           // Solenoid Board WRITE COMMAND 0x5f
+  int ID = solboardIDnum - '0';
+  txMessage_command.identifier = ID*0x10 + 0x0F;           // Solenoid Board WRITE COMMAND 0xIDf
   txMessage_command.flags = TWAI_MSG_FLAG_EXTD;  // Example flags (extended frame)
   txMessage_command.data_length_code = 8;        // Example data length (8 bytes)
-  txMessage_command.data[0] = 0xFF;              // Reserved for message type
-  txMessage_command.data[1] = 0xFF;              // Sensor 1: Temperature
-  txMessage_command.data[2] = 0xFF;              // Sensor 2: Humidity
-  txMessage_command.data[3] = 0xFF;              // Sensor 3: X axis Acceleration
-  txMessage_command.data[4] = 0xFF;              // Sensor 4: Y axis Acceleration
-  txMessage_command.data[5] = 0xFF;              // Sensor 5: Z axis Acceleration
-  txMessage_command.data[6] = 0xFF;              // Sensor 6: Power Use in W
-  txMessage_command.data[7] = 0xFF;              // Reserved for message Count
+  txMessage_command.data[0] = 0xFF;              // Sol 0
+  txMessage_command.data[1] = 0xFF;              // Sol 1
+  txMessage_command.data[2] = 0xFF;              // Sol 2
+  txMessage_command.data[3] = 0xFF;              // Sol 3
+  txMessage_command.data[4] = 0xFF;              // Sol 4
+  txMessage_command.data[5] = 0xFF;              // NIL
+  txMessage_command.data[6] = 0xFF;              // NIL
+  txMessage_command.data[7] = 0xFF;              // NIL
 
   int statusPin;
   if (command == '0') {statusPin = 0;}
@@ -136,15 +139,15 @@ void command2pin(char command, char mode){
   else if (command == '4') {statusPin = 4;}
 
   if (mode == '0') {
-    pinStatus[statusPin] = 0;
+    pinStatus[ID][statusPin] = 0;
   } else if (mode == '1') {
-    pinStatus[statusPin] = 1;
+    pinStatus[ID][statusPin] = 1;
   } else {
     Serial.println("Invalid mode");
   }
 
   for (int i = 0; i < 5; i++){
-    txMessage_command.data[i] = pinStatus[i];
+    txMessage_command.data[i] = pinStatus[ID][i];
     /*
     Serial.print("\t Pin ");
     Serial.print(i);
@@ -170,11 +173,18 @@ void receiveTask(void *pvParameters) {
       twai_message_t rxMessage;
       esp_err_t receiveerror = twai_receive(&rxMessage, pdMS_TO_TICKS(50));
       if (receiveerror == ESP_OK) {
+        
+        if (String(rxMessage.identifier, HEX) == "41"){ //Check if Write Command issued at 0x41 (Current Status)
+        //char modes[2] = {'0','1'};
+          for (int i = 0; i < 5; i++){
+            pinStatus[4][i] = rxMessage.data[i];
+          }
+        }
 
         if (String(rxMessage.identifier, HEX) == "51"){ //Check if Write Command issued at 0x51 (Current Status)
-        char modes[2] = {'0','1'};
+        //char modes[2] = {'0','1'};
           for (int i = 0; i < 5; i++){
-            pinStatus[i] = rxMessage.data[i];
+            pinStatus[5][i] = rxMessage.data[i];
           }
         }
         
@@ -196,6 +206,10 @@ void receiveTask(void *pvParameters) {
           sensorData["Sensors"][i] = rxMessage.data[i];
         }
         receivedCANmessagetoprint += "\n";
+        /*if ((String(rxMessage.identifier, HEX) == "41")||(String(rxMessage.identifier, HEX) == "51")){
+          serializeJson(sensorData, Serial);
+          Serial.println();
+        }*/
         serializeJson(sensorData, Serial);
         Serial.println();
         //Serial.println(receivedCANmessagetoprint);
@@ -210,15 +224,17 @@ void commandTask(void *pvParameters) {
   (void)pvParameters;
 
   while (1) {
-    char command = Serial.read();
-    char mode = Serial.read();;
+    String message = Serial.readStringUntil('\n');
+    char solboardIDnum = message[0];
+    char command = message[1];
+    char mode = message[2];
     switch (command) {
       case '0':
       case '1':
       case '2':
       case '3':
       case '4':
-        command2pin(command,mode);
+        command2pin(solboardIDnum,command,mode);
         break;
       default:
         //Serial.println("Invalid command");

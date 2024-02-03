@@ -15,6 +15,7 @@ unsigned long timePassed;
 
 void setup() {
   Serial.begin(921600);
+  Serial.println("Begin:");
   I2C_one.begin(13, 14);
   //I2C_one.begin(16, 17);
   //I2C_one.begin(5, 4);
@@ -52,11 +53,13 @@ void loop() {
     int16_t adc0 = ADS.getValue();
     double voltage = (ADS.toVoltage(adc0)); // Calculate voltage in mV
     
-    String outputstr = "{\"BoardID\":\"Flow\",\"mV\":";
+    //String outputstr = "{\"BoardID\":\"Board 3\",\"mV\":";
+    String outputstr = String(millis());
+    outputstr += ", ";
     outputstr += String(voltage);
     outputstr += ", \"FPS\":";
     outputstr += String(samplefps);
-    outputstr += "}";
+    //outputstr += "}";
 
     Serial.println(outputstr);
     

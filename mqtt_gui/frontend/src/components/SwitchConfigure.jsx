@@ -1,18 +1,19 @@
 import '../App.css';
 
-export const SwitchConfigure = ({switchStates, sendMessage, editable}) => {
+export const SwitchConfigure = ({boardlabel, switchStates, sendMessage, editable, solLabels}) => {
     return (
         <div>
-            { Object.entries(switchStates).map(([entry,value], num) => {
+            { switchStates.map((value, i) => {
                 return (
+                <div>
                 <p className="solenoid_control">
-                    Sol {entry}: &nbsp;
+                    {solLabels[boardlabel][i] || `Sol ${i}`}: &nbsp;
                     <button 
-                        className={value === 1 ? "on_selected sol_button": "sol_button"}
+                        className={value !== 0 ? "on_selected sol_button": "sol_button"}
                         type="radio" 
                         onClick={()=>{
-                            const message = entry + "1";
-                            sendMessage("switch_states_update",message);
+                            const message = i  + "1";
+                            sendMessage("switch_states_update_" + boardlabel,message);
                         }}
                         disabled={!editable}
                     >
@@ -22,14 +23,15 @@ export const SwitchConfigure = ({switchStates, sendMessage, editable}) => {
                         className={value === 0 ? "off_selected sol_button": "sol_button"}
                         type="radio" 
                         onClick={()=>{
-                            const message = entry + "0";
-                            sendMessage("switch_states_update",message);
+                            const message = i + "0";
+                            sendMessage("switch_states_update_" + boardlabel,message);
                         }}
                         disabled={!editable}
                     >
                     Off
                     </button>
                 </p>
+                </div>
                 )
             })
             }

@@ -2,6 +2,11 @@
   text-align: left;
 }
 
+body {
+  background-color: black;
+  color: white;
+}
+
 .chart-container {
   height: 450px;
   width: 600px;
@@ -23,6 +28,7 @@
 .knob_container {
   margin-right: 10px;
   margin-left: 10px;
+  text-align: center;
 }
 
 .readings_label {
@@ -35,17 +41,30 @@
 }
 
 .dial_cluster {
-  width: fit-content;
-  margin-right: 100px;
+  margin-right: 50px;
+  margin-top: 10px;
 }
 
 .board_cluster {
-  display: inline-flex;
-  margin-bottom: 10px;
+  display: inline-grid;
+  grid-template-columns: repeat(1, auto);
+}
+
+.solenoid_cluster{
+  display: inline-grid;
+  grid-template-columns: repeat(2, auto);
+  column-gap: 30px;
+  text-align: left;
 }
 
 .status {
   margin-bottom: 15px;
+}
+
+.control_button {
+  font-size: 15px;
+  height: 45px;
+  width: 90px;
 }
 
 .solenoid_control {
@@ -62,6 +81,15 @@
 
 .sol_button {
   font-size: 30px;
-  height: 60px;
-  width: 120px;
+  height: 45px;
+  width: 90px;
+}
+
+.logo {
+  width: 150px;
+  height: 150px;
+  position: absolute;
+  bottom: 5px;
+  right: 5px;
+  z-index: -1;
 }

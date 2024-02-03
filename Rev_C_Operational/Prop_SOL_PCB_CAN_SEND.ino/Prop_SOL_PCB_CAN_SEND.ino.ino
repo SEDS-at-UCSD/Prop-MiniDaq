@@ -1,5 +1,6 @@
 #include <Wire.h>
 #include <Adafruit_INA260.h>
+#include <ArduinoJson.h>
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "driver/twai.h"
@@ -10,6 +11,11 @@ twai_message_t txMessage;
 #define CAN_RX 10
 #define CAN_TX 9
 int canTXRXcount[2] = {0,0};
+int baseID_int = 4;
+int baseID  = (0x10)*baseID_int;
+
+StaticJsonDocument<512> sensorData;
+StaticJsonDocument<512> solenoidsData;
 
 #define CHANNEL_0_PIN 11
 #define CHANNEL_1_PIN 12
@@ -48,7 +54,7 @@ void powerTask(void *pvParameters) {
     // Send power data to the queue
     xQueueSend(powerQueue, &data, portMAX_DELAY);
 
-    vTaskDelay(1000 / portTICK_PERIOD_MS); // Adjust the delay as needed
+    vTaskDelay(100 / portTICK_PERIOD_MS); // Adjust the delay as needed
   }
 }
 
@@ -84,8 +90,8 @@ void receiveTask(void *pvParameters) {
     twai_message_t rxMessage;
     esp_err_t receiveerror = twai_receive(&rxMessage, pdMS_TO_TICKS(50));
     if (receiveerror == ESP_OK) {
-      if (String(rxMessage.identifier, HEX) == "5f"){ //Check if Write Command issued at 0x5f (Conversion always lower case)
-        Serial.println("RECEIVED CAN");
+      if (rxMessage.identifier == (baseID + 0x0f)){ //Check if Write Command issued at 0x5f (Conversion always lower case)
+        //Serial.println("RECEIVED CAN"); //for CAN Debug
         char commands[5] = {'0','1','2','3','4'};
         char modes[2] = {'0','1'};
         for (int i = 0; i < 5; i++){
@@ -93,9 +99,9 @@ void receiveTask(void *pvParameters) {
           command2pin(commands[i],modes[mode]);
         }
       }
-      else if (rxMessage.identifier > 0x1F){
-        Serial.print("Received from: ");
-        Serial.println(String(rxMessage.identifier, HEX));
+      else if (rxMessage.identifier > 0x1F){ //for CAN Debug
+        //Serial.print("Received from: ");
+        //Serial.println(String(rxMessage.identifier, HEX));
       }
       
 
@@ -169,7 +175,7 @@ void setup() {
   }
   twai_start();
 
-  txMessage.identifier = 0x51;           // Solenoid Board identifier Board 0x5X
+  txMessage.identifier = baseID + 0x01;           // Solenoid Board identifier Board 0x5X
   txMessage.flags = TWAI_MSG_FLAG_EXTD;  // Example flags (extended frame)
   txMessage.data_length_code = 8;        // Example data length (8 bytes)
   txMessage.data[0] = 0xFF;              // Reserved for message type
@@ -214,23 +220,51 @@ void loop() {
   // Check if there's power data in the queue
   struct PowerData data;
   if (xQueueReceive(powerQueue, &data, 0) == pdTRUE) {
+
+    sensorData["BoardID"] = "Board " + String(baseID_int);
+    sensorData["SensorType"] = "Voltage";
+    sensorData["Sensors"] = data.voltage;
+
+    serializeJson(sensorData, Serial);
+    Serial.println();
+
+    sensorData["BoardID"] = "Board " + String(baseID_int);
+    sensorData["SensorType"] = "Current";
+    sensorData["Sensors"] = data.current;
+
+    serializeJson(sensorData, Serial);
+    Serial.println();
+
+    solenoidsData["BoardID"] = "Board " + String(baseID_int);
+    solenoidsData["SensorType"] = "Solenoids";
+    for (int i = 0; i < 5; i++){
+          solenoidsData["Sensors"][i] = pinStatus[i];
+      }
+
+    serializeJson(solenoidsData, Serial);
+    Serial.println();
+
+    /*
     Serial.print("Bus Voltage: ");
     Serial.print(data.voltage);
     Serial.print(" V, Current: ");
     Serial.print(data.current);
     Serial.println(" A");
-
+    */
     for (int i = 0; i < 5; i++){
       txMessage.data[i] = pinStatus[i];
+      /*
       Serial.print("\t Pin ");
       Serial.print(i);
       Serial.print(":");
       Serial.print(pinStatus[i]);
-      }
       Serial.println();
-
-      twai_transmit(&txMessage, pdMS_TO_TICKS(1));
-      Serial.println("CAN sent");
+      */
+    }
+    twai_transmit(&txMessage, pdMS_TO_TICKS(1));
+    //Serial.println("CAN sent");
+  
   }
+
   
 }

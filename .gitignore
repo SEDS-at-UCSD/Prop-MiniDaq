@@ -1,8 +1,25 @@
-gui_serial.txt
-raw_serial_log.txt
 mqtt_gui/gui_serial.txt
 mqtt_gui/raw_serial_log.txt
+mqtt_gui/raw_serial_log_2.txt
+mqtt_gui/raw_serial_log_3.txt
+mqtt_gui/raw_serial_log_4.txt
+mqtt_gui/raw_serial_log_5.txt
+
+mqtt_gui/log/raw_serial_log.txt
+mqtt_gui/log/raw_serial_log_2.txt
+mqtt_gui/log/raw_serial_log_3.txt
+mqtt_gui/log/raw_serial_log_4.txt
+mqtt_gui/log/raw_serial_log_5.txt
 mqtt_gui/raw_serial_log.txt
 .DS_Store
 Rev_C_Operational/.DS_Store
 mqtt_gui/daqenv
+Python Code/Prop PCB DAQ Logger/5 October Prototypes/data_from_com2.csv
+mqtt_gui/raw_serial_log.txt
+mqtt_gui/raw_serial_log.txt
+mqtt_gui/raw_serial_log.txt
+mqtt_gui/raw_serial_log.txt
+mqtt_gui/raw_serial_log.txt
+mqtt_gui/raw_serial_log.txt
+mqtt_gui/raw_serial_log.txt
+mqtt_gui/raw_serial_log.txt
