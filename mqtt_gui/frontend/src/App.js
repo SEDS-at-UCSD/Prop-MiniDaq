@@ -16,7 +16,7 @@ function App() {
   const solenoidLabels = {
     // "4": ['LOX DOME IN', 'LNG VENT NO', 'LNG MAIN NC', 'LOX MAIN NC', 'LOX VENT NO'],
     // "5": ['LNG DOME IN ', 'LNG DOME OUT', '12V: NIL', '12V: NIL', 'LOX DOME OUT']
-    "4": ['0','1','2','3','4'],
+    "4": ['E-match','OX MAIN','FUEL MAIN','3','4'],
     "5": ['0','1','2','3','4']
   };
 
@@ -138,6 +138,9 @@ function App() {
           <button onClick={()=>setArrangable(!arrangable)} className="status control_button"> {arrangable ? "Stop Arranging" : "Arrange Dials"} </button>
           <button onClick={()=>setSolenoidControl(!solenoidControl)} className="status control_button"> {solenoidControl ? "Disable Buttons" : "Enable Buttons"} </button>
         </div> 
+        <div className="auto-ignition">
+          <button onClick={()=>sendMessage("AUTO", "IGNITE")}> AUTO </button>
+        </div>
         <div className='solenoid_cluster'>
         {Object.entries(solenoidBoardsData).map(([key,value])=>{
           return (

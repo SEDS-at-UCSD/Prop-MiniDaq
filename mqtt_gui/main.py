@@ -129,6 +129,9 @@ number_to_sensor_type_publish = {"1": "1015", "2": "1115", "3": "TC"}
 
 bit_to_V_factor = {"1": 2048, "2": 32768, "3": 1}
 
+# AUTO-IGNITION TOPIC
+ignition_topic = "AUTO"    # expects message "IGNITE" when pressed
+
 
 
 
@@ -150,12 +153,18 @@ def on_connect(client, userdata, flags, rc):
     print("Connected to MQTT broker with result code " + str(rc))
     client.subscribe(mqtt_switch_states_update_4)
     client.subscribe(mqtt_switch_states_update_5)
+    client.subsribe(ignition_topic)
     
 
 
 def on_message(client, userdata, message):
     # MAP SOLENOID BOARDS HERE
     print(f"Received message on topic '{message.topic}': {message.payload.decode('utf-8')}")
+
+    if (message.topic == "AUTO"):
+        print("AUTO IGNITE...")
+        ports[0].auto_ignite()
+        
     
     if (message.topic == "switch_states_update_4"):
         command = "4" + message.payload.decode('utf-8') + "\n"
@@ -295,6 +304,39 @@ class Board_DAQ():
                     
     def solenoid_write(self, message):
         ports[self.port_index].write(message)
+
+    def auto_ignite():
+        try:
+            ematch_open = "401" + "\n"
+            ematch_open_send_command = ematch_open.encode('utf-8')
+            ox_main_open = "411" + "\n"
+            ox_main_open_send_command = ox_main_open.encode('utf-8')
+            ox_main_close = "410" + "\n"
+            ox_main_close_send_command = ox_main_close.encode('utf-8')
+            fuel_main_open = "421" + "\n"
+            fuel_main_open_send_command = fuel_main_open.encode('utf-8')
+            fuel_main_close = "420" + "\n"
+            fuel_main_close_send_command = fuel_main_close.encode('utf-8')
+
+            ports[0].write(ematch_open_send_command)
+            ports[0].flush()
+            time.sleep(3.000)
+            ports[0].write(ox_main_open_send_command)
+            ports[0].flush()
+            time.sleep(0.500)
+            ports[0].write(fuel_main_open_send_command)
+            ports[0].flush()
+            time.sleep(2.500)
+            ports[0].write(fuel_main_close_send_command)
+            ports[0].flush()
+            time.sleep(0.250)
+            ports[0].write(ox_main_close_send_command)
+            ports[0].flush()
+
+            print("AUTO IGNITION SUCCESSFUL")
+        except Exception as e:
+            print(e)
+            print("AUTO IGNITION UNSUCCESSFUL")
     
         
 
