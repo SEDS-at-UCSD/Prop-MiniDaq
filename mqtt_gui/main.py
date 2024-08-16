@@ -324,6 +324,8 @@ class Board_DAQ():
 
             ematch_open = "401" + "\n"
             ematch_open_send_command = ematch_open.encode('utf-8')
+            ematch_close = "400" + "\n"
+            ematch_close_send_command = ematch_close.encode('utf-8')
             ox_main_open = "411" + "\n"
             ox_main_open_send_command = ox_main_open.encode('utf-8')
             ox_main_close = "410" + "\n"
@@ -432,6 +434,10 @@ class Board_DAQ():
 
             ports[0].write(ox_main_close_send_command)
             ports[0].flush()
+            
+            # E-Match Reset
+            ports[0].write(ematch_close_send_command)
+            ports[0].flush()
 
             client.publish("AUTO", "IGNITION SUCCESSFUL")
             print("IGNITION SUCCESSFUL")
@@ -442,6 +448,8 @@ class Board_DAQ():
 
     def abort_process():
         try:
+            ematch_close = "400" + "\n"
+            ematch_close_send_command = ematch_close.encode('utf-8')
             ox_main_close = "410" + "\n"
             ox_main_close_send_command = ox_main_close.encode('utf-8')
             fuel_main_close = "420" + "\n"
@@ -451,6 +459,10 @@ class Board_DAQ():
             ports[0].flush()
             time.sleep(0.050)
             ports[0].write(ox_main_close_send_command)
+            ports[0].flush()
+
+            # E-Match Reset
+            ports[0].write(ematch_close_send_command)
             ports[0].flush()
 
             client.publish("AUTO", "ABORT SUCCESSFUL")
