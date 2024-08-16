@@ -6,6 +6,10 @@ from datetime import datetime
 import threading
 import numpy as np
 
+
+# IGNITION FLAG
+ignition_in_progress = False
+
 # MQTT configuration
 #mqtt_broker_address = "169.254.32.191"
 mqtt_broker_address = "localhost"
@@ -153,28 +157,36 @@ def on_connect(client, userdata, flags, rc):
     print("Connected to MQTT broker with result code " + str(rc))
     client.subscribe(mqtt_switch_states_update_4)
     client.subscribe(mqtt_switch_states_update_5)
-    client.subsribe(ignition_topic)
+    client.subscribe(ignition_topic)
     
 
 
 def on_message(client, userdata, message):
+    global ignition_in_progress
     # MAP SOLENOID BOARDS HERE
     print(f"Received message on topic '{message.topic}': {message.payload.decode('utf-8')}")
+    message_payload = message.payload.decode('utf-8')
 
     if (message.topic == "AUTO"):
-        print("AUTO IGNITE...")
-        ports[0].auto_ignite()
+        if message_payload == "IGNITE":
+            print("AUTO IGNITE...")
+            ports[0].auto_ignite()
+        
+        if message_payload == "ABORT":
+            ignition_in_progress = False
+            print("ABORTING...")
+            
         
     
     if (message.topic == "switch_states_update_4"):
-        command = "4" + message.payload.decode('utf-8') + "\n"
+        command = "4" + message_payload + "\n"
         send_command = command.encode('utf-8')
         ports[0].write(send_command)
         ports[0].flush()
         print(send_command)
         
     if (message.topic == "switch_states_update_5"):
-        command = "5" + message.payload.decode('utf-8') + "\n"
+        command = "5" + message_payload + "\n"
         send_command = command.encode('utf-8')
         ports[0].write(send_command)
         ports[0].flush()
@@ -305,8 +317,11 @@ class Board_DAQ():
     def solenoid_write(self, message):
         ports[self.port_index].write(message)
 
+
     def auto_ignite():
         try:
+            global ignition_in_progress
+
             ematch_open = "401" + "\n"
             ematch_open_send_command = ematch_open.encode('utf-8')
             ox_main_open = "411" + "\n"
@@ -320,23 +335,75 @@ class Board_DAQ():
 
             ports[0].write(ematch_open_send_command)
             ports[0].flush()
+            if not ignition_in_progress: 
+                ports[0].abort_process()
+                print("Ignition aborted!")
+                return
             time.sleep(3.000)
+            if not ignition_in_progress: 
+                ports[0].abort_process()
+                print("Ignition aborted!")
+                return
             ports[0].write(ox_main_open_send_command)
             ports[0].flush()
+            if not ignition_in_progress: 
+                ports[0].abort_process()
+                print("Ignition aborted!")
+                return
             time.sleep(0.500)
+            if not ignition_in_progress: 
+                ports[0].abort_process()
+                print("Ignition aborted!")
+                return
             ports[0].write(fuel_main_open_send_command)
             ports[0].flush()
+            if not ignition_in_progress: 
+                ports[0].abort_process()
+                print("Ignition aborted!")
+                return
             time.sleep(2.500)
+            if not ignition_in_progress: 
+                ports[0].abort_process()
+                print("Ignition aborted!")
+                return
             ports[0].write(fuel_main_close_send_command)
             ports[0].flush()
+            if not ignition_in_progress: 
+                ports[0].abort_process()
+                print("Ignition aborted!")
+                return
             time.sleep(0.250)
+            if not ignition_in_progress: 
+                ports[0].abort_process()
+                print("Ignition aborted!")
+                return
             ports[0].write(ox_main_close_send_command)
             ports[0].flush()
 
-            print("AUTO IGNITION SUCCESSFUL")
+            client.publish("AUTO", "IGNITION SUCCESSFUL")
+            print("IGNITION SUCCESSFUL")
         except Exception as e:
             print(e)
-            print("AUTO IGNITION UNSUCCESSFUL")
+            print("IGNITION UNSUCCESSFUL")
+        
+
+    def abort_process():
+        try:
+            ox_main_close = "410" + "\n"
+            ox_main_close_send_command = ox_main_close.encode('utf-8')
+            fuel_main_close = "420" + "\n"
+            fuel_main_close_send_command = fuel_main_close.encode('utf-8')
+
+            ports[0].write(fuel_main_close_send_command)
+            ports[0].flush()
+            ports[0].write(ox_main_close_send_command)
+            ports[0].flush()
+
+            client.publish("AUTO", "ABORT SUCCESSFUL")
+            print("ABORT SUCCESSFUL")
+        except Exception as e:
+            print(e)
+            print("ABORT UNSUCCESSFUL")
     
         
 

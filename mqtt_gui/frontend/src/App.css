@@ -98,14 +98,13 @@ body {
   margin-top: 10px;
   display: block;
   position: absolute;
-  text-align: right;
+  text-align: center;
   right: 15px;
 }
 
 .auto-ignition button {
   width: 140px; /* Adjust width as needed */
   height: 80px; /* Adjust height as needed */
-  background-color: blue;
   color: white;
   font-size: 22px; /* Adjust font size as needed */
   font-weight: bold;
@@ -115,6 +114,31 @@ body {
   display: block;
 }
 
-.auto-ignition button:hover {
-  background-color: darkblue; /* Optional: change color on hover */
+/* IGNITE state: blue background */
+.auto-ignition-button.ignite {
+  background-color: blue;
+}
+
+.auto-ignition-button.ignite:hover {
+  background-color: darkblue; 
+}
+
+/* ABORT state: red background */
+.auto-ignition-button.abort {
+  background-color: red;
+}
+
+.auto-ignition-button.abort:hover {
+  background-color: darkred; 
+}
+
+/* Disabled button style */
+.auto-ignition-button:disabled {
+  background-color: gray;
+  cursor: not-allowed;
+}
+
+.auto-ignition-button:disabled:hover {
+  background-color: gray;
+  cursor: not-allowed;
 }

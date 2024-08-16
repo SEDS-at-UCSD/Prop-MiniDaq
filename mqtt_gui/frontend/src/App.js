@@ -12,6 +12,8 @@ function App() {
   const [isSub, setIsSub] = useState(false);
   const [arrangable, setArrangable] = useState(false);
   const [solenoidControl, setSolenoidControl] = useState(false);
+  const [ignite, setIgnite] = useState(false);
+  const [isAborting, setIsAborting] = useState(false);
 
   const solenoidLabels = {
     // "4": ['LOX DOME IN', 'LNG VENT NO', 'LNG MAIN NC', 'LOX MAIN NC', 'LOX VENT NO'],
@@ -61,6 +63,19 @@ function App() {
     })
   }
 
+  const handleIgnitionClick = () => {
+    if (!ignite){
+      // IN IGNITABLE STATE
+      sendMessage("AUTO", "IGNITE");
+      setIgnite(true); // Change to abortable state
+    }
+    else {
+      // IN ABORTABLE STATE
+      sendMessage("AUTO", "ABORT");
+      setIsAborting(true);
+    }
+  }
+
   useEffect(()=> { 
     const mqttConnect = (host, mqttOption) => {
       setConnectStatus('Connecting');
@@ -86,6 +101,7 @@ function App() {
         })
         mqttSub("switch_states_status_4");
         mqttSub("switch_states_status_5");
+        mqttSub("AUTO");
         setIsSub(true);
       });
 
@@ -105,6 +121,15 @@ function App() {
             mqttSub(subscription);
           });
           setIsSub(true);
+        }
+        // CAN CHANGE TO IGNITE AGAIN
+        // Expects JSON of format {state: "ABORT SUCCESSFUL"} or {state: "IGNITION SUCCESSFUL"} from back-end
+        else if (topic === "AUTO" && message.state === "ABORT SUCCESSFUL") {
+          setIsAborting(false);
+          setIgnite(false);
+        }
+        else if (topic === "AUTO" && message.state === "IGNITION SUCCESSFUL") {
+          setIgnite(true);
         }
         else if (topic === "switch_states_status_4") {
           setSolenoidBoardsData((prev)=>{
@@ -139,7 +164,9 @@ function App() {
           <button onClick={()=>setSolenoidControl(!solenoidControl)} className="status control_button"> {solenoidControl ? "Disable Buttons" : "Enable Buttons"} </button>
         </div> 
         <div className="auto-ignition">
-          <button onClick={()=>sendMessage("AUTO", "IGNITE")}> AUTO </button>
+          <button onClick={handleIgnitionClick}
+                  className={`auto-ignition-button ${!ignite ? "ignite" : "abort"}`}
+                  disabled={isAborting}> {!ignite ? "IGNITE" : "ABORT"} </button>
         </div>
         <div className='solenoid_cluster'>
         {Object.entries(solenoidBoardsData).map(([key,value])=>{
