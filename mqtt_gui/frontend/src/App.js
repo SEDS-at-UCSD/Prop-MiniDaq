@@ -18,7 +18,7 @@ function App() {
   const solenoidLabels = {
     // "4": ['LOX DOME IN', 'LNG VENT NO', 'LNG MAIN NC', 'LOX MAIN NC', 'LOX VENT NO'],
     // "5": ['LNG DOME IN ', 'LNG DOME OUT', '12V: NIL', '12V: NIL', 'LOX DOME OUT']
-    "4": ['E-match','OX MAIN','FUEL MAIN','3','4'],
+    "4": ['E-match','OX MAIN','FUEL MAIN','OX PURGE','FUEL PURGE'],
     "5": ['0','1','2','3','4']
   };
 

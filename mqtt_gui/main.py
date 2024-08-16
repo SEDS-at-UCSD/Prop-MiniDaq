@@ -332,51 +332,104 @@ class Board_DAQ():
             fuel_main_open_send_command = fuel_main_open.encode('utf-8')
             fuel_main_close = "420" + "\n"
             fuel_main_close_send_command = fuel_main_close.encode('utf-8')
+            ox_purge_open = "431" + "\n"
+            ox_purge_open_command = ox_purge_open.encode('utf-8')
+            ox_purge_close = "430" + "\n"
+            ox_purge_close_command = ox_purge_close.encode('utf-8')
+            fuel_purge_open = "441" + "\n"
+            fuel_purge_open_command = fuel_purge_open.encode('utf-8')
+            fuel_purge_close = "440" + "\n"
+            fuel_purge_close_command = fuel_purge_close.encode('utf-8')
 
             ports[0].write(ematch_open_send_command)
             ports[0].flush()
+
             if not ignition_in_progress: 
                 ports[0].abort_process()
                 print("Ignition aborted!")
                 return
-            time.sleep(3.000)
+
+            time.sleep(0.500)
+
+            ports[0].write(ox_purge_open_command)
+            ports[0].flush()
+            ports[0].write(fuel_purge_open_command)
+            ports[0].flush()
+
             if not ignition_in_progress: 
                 ports[0].abort_process()
                 print("Ignition aborted!")
                 return
+
+            time.sleep(2.700)
+
+            if not ignition_in_progress: 
+                ports[0].abort_process()
+                print("Ignition aborted!")
+                return
+
             ports[0].write(ox_main_open_send_command)
             ports[0].flush()
+
             if not ignition_in_progress: 
                 ports[0].abort_process()
                 print("Ignition aborted!")
                 return
+
             time.sleep(0.500)
+
             if not ignition_in_progress: 
                 ports[0].abort_process()
                 print("Ignition aborted!")
                 return
+
             ports[0].write(fuel_main_open_send_command)
             ports[0].flush()
+
             if not ignition_in_progress: 
                 ports[0].abort_process()
                 print("Ignition aborted!")
                 return
-            time.sleep(2.500)
+
+            time.sleep(0.100)
+
             if not ignition_in_progress: 
                 ports[0].abort_process()
                 print("Ignition aborted!")
                 return
+
+            ports[0].write(ox_purge_close_command)
+            ports[0].flush()
+            ports[0].write(fuel_purge_close_command)
+            ports[0].flush()
+
+            if not ignition_in_progress: 
+                ports[0].abort_process()
+                print("Ignition aborted!")
+                return
+
+            time.sleep(2.700)
+
+            if not ignition_in_progress: 
+                ports[0].abort_process()
+                print("Ignition aborted!")
+                return
+
             ports[0].write(fuel_main_close_send_command)
             ports[0].flush()
+
             if not ignition_in_progress: 
                 ports[0].abort_process()
                 print("Ignition aborted!")
                 return
+
             time.sleep(0.250)
+
             if not ignition_in_progress: 
                 ports[0].abort_process()
                 print("Ignition aborted!")
                 return
+
             ports[0].write(ox_main_close_send_command)
             ports[0].flush()
 
@@ -396,6 +449,7 @@ class Board_DAQ():
 
             ports[0].write(fuel_main_close_send_command)
             ports[0].flush()
+            time.sleep(0.050)
             ports[0].write(ox_main_close_send_command)
             ports[0].flush()
 
