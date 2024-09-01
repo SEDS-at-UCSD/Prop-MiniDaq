@@ -133,11 +133,11 @@ function App() {
         }
         // CAN CHANGE TO IGNITE AGAIN
         // Expects JSON of format {state: "ABORT SUCCESSFUL"} or {state: "IGNITION SUCCESSFUL"} from back-end
-        else if (topic === "AUTO" && parsedMessage.state === "ABORT SUCCESSFUL") {
+        else if (topic === "AUTO" && parsedMessage === "ABORT SUCCESSFUL") {
           setIsAborting(false);
           setIgnite(false);
         }
-        else if (topic === "AUTO" && parsedMessage.state === "IGNITION SUCCESSFUL") {
+        else if (topic === "AUTO" && parsedMessage === "IGNITION SUCCESSFUL") {
           setIgnite(true);
         }
         else if (topic === "switch_states_status_4") {
