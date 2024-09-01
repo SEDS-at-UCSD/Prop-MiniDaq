@@ -520,15 +520,23 @@ def main():
     open_serial_ports()
 
     port0 = Board_DAQ(0)
+    port2 = Board_DAQ(2)
 
     t1 = threading.Thread(target=port0.read_serial_and_log_high_freq)
     t2 = threading.Thread(target=port0.publish_data)
 
+    text6read = threading.Thread(target=port2.read_serial_and_log_high_freq)
+    text6publish = threading.Thread(target=port2.publish_data)
 
     if (ports[0]):
         print("CAN BUS connection active")
         t1.start()
         t2.start()
+    
+    if (ports[2]):
+        text6read.start()
+        text6publish.start()
+
     
 
 if __name__ == '__main__':
