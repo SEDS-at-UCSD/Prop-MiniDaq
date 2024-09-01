@@ -54,7 +54,12 @@ b5_cf_1115 = conv_configs['B5_Conv_Factor_ADS1115']
 b5_thermocouple = conv_configs['B5_Thermocouple']
 b5_thermocouple_add = conv_configs['B5_Thermocouple_ADD']
 
-# ADD FACTORS LISTS
+b6_cf_1015 = conv_configs['B6_Conv_Factor_ADS1015']
+b6_cf_1115 = conv_configs['B6_Conv_Factor_ADS1115']
+b6_thermocouple = conv_configs['B6_Thermocouple']
+b6_thermocouple_add = conv_configs['B6_Thermocouple_ADD']
+
+# ADD ACTORS LISTS
 b1_cf_1015_add = conv_configs['B1_1015_ADD']
 b1_cf_1115_add = conv_configs['B1_1115_ADD']
 b2_cf_1015_add = conv_configs['B2_1015_ADD']
@@ -65,6 +70,8 @@ b4_cf_1015_add = conv_configs['B4_1015_ADD']
 b4_cf_1115_add = conv_configs['B4_1115_ADD']
 b5_cf_1015_add = conv_configs['B5_1015_ADD']
 b5_cf_1115_add = conv_configs['B5_1115_ADD']
+b6_cf_1015_add = conv_configs['B6_1015_ADD']
+b6_cf_1115_add = conv_configs['B6_1115_ADD']
 
 board_id_to_conv_factor = {"1": [b1_cf_1015, b1_cf_1115, b1_thermocouple],
                            "2": [b2_cf_1015, b2_cf_1115, b2_thermocouple],
@@ -125,18 +132,19 @@ raw_log_file_2 = open('raw_serial_log_2.txt', 'a')
 raw_log_file_3 = open('raw_serial_log_3.txt', 'a')
 raw_log_file_4 = open('raw_serial_log_4.txt', 'a')
 raw_log_file_5 = open('raw_serial_log_5.txt', 'a')
+raw_log_file_6 = open('raw_serial_log_6.txt', 'a')
 
 
 # Switch Case Dicts
-board_to_log_file_dict = {"Board 1": raw_log_file, "Board 2": raw_log_file_2, "Board 3": raw_log_file_3, "Board 4": raw_log_file_4, "Board 5": raw_log_file_5}
-b_to_solenoid_status_topic_dict = {"Board 4": 'switch_states_status_4', "Board 5": 'switch_states_status_5'}
+board_to_log_file_dict = {"Board 1": raw_log_file, "Board 2": raw_log_file_2, "Board 3": raw_log_file_3, "Board 4": raw_log_file_4, "Board 5": raw_log_file_5, "Board 6": raw_log_file_6}
+b_to_solenoid_status_topic_dict = {"Board 4": 'switch_states_status_4', "Board 5": 'switch_states_status_5', "Board 6": 'switch_states_status_6'}
 
-b1015_conv_factor_dict = {"Board 1": b1_cf_1015, "Board 2": b2_cf_1015, "Board 3": b3_cf_1015, "Board 4": b4_cf_1015, "Board 5": b5_cf_1015}
-b1115_conv_factor_dict = {"Board 1": b1_cf_1115, "Board 2": b2_cf_1115, "Board 3": b3_cf_1115, "Board 4": b4_cf_1115, "Board 5": b5_cf_1115}
+b1015_conv_factor_dict = {"Board 1": b1_cf_1015, "Board 2": b2_cf_1015, "Board 3": b3_cf_1015, "Board 4": b4_cf_1015, "Board 5": b5_cf_1015, "Board 6": b6_cf_1015}
+b1115_conv_factor_dict = {"Board 1": b1_cf_1115, "Board 2": b2_cf_1115, "Board 3": b3_cf_1115, "Board 4": b4_cf_1115, "Board 5": b5_cf_1115, "Board 6": b6_cf_1115}
 bTC_conv_factor_dict = {"Board 1": b1_thermocouple, "Board 2": b2_thermocouple, "Board 3": b3_thermocouple, "Board 4": b4_thermocouple, "Board 5": b5_thermocouple}
 
-b1015_add_factor_dict = {"Board 1": b1_cf_1015_add, "Board 2": b2_cf_1015_add, "Board 3": b3_cf_1015_add, "Board 4": b4_cf_1015_add, "Board 5": b5_cf_1015_add}
-b1115_add_factor_dict = {"Board 1": b1_cf_1115_add, "Board 2": b2_cf_1115_add, "Board 3": b3_cf_1115_add, "Board 4": b4_cf_1115_add, "Board 5": b5_cf_1115_add}
+b1015_add_factor_dict = {"Board 1": b1_cf_1015_add, "Board 2": b2_cf_1015_add, "Board 3": b3_cf_1015_add, "Board 4": b4_cf_1015_add, "Board 5": b5_cf_1015_add, "Board 6": b6_cf_1015_add}
+b1115_add_factor_dict = {"Board 1": b1_cf_1115_add, "Board 2": b2_cf_1115_add, "Board 3": b3_cf_1115_add, "Board 4": b4_cf_1115_add, "Board 5": b5_cf_1115_add, "Board 6": b6_cf_1115_add}
 
 
 
