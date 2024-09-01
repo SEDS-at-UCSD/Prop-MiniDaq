@@ -233,7 +233,7 @@ class Board_DAQ():
                 data = ports[self.port_index].readline().decode('utf-8').strip()
                 data_dict = json.loads(data)
 
-    
+                print(data_dict)
                 Board_ID = data_dict['BoardID'][0]
                 Board_ID_worded = "Board " +  Board_ID
                 sensor_type = data_dict['SensorType'] 
@@ -255,7 +255,6 @@ class Board_DAQ():
                     publish_json_dict = {"time": str(datetime.now())[11:22], "sensor_readings": publish_array}
                     publish_json = json.dumps(publish_json_dict)
                     #print(Board_ID + " " + publish_json)
-                    print(publish_json)
 
                     if (Board_ID == '4'):
                         self.publish_dict[mqtt_switch_states_status_4] = publish_json
