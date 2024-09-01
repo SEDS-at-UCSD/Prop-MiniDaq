@@ -183,7 +183,7 @@ def on_message(client, userdata, message):
     if (message.topic == "AUTO"):
         if message_payload == "IGNITE":
             print("AUTO IGNITE...")
-            ports[0].auto_ignite()
+            auto_ignite()
         
         if message_payload == "ABORT":
             ignition_in_progress = False
@@ -339,159 +339,159 @@ class Board_DAQ():
         ports[self.port_index].write(message)
 
 
-    def auto_ignite():
-        try:
-            global ignition_in_progress
+def auto_ignite():
+    try:
+        global ignition_in_progress
 
-            ematch_open = "401" + "\n"
-            ematch_open_send_command = ematch_open.encode('utf-8')
-            ematch_close = "400" + "\n"
-            ematch_close_send_command = ematch_close.encode('utf-8')
-            ox_main_open = "411" + "\n"
-            ox_main_open_send_command = ox_main_open.encode('utf-8')
-            ox_main_close = "410" + "\n"
-            ox_main_close_send_command = ox_main_close.encode('utf-8')
-            fuel_main_open = "421" + "\n"
-            fuel_main_open_send_command = fuel_main_open.encode('utf-8')
-            fuel_main_close = "420" + "\n"
-            fuel_main_close_send_command = fuel_main_close.encode('utf-8')
-            ox_purge_open = "431" + "\n"
-            ox_purge_open_command = ox_purge_open.encode('utf-8')
-            ox_purge_close = "430" + "\n"
-            ox_purge_close_command = ox_purge_close.encode('utf-8')
-            fuel_purge_open = "441" + "\n"
-            fuel_purge_open_command = fuel_purge_open.encode('utf-8')
-            fuel_purge_close = "440" + "\n"
-            fuel_purge_close_command = fuel_purge_close.encode('utf-8')
+        ematch_open = "401" + "\n"
+        ematch_open_send_command = ematch_open.encode('utf-8')
+        ematch_close = "400" + "\n"
+        ematch_close_send_command = ematch_close.encode('utf-8')
+        ox_main_open = "411" + "\n"
+        ox_main_open_send_command = ox_main_open.encode('utf-8')
+        ox_main_close = "410" + "\n"
+        ox_main_close_send_command = ox_main_close.encode('utf-8')
+        fuel_main_open = "421" + "\n"
+        fuel_main_open_send_command = fuel_main_open.encode('utf-8')
+        fuel_main_close = "420" + "\n"
+        fuel_main_close_send_command = fuel_main_close.encode('utf-8')
+        ox_purge_open = "431" + "\n"
+        ox_purge_open_command = ox_purge_open.encode('utf-8')
+        ox_purge_close = "430" + "\n"
+        ox_purge_close_command = ox_purge_close.encode('utf-8')
+        fuel_purge_open = "441" + "\n"
+        fuel_purge_open_command = fuel_purge_open.encode('utf-8')
+        fuel_purge_close = "440" + "\n"
+        fuel_purge_close_command = fuel_purge_close.encode('utf-8')
 
-            ports[0].write(ematch_open_send_command)
-            ports[0].flush()
+        ports[0].write(ematch_open_send_command)
+        ports[0].flush()
 
-            if not ignition_in_progress: 
-                ports[0].abort_process()
-                print("Ignition aborted!")
-                return
+        if not ignition_in_progress: 
+            ports[0].abort_process()
+            print("Ignition aborted!")
+            return
 
-            time.sleep(0.500)
+        time.sleep(0.500)
 
-            ports[0].write(ox_purge_open_command)
-            ports[0].flush()
-            ports[0].write(fuel_purge_open_command)
-            ports[0].flush()
+        ports[0].write(ox_purge_open_command)
+        ports[0].flush()
+        ports[0].write(fuel_purge_open_command)
+        ports[0].flush()
 
-            if not ignition_in_progress: 
-                ports[0].abort_process()
-                print("Ignition aborted!")
-                return
+        if not ignition_in_progress: 
+            ports[0].abort_process()
+            print("Ignition aborted!")
+            return
 
-            time.sleep(2.700)
+        time.sleep(2.700)
 
-            if not ignition_in_progress: 
-                ports[0].abort_process()
-                print("Ignition aborted!")
-                return
+        if not ignition_in_progress: 
+            ports[0].abort_process()
+            print("Ignition aborted!")
+            return
 
-            ports[0].write(ox_main_open_send_command)
-            ports[0].flush()
+        ports[0].write(ox_main_open_send_command)
+        ports[0].flush()
 
-            if not ignition_in_progress: 
-                ports[0].abort_process()
-                print("Ignition aborted!")
-                return
+        if not ignition_in_progress: 
+            ports[0].abort_process()
+            print("Ignition aborted!")
+            return
 
-            time.sleep(0.500)
+        time.sleep(0.500)
 
-            if not ignition_in_progress: 
-                ports[0].abort_process()
-                print("Ignition aborted!")
-                return
+        if not ignition_in_progress: 
+            ports[0].abort_process()
+            print("Ignition aborted!")
+            return
 
-            ports[0].write(fuel_main_open_send_command)
-            ports[0].flush()
+        ports[0].write(fuel_main_open_send_command)
+        ports[0].flush()
 
-            if not ignition_in_progress: 
-                ports[0].abort_process()
-                print("Ignition aborted!")
-                return
+        if not ignition_in_progress: 
+            ports[0].abort_process()
+            print("Ignition aborted!")
+            return
 
-            time.sleep(0.100)
+        time.sleep(0.100)
 
-            if not ignition_in_progress: 
-                ports[0].abort_process()
-                print("Ignition aborted!")
-                return
+        if not ignition_in_progress: 
+            ports[0].abort_process()
+            print("Ignition aborted!")
+            return
 
-            ports[0].write(ox_purge_close_command)
-            ports[0].flush()
-            ports[0].write(fuel_purge_close_command)
-            ports[0].flush()
+        ports[0].write(ox_purge_close_command)
+        ports[0].flush()
+        ports[0].write(fuel_purge_close_command)
+        ports[0].flush()
 
-            if not ignition_in_progress: 
-                ports[0].abort_process()
-                print("Ignition aborted!")
-                return
+        if not ignition_in_progress: 
+            ports[0].abort_process()
+            print("Ignition aborted!")
+            return
 
-            time.sleep(2.700)
+        time.sleep(2.700)
 
-            if not ignition_in_progress: 
-                ports[0].abort_process()
-                print("Ignition aborted!")
-                return
+        if not ignition_in_progress: 
+            ports[0].abort_process()
+            print("Ignition aborted!")
+            return
 
-            ports[0].write(fuel_main_close_send_command)
-            ports[0].flush()
+        ports[0].write(fuel_main_close_send_command)
+        ports[0].flush()
 
-            if not ignition_in_progress: 
-                ports[0].abort_process()
-                print("Ignition aborted!")
-                return
+        if not ignition_in_progress: 
+            ports[0].abort_process()
+            print("Ignition aborted!")
+            return
 
-            time.sleep(0.250)
+        time.sleep(0.250)
 
-            if not ignition_in_progress: 
-                ports[0].abort_process()
-                print("Ignition aborted!")
-                return
+        if not ignition_in_progress: 
+            ports[0].abort_process()
+            print("Ignition aborted!")
+            return
 
-            ports[0].write(ox_main_close_send_command)
-            ports[0].flush()
-            
-            # E-Match Reset
-            ports[0].write(ematch_close_send_command)
-            ports[0].flush()
-
-            client.publish("AUTO", "IGNITION SUCCESSFUL")
-            print("IGNITION SUCCESSFUL")
-        except Exception as e:
-            print(e)
-            print("IGNITION UNSUCCESSFUL")
+        ports[0].write(ox_main_close_send_command)
+        ports[0].flush()
         
+        # E-Match Reset
+        ports[0].write(ematch_close_send_command)
+        ports[0].flush()
 
-    def abort_process():
-        try:
-            ematch_close = "400" + "\n"
-            ematch_close_send_command = ematch_close.encode('utf-8')
-            ox_main_close = "410" + "\n"
-            ox_main_close_send_command = ox_main_close.encode('utf-8')
-            fuel_main_close = "420" + "\n"
-            fuel_main_close_send_command = fuel_main_close.encode('utf-8')
-
-            ports[0].write(fuel_main_close_send_command)
-            ports[0].flush()
-            time.sleep(0.050)
-            ports[0].write(ox_main_close_send_command)
-            ports[0].flush()
-
-            # E-Match Reset
-            ports[0].write(ematch_close_send_command)
-            ports[0].flush()
-
-            client.publish("AUTO", "ABORT SUCCESSFUL")
-            print("ABORT SUCCESSFUL")
-        except Exception as e:
-            print(e)
-            print("ABORT UNSUCCESSFUL")
+        client.publish("AUTO", "IGNITION SUCCESSFUL")
+        print("IGNITION SUCCESSFUL")
+    except Exception as e:
+        print(e)
+        print("IGNITION UNSUCCESSFUL")
     
+
+def abort_process():
+    try:
+        ematch_close = "400" + "\n"
+        ematch_close_send_command = ematch_close.encode('utf-8')
+        ox_main_close = "410" + "\n"
+        ox_main_close_send_command = ox_main_close.encode('utf-8')
+        fuel_main_close = "420" + "\n"
+        fuel_main_close_send_command = fuel_main_close.encode('utf-8')
+
+        ports[0].write(fuel_main_close_send_command)
+        ports[0].flush()
+        time.sleep(0.050)
+        ports[0].write(ox_main_close_send_command)
+        ports[0].flush()
+
+        # E-Match Reset
+        ports[0].write(ematch_close_send_command)
+        ports[0].flush()
+
+        client.publish("AUTO", "ABORT SUCCESSFUL")
+        print("ABORT SUCCESSFUL")
+    except Exception as e:
+        print(e)
+        print("ABORT UNSUCCESSFUL")
+
         
 
 def main():
