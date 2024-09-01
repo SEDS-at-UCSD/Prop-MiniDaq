@@ -255,13 +255,16 @@ class Board_DAQ():
                     publish_json_dict = {"time": str(datetime.now())[11:22], "sensor_readings": publish_array}
                     publish_json = json.dumps(publish_json_dict)
                     #print(Board_ID + " " + publish_json)
+                    print(publish_json)
 
                     if (Board_ID == '4'):
                         self.publish_dict[mqtt_switch_states_status_4] = publish_json
+                        print("Trying to publish to 4")
                     elif (Board_ID == '5'):
                         self.publish_dict[mqtt_switch_states_status_5] = publish_json
+                        print("Trying to publish to 5")
                     elif (Board_ID == '6'):
-                        print("Trying to publish")
+                        print("Trying to publish to 6")
                         self.publish_dict[mqtt_switch_states_status_6] = publish_json
 
                     
