@@ -235,6 +235,8 @@ class Board_DAQ():
 
                 print(data_dict)
                 Board_ID = data_dict['BoardID'][0]
+                if data_dict['BoardID'] == 'Board 6':
+                    Board_ID = '6'
                 Board_ID_worded = "Board " +  Board_ID
                 sensor_type = data_dict['SensorType'] 
 
