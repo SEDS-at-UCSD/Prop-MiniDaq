@@ -183,6 +183,8 @@ def on_message(client, userdata, message):
     if (message.topic == "AUTO"):
         if message_payload == "IGNITE":
             print("AUTO IGNITE...")
+            t3 = threading.Thread(target=auto_ignite)
+            t3.start()
             auto_ignite()
         
         if message_payload == "ABORT":
@@ -369,7 +371,8 @@ def auto_ignite():
         ports[0].flush()
 
         if not ignition_in_progress: 
-            abort_process()
+            t4 = threading.Thread(target=abort_process)
+            t4.start()
             print("Ignition aborted!")
             return
 
@@ -381,14 +384,16 @@ def auto_ignite():
         ports[0].flush()
 
         if not ignition_in_progress: 
-            abort_process()
+            t4 = threading.Thread(target=abort_process)
+            t4.start()
             print("Ignition aborted!")
             return
 
         time.sleep(2.700)
 
         if not ignition_in_progress: 
-            abort_process()
+            t4 = threading.Thread(target=abort_process)
+            t4.start()
             print("Ignition aborted!")
             return
 
@@ -396,14 +401,16 @@ def auto_ignite():
         ports[0].flush()
 
         if not ignition_in_progress: 
-            abort_process()
+            t4 = threading.Thread(target=abort_process)
+            t4.start()
             print("Ignition aborted!")
             return
 
         time.sleep(0.500)
 
         if not ignition_in_progress: 
-            abort_process()
+            t4 = threading.Thread(target=abort_process)
+            t4.start()
             print("Ignition aborted!")
             return
 
@@ -411,14 +418,16 @@ def auto_ignite():
         ports[0].flush()
 
         if not ignition_in_progress: 
-            abort_process()
+            t4 = threading.Thread(target=abort_process)
+            t4.start()
             print("Ignition aborted!")
             return
 
         time.sleep(0.100)
 
         if not ignition_in_progress: 
-            abort_process()
+            t4 = threading.Thread(target=abort_process)
+            t4.start()
             print("Ignition aborted!")
             return
 
@@ -428,14 +437,16 @@ def auto_ignite():
         ports[0].flush()
 
         if not ignition_in_progress: 
-            abort_process()
+            t4 = threading.Thread(target=abort_process)
+            t4.start()
             print("Ignition aborted!")
             return
 
         time.sleep(2.700)
 
         if not ignition_in_progress: 
-            abort_process()
+            t4 = threading.Thread(target=abort_process)
+            t4.start()
             print("Ignition aborted!")
             return
 
@@ -443,14 +454,16 @@ def auto_ignite():
         ports[0].flush()
 
         if not ignition_in_progress: 
-            abort_process()
+            t4 = threading.Thread(target=abort_process)
+            t4.start()
             print("Ignition aborted!")
             return
 
         time.sleep(0.250)
 
         if not ignition_in_progress: 
-            abort_process()
+            t4 = threading.Thread(target=abort_process)
+            t4.start()
             print("Ignition aborted!")
             return
 
