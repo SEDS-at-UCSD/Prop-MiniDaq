@@ -402,7 +402,7 @@ def auto_ignite():
         time.sleep(0.500)
 
         if not ignition_in_progress: 
-            ports[0].abort_process()
+            abort_process()
             print("Ignition aborted!")
             return
 
@@ -410,14 +410,14 @@ def auto_ignite():
         ports[0].flush()
 
         if not ignition_in_progress: 
-            ports[0].abort_process()
+            abort_process()
             print("Ignition aborted!")
             return
 
         time.sleep(0.100)
 
         if not ignition_in_progress: 
-            ports[0].abort_process()
+            abort_process()
             print("Ignition aborted!")
             return
 
@@ -427,14 +427,14 @@ def auto_ignite():
         ports[0].flush()
 
         if not ignition_in_progress: 
-            ports[0].abort_process()
+            abort_process()
             print("Ignition aborted!")
             return
 
         time.sleep(2.700)
 
         if not ignition_in_progress: 
-            ports[0].abort_process()
+            abort_process()
             print("Ignition aborted!")
             return
 
@@ -442,14 +442,14 @@ def auto_ignite():
         ports[0].flush()
 
         if not ignition_in_progress: 
-            ports[0].abort_process()
+            abort_process()
             print("Ignition aborted!")
             return
 
         time.sleep(0.250)
 
         if not ignition_in_progress: 
-            ports[0].abort_process()
+            abort_process()
             print("Ignition aborted!")
             return
 
