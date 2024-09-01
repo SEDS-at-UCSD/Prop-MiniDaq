@@ -117,46 +117,53 @@ function App() {
       });
 
       client.on('message', (topic, message) => {
-        message = JSON.parse(String(message));
+        let parsedMessage;
+        try {
+          // Try to parse the message as JSON
+          parsedMessage = JSON.parse(message);
+        } catch (error) {
+          // If parsing fails, treat it as a plain string
+          parsedMessage = message.toString();
+        }
         if (!isSub && topic === "topics_list") {
-          message.topics.forEach((subscription)=>{
+          parsedMessage.topics.forEach((subscription)=>{
             mqttSub(subscription);
           });
           setIsSub(true);
         }
         // CAN CHANGE TO IGNITE AGAIN
         // Expects JSON of format {state: "ABORT SUCCESSFUL"} or {state: "IGNITION SUCCESSFUL"} from back-end
-        else if (topic === "AUTO" && message.state === "ABORT SUCCESSFUL") {
+        else if (topic === "AUTO" && parsedMessage.state === "ABORT SUCCESSFUL") {
           setIsAborting(false);
           setIgnite(false);
         }
-        else if (topic === "AUTO" && message.state === "IGNITION SUCCESSFUL") {
+        else if (topic === "AUTO" && parsedMessage.state === "IGNITION SUCCESSFUL") {
           setIgnite(true);
         }
         else if (topic === "switch_states_status_4") {
           setSolenoidBoardsData((prev)=>{
             const newSolenoidData = { ...prev };
-            newSolenoidData[4] = message.sensor_readings;
+            newSolenoidData[4] = parsedMessage.sensor_readings;
             return newSolenoidData
           });
         }
         else if (topic === "switch_states_status_5") {
           setSolenoidBoardsData((prev)=>{
             const newSolenoidData = { ...prev };
-            newSolenoidData[5] = message.sensor_readings; 
+            newSolenoidData[5] = parsedMessage.sensor_readings; 
             return newSolenoidData
           });
         }
         else if (topic === "switch_states_status_6") {
           setSolenoidBoardsData((prev)=>{
             const newSolenoidData = { ...prev };
-            newSolenoidData[6] = message.sensor_readings; 
+            newSolenoidData[6] = parsedMessage.sensor_readings; 
             return newSolenoidData
           });
         }
         else {
           setBoardData((prev)=>{
-            return { ...prev, [topic]: message };
+            return { ...prev, [topic]: parsedMessage };
           })
         }
       });
