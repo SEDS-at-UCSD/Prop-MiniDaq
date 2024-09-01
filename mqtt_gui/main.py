@@ -265,8 +265,8 @@ class Board_DAQ():
                         self.publish_dict[mqtt_switch_states_status_5] = publish_json
                         print("Trying to publish to 5")
                     elif (Board_ID == '6'):
-                        print("Trying to publish to 6")
                         self.publish_dict[mqtt_switch_states_status_6] = publish_json
+                        print("Trying to publish to 6")
 
                     
                 # DAQ BOARDS
