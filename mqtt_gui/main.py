@@ -110,7 +110,7 @@ def open_serial_ports():
         #MAC
         #ports[1] = serial.Serial('/dev/cu.usbmodem56292564361', 921600)  
         #WINDOWS
-        ports[2] = serial.Serial('COM7', 921600) 
+        ports[2] = serial.Serial('COM4', 921600) 
     except Exception as e:
             print(f"Port error: {e}")
 
