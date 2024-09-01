@@ -20,6 +20,8 @@ mqtt_switch_states_update_4 = "switch_states_update_4"
 mqtt_switch_states_status_4 = "switch_states_status_4"
 mqtt_switch_states_update_5 = "switch_states_update_5"
 mqtt_switch_states_status_5 = "switch_states_status_5"
+mqtt_switch_states_update_6 = "switch_states_update_6"
+mqtt_switch_states_status_6 = "switch_states_status_6"
 
 
 
@@ -101,6 +103,16 @@ def open_serial_ports():
         ports[1] = serial.Serial('COM5', 921600) 
     except Exception as e:
             print(f"Port error: {e}")
+    
+    try:
+        #FLOWMETER BOARD DON'T CHANGE PORT AND PORT INDEX
+        """ MAKE SURE THIS IS PORT OF FLOWMETER BOARD """
+        #MAC
+        #ports[1] = serial.Serial('/dev/cu.usbmodem56292564361', 921600)  
+        #WINDOWS
+        ports[2] = serial.Serial('COM7', 921600) 
+    except Exception as e:
+            print(f"Port error: {e}")
 
 
 
@@ -157,6 +169,7 @@ def on_connect(client, userdata, flags, rc):
     print("Connected to MQTT broker with result code " + str(rc))
     client.subscribe(mqtt_switch_states_update_4)
     client.subscribe(mqtt_switch_states_update_5)
+    client.subscribe(mqtt_switch_states_update_6)
     client.subscribe(ignition_topic)
     
 
@@ -191,7 +204,13 @@ def on_message(client, userdata, message):
         ports[0].write(send_command)
         ports[0].flush()
         print(send_command)
-        
+
+    if (message.topic == "switch_states_update_6"):
+        command = "6" + message_payload + "\n"
+        send_command = command.encode('utf-8')
+        ports[2].write(send_command)
+        ports[2].flush()
+        print(send_command) 
 
 
 class Board_DAQ():
@@ -229,7 +248,7 @@ class Board_DAQ():
                     + "  ")
 
                 # SOLENOID BOARDS 
-                if int(Board_ID) in range(4, 6):
+                if int(Board_ID) in range(4, 7):
                     raw_byte_array = data_dict['Sensors']
                     publish_array = raw_byte_array[0:5]
                     publish_json_dict = {"time": str(datetime.now())[11:22], "sensor_readings": publish_array}
@@ -240,6 +259,8 @@ class Board_DAQ():
                         self.publish_dict[mqtt_switch_states_status_4] = publish_json
                     elif (Board_ID == '5'):
                         self.publish_dict[mqtt_switch_states_status_5] = publish_json
+                    elif (Board_ID == '6'):
+                        self.publish_dict[mqtt_switch_states_status_6] = publish_json
 
                     
                 # DAQ BOARDS

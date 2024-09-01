@@ -19,7 +19,8 @@ function App() {
     // "4": ['LOX DOME IN', 'LNG VENT NO', 'LNG MAIN NC', 'LOX MAIN NC', 'LOX VENT NO'],
     // "5": ['LNG DOME IN ', 'LNG DOME OUT', '12V: NIL', '12V: NIL', 'LOX DOME OUT']
     "4": ['E-match','OX MAIN','FUEL MAIN','OX PURGE','FUEL PURGE'],
-    "5": ['0','1','2','3','4']
+    "5": ['0','1','2','3','4'],
+    "6": ['0','1','2','3','4']
   };
 
   const PTLabels = {
@@ -101,6 +102,7 @@ function App() {
         })
         mqttSub("switch_states_status_4");
         mqttSub("switch_states_status_5");
+        mqttSub("switch_states_status_6");
         mqttSub("AUTO");
         setIsSub(true);
       });
@@ -142,6 +144,13 @@ function App() {
           setSolenoidBoardsData((prev)=>{
             const newSolenoidData = { ...prev };
             newSolenoidData[5] = message.sensor_readings; 
+            return newSolenoidData
+          });
+        }
+        else if (topic === "switch_states_status_6") {
+          setSolenoidBoardsData((prev)=>{
+            const newSolenoidData = { ...prev };
+            newSolenoidData[6] = message.sensor_readings; 
             return newSolenoidData
           });
         }
