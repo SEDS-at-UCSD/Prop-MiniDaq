@@ -339,6 +339,7 @@ class Board_DAQ():
             except Exception as e:
                 print(f"Serial read error: {e}")
                 print(data_dict['BoardID'])
+                print(Board_ID)
                 # , {data}")
         
                     
