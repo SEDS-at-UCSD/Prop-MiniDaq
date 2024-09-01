@@ -342,6 +342,7 @@ class Board_DAQ():
 def auto_ignite():
     try:
         global ignition_in_progress
+        ignition_in_progress = True
 
         ematch_open = "401" + "\n"
         ematch_open_send_command = ematch_open.encode('utf-8')
@@ -368,7 +369,7 @@ def auto_ignite():
         ports[0].flush()
 
         if not ignition_in_progress: 
-            ports[0].abort_process()
+            abort_process()
             print("Ignition aborted!")
             return
 
@@ -380,14 +381,14 @@ def auto_ignite():
         ports[0].flush()
 
         if not ignition_in_progress: 
-            ports[0].abort_process()
+            abort_process()
             print("Ignition aborted!")
             return
 
         time.sleep(2.700)
 
         if not ignition_in_progress: 
-            ports[0].abort_process()
+            abort_process()
             print("Ignition aborted!")
             return
 
@@ -395,7 +396,7 @@ def auto_ignite():
         ports[0].flush()
 
         if not ignition_in_progress: 
-            ports[0].abort_process()
+            abort_process()
             print("Ignition aborted!")
             return
 
