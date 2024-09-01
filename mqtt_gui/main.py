@@ -264,7 +264,7 @@ class Board_DAQ():
                     publish_array = raw_byte_array[0:5]
                     publish_json_dict = {"time": str(datetime.now())[11:22], "sensor_readings": publish_array}
                     publish_json = json.dumps(publish_json_dict)
-                    #print(Board_ID + " " + publish_json)
+                    print(Board_ID + " " + publish_json)
 
                     if (Board_ID == '4'):
                         self.publish_dict[mqtt_switch_states_status_4] = publish_json
