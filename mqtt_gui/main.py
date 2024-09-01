@@ -185,7 +185,6 @@ def on_message(client, userdata, message):
             print("AUTO IGNITE...")
             t3 = threading.Thread(target=auto_ignite)
             t3.start()
-            auto_ignite()
         
         if message_payload == "ABORT":
             ignition_in_progress = False
