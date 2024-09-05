@@ -19,13 +19,13 @@ function App() {
     // "4": ['LOX DOME IN', 'LNG VENT NO', 'LNG MAIN NC', 'LOX MAIN NC', 'LOX VENT NO'],
     // "5": ['LNG DOME IN ', 'LNG DOME OUT', '12V: NIL', '12V: NIL', 'LOX DOME OUT']
     "4": ['E-match','OX MAIN','FUEL MAIN','OX PURGE','FUEL PURGE'],
-    "5": ['0','1','2','3','4'],
+    "5": ['OX VENT','FUEL VENT','OX DOME IN','FUEL DOME IN','4'],
     "6": ['0','1','2','3','4']
   };
 
   const PTLabels = {
-    "log_data_1015": ['LOX INJ  1K (PSI)', 'LNG INJ  1K (PSI)', 'LNG COOL 1K (PSI)', 'IGN PREC 1K (PSI)'],
-    "log_data_1115": ['LNG DOME 2K (PSI)', 'LNG TANK 2K (PSI)', 'LOX TANK 1K (PSI)', 'LOX DOME 1K (PSI)']
+    "log_data_1015": ['FUEL TANK 1K (PSI)', 'OX TANK 1K (PSI)', 'FUEL DOME 1K (PSI)', 'OX DOME 1K (PSI)'],
+    "log_data_1115": ['CHAMBER 1K (PSI)', 'FUEL MANIFOLD 1K (PSI)', 'OX MANIFOLD 3K (PSI)', 'OX FLOWRATE 32.5 (GPM)']
   };
 
   const topics_list = [
