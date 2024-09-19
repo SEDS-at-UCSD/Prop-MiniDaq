@@ -1,6 +1,6 @@
 #include <Wire.h>
 #include <ADS1X15.h>
-#include <arduinoFFT.h>
+//#include <arduinoFFT.h>
 #include <ArduinoJson.h>
 #include <FreeRTOS.h>
 #include <task.h>

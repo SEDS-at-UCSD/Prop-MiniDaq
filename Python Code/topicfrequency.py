@@ -13,6 +13,8 @@ def extract_board_id(board_id_hex):
     except ValueError as e:
         #print(f"ValueError: Invalid hex value '{board_id_hex}'. Skipping this line.")
         return None
+    except TypeError as e:
+        return None
 
 def process_data(data):
     try:
@@ -24,6 +26,8 @@ def process_data(data):
         return None, None
     except KeyError as e:
         #print(f"KeyError: Missing key {e} in data. Skipping this line.")
+        return None, None
+    except TypeError as e:
         return None, None
     return sensor_type, sensors
 
@@ -38,6 +42,8 @@ while True:
     if ser.in_waiting > 0:
         serial_data = ser.readline().decode('utf-8').strip()
         try:
+            if ("CAN Reader" in serial_data):
+                continue
             # Parse the serial data as JSON
             data = json.loads(serial_data)
             
@@ -55,6 +61,12 @@ while True:
             sensor_type, sensors = process_data(data)
             if sensor_type is None or sensors is None:
                 continue
+
+            if board_id == 9 and sensor_type == 1:
+                print(serial_data)
+
+            if board_id == 6 and sensor_type == 3:
+                print(serial_data)
 
             # Update count of sensor types for this specific board ID
             boards_data[board_id][sensor_type] += 1
