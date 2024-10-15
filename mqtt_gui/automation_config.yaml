@@ -1,0 +1,70 @@
+automation_sequence:
+  - id: 1
+    name: "Ematch Open"
+    command: "401"
+    delay: 3.2 #0.5 normally, 3.2 if bypass purge
+    repeat: false
+    next_id: [4] #skip 2,3
+
+  - id: 2
+    name: "Ox Purge Open"
+    command: "431"
+    delay: 2.7
+    repeat: false
+    next_id: [3, 4]
+
+  - id: 3
+    name: "Fuel Purge Open"
+    command: "441"
+    delay: 0.0
+    repeat: false
+    next_id: [5]
+
+  - id: 4
+    name: "Ox Main Open"
+    command: "411"
+    delay: 0.5
+    repeat: false
+    next_id: [5]
+
+  - id: 5
+    name: "Fuel Main Open"
+    command: "421"
+    delay: 0.1
+    repeat: false
+    next_id: [6]
+
+  - id: 6
+    name: "Ox Purge Close"
+    command: "430"
+    delay: 2.7
+    repeat: false
+    next_id: [7]
+
+  - id: 7
+    name: "Fuel Purge Close"
+    command: "440"
+    delay: 0.0
+    repeat: false
+    next_id: [8]
+
+  - id: 8
+    name: "Fuel Main Close"
+    command: "420"
+    delay: 0.25
+    repeat: false
+    next_id: [9]
+
+  - id: 9
+    name: "Ox Main Close"
+    command: "410"
+    delay: 0.0
+    repeat: false
+    next_id: [10]
+
+  - id: 10
+    name: "Ematch Close"
+    command: "400"
+    delay: 0.0
+    repeat: false
+    next_id: []

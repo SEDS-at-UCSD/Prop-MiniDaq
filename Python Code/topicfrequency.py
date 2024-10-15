@@ -4,7 +4,7 @@ import time
 from collections import defaultdict
 
 # Configure your serial port (replace with your port and baudrate)
-ser = serial.Serial('/dev/cu.usbserial-0001', 921600)
+ser = serial.Serial('/dev/cu.usbserial-3', 921600) #0001
 
 def extract_board_id(board_id_hex):
     try:

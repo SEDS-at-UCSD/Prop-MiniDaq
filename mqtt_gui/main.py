@@ -1,10 +1,16 @@
 import paho.mqtt.client as mqtt
 import serial
+import serial.tools.list_ports
 import time
 import json
 from datetime import datetime
 import threading
 import numpy as np
+import platform
+from collections import defaultdict
+import yaml
+import time
+
 
 
 # IGNITION FLAG
@@ -84,42 +90,40 @@ board_id_to_conv_offset = {"1": [b1_cf_1015_add, b1_cf_1115_add, b1_thermocouple
                         }
 
 
-client = mqtt.Client("propdaq")
+client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION1,"propdaq")
 
 # Port Management
 
-ports = [False, False, False, False, False]
+ports = [None] * 5
 
 def open_serial_ports():
-    try:
-        #MAC
-        #ports[0] = serial.Serial('/dev/cu.usbserial-0001', 921600)  
-        #WINDOWS
-        ports[0] = serial.Serial('COM6', 921600,timeout=1)
-        #TC
-        #ports[0] = serial.Serial('COM6', 921600) 
-    except Exception as e:
-            print(f"Port error: {e}")
-        
-    try:
-        #FLOWMETER BOARD DON'T CHANGE PORT AND PORT INDEX
-        """ MAKE SURE THIS IS PORT OF FLOWMETER BOARD """
-        #MAC
-        #ports[1] = serial.Serial('/dev/cu.usbmodem56292564361', 921600)  
-        #WINDOWS
-        ports[1] = serial.Serial('COM5', 921600) 
-    except Exception as e:
-            print(f"Port error: {e}")
-    
-    try:
-        #FLOWMETER BOARD DON'T CHANGE PORT AND PORT INDEX
-        """ MAKE SURE THIS IS PORT OF FLOWMETER BOARD """
-        #MAC
-        #ports[1] = serial.Serial('/dev/cu.usbmodem56292564361', 921600)  
-        #WINDOWS
-        ports[2] = serial.Serial('COM4', 921600) 
-    except Exception as e:
-            print(f"Port error: {e}")
+    system = platform.system()  # Detect the OS
+    available_ports = list(serial.tools.list_ports.comports())  # Get a list of available serial ports
+    port_list = []
+
+    # Define the possible port names based on the system
+    if system == "Darwin":  # macOS
+        port_list = ['/dev/cu.usbserial-0001', '/dev/cu.usbserial-3', '/dev/cu.usbserial-4', '/dev/cu.usbmodem56292564361', '/dev/cu.usbmodem56292564362']  # Example ports
+    elif system == "Windows":
+        port_list = ['COM6', 'COM5', 'COM4']  # Example ports
+    elif system == "Linux":
+        port_list = ['/dev/ttyUSB0', '/dev/ttyUSB1', '/dev/ttyUSB2']  # Example ports
+
+    # Try to open up to 5 ports
+    for i, port_info in enumerate(port_list):
+        if i >= 5:
+            break  # Limit to 5 ports
+        try:
+            for available_port in available_ports:
+                if available_port.device == port_info:
+                    ports[i] = serial.Serial(port_info, 921600)
+                    print(f"Opened port: {port_info}")
+                    break  # Stop checking after opening the port
+        except Exception as e:
+            print(f"Port error on {port_info}: {e}")
+
+    if all(port is None for port in ports):
+        print("No ports were opened.")
 
 
 
@@ -148,8 +152,8 @@ b1115_add_factor_dict = {"Board 1": b1_cf_1115_add, "Board 2": b2_cf_1115_add, "
 
 
 
-number_to_sensor_type = {"1": "ADS 1015", "2": "ADS 1115", "3": "TC"}
-number_to_sensor_type_publish = {"1": "1015", "2": "1115", "3": "TC"}
+number_to_sensor_type = {"1": "ADS 1015", "2": "ADS 1115", "3": "TC", "4": "1116"}
+number_to_sensor_type_publish = {"1": "1015", "2": "1115", "3": "TC", "4": "1116"}
 
 bit_to_V_factor = {"1": 2048, "2": 32768, "3": 1}
 
@@ -187,7 +191,7 @@ def on_message(client, userdata, message):
     # MAP SOLENOID BOARDS HERE
     print(f"Received message on topic '{message.topic}': {message.payload.decode('utf-8')}")
     message_payload = message.payload.decode('utf-8')
-
+    
     if (message.topic == "AUTO"):
         if message_payload == "IGNITE":
             print("AUTO IGNITE...")
@@ -197,30 +201,70 @@ def on_message(client, userdata, message):
         if message_payload == "ABORT":
             ignition_in_progress = False
             print("ABORTING...")
+            t4 = threading.Thread(target=abort_process)
+            t4.start()
+            
             
         
     
     if (message.topic == "switch_states_update_4"):
         command = "4" + message_payload + "\n"
         send_command = command.encode('utf-8')
-        ports[0].write(send_command)
-        ports[0].flush()
-        print(send_command)
+        for port in ports:
+            if port:
+                port.write(send_command)
+                port.flush()
+                print(send_command)
         
     if (message.topic == "switch_states_update_5"):
         command = "5" + message_payload + "\n"
         send_command = command.encode('utf-8')
-        ports[0].write(send_command)
-        ports[0].flush()
-        print(send_command)
+        for port in ports:
+            if port:
+                port.write(send_command)
+                port.flush()
+                print(send_command)
 
     if (message.topic == "switch_states_update_6"):
         command = "6" + message_payload + "\n"
         send_command = command.encode('utf-8')
-        ports[2].write(send_command)
-        ports[2].flush()
-        print(send_command) 
+        for port in ports:
+            if port:
+                port.write(send_command)
+                port.flush()
+                print(send_command)
 
+
+def extract_board_id(board_id_hex):
+    try:
+        # Convert the hex string to an integer, then perform boardID // 16 (equivalent to /10 in hex)
+        return int(board_id_hex, 16) // 16
+    except ValueError as e:
+        #print(f"ValueError: Invalid hex value '{board_id_hex}'. Skipping this line.")
+        return None
+    except TypeError as e:
+        return None
+
+def process_data(data):
+    try:
+        # Extract sensor type and sensors
+        sensor_type = int(data["SensorType"])
+        sensors = data["Sensors"]
+    except ValueError as e:
+        #print(f"KeyError: Missing key {e} in data. Skipping this line.")
+        return None, None
+    except KeyError as e:
+        #print(f"KeyError: Missing key {e} in data. Skipping this line.")
+        return None, None
+    except TypeError as e:
+        return None, None
+    return sensor_type, sensors
+
+# Dictionary to store counts for each board's sensor types
+boards_data = defaultdict(lambda: defaultdict(int))
+
+# Store the last time we calculated frequencies
+interval = 2.0  # Time interval in seconds to calculate frequency
 
 class Board_DAQ():
 
@@ -228,6 +272,7 @@ class Board_DAQ():
         self.port_index = port_index
         self.data_lock = threading.Lock()
         self.publish_dict = {}
+        self.last_time = time.time()
     
     def publish_data(self):
         while True:
@@ -241,7 +286,43 @@ class Board_DAQ():
                 data = ports[self.port_index].readline().decode('utf-8').strip()
                 data_dict = json.loads(data)
 
-                print(data_dict)
+                # print(data_dict)
+                # Extract the board ID, skip if invalid hex or key is missing
+                try:
+                    extractdata = data_dict.get("BoardID", "")
+                    board_id = extract_board_id(extractdata)
+                    if board_id is None:
+                        continue
+
+                    # Process sensor data, skip if there's an error
+                    sensor_type, sensors = process_data(data_dict)
+                    if sensor_type is None or sensors is None:
+                        continue
+
+                    # Update count of sensor types for this specific board ID
+                    boards_data[board_id][sensor_type] += 1
+                    
+                    # Check if interval has passed
+                    current_time = time.time()
+                    if True: #printing frequencies
+                        if current_time - self.last_time >= interval:
+                            print(f"\nData summary for the past {interval} second(s):")
+
+                            # Print data for each board ID
+                            for board, sensor_data in boards_data.items():
+                                print(f"\nBoard ID: {board}")
+                                print("Sensor Type Frequencies (per second):")
+                                for stype, count in sensor_data.items():
+                                    print(f"  Sensor Type {stype}: {count / interval} Hz")
+                            
+                            # Reset counts and timer
+                            boards_data.clear()
+                            self.last_time = current_time
+                except AttributeError as e:
+                    print(e)
+                    continue
+
+                # processing starts:
                 Board_ID = data_dict['BoardID'][0]
                 if data_dict['BoardID'] == 'Board 6':
                     Board_ID = '6'
@@ -264,17 +345,20 @@ class Board_DAQ():
                     publish_array = raw_byte_array[0:5]
                     publish_json_dict = {"time": str(datetime.now())[11:22], "sensor_readings": publish_array}
                     publish_json = json.dumps(publish_json_dict)
-                    print(Board_ID + " " + publish_json)
+                    #print(Board_ID + " " + publish_json)
 
                     if (Board_ID == '4'):
                         self.publish_dict[mqtt_switch_states_status_4] = publish_json
-                        print("Trying to publish to 4")
+                        #print("Trying to publish to 4")
                     elif (Board_ID == '5'):
                         self.publish_dict[mqtt_switch_states_status_5] = publish_json
-                        print("Trying to publish to 5")
+                        #print("Trying to publish to 5")
                     elif (Board_ID == '6'):
                         self.publish_dict[mqtt_switch_states_status_6] = publish_json
-                        print("Trying to publish to 6")
+                        #print("Trying to publish to 6")
+                    
+                    file_to_write.write(publish_json + "\n")
+                    file_to_write.flush()  
 
                     
                 # DAQ BOARDS
@@ -354,173 +438,126 @@ class Board_DAQ():
     def solenoid_write(self, message):
         ports[self.port_index].write(message)
 
+class TaskManager:
+    def __init__(self, sequence, ports, port_index=0, force = False):
+        self.tasks = {}
+        self.ports = ports
+        self.port_index = port_index
+        self.load_tasks(sequence)
+        self.force = force
+        self.threads = []  # To collect threads for repeat tasks
+
+    def load_tasks(self, sequence):
+        for step in sequence:
+            task = Task(
+                name=step['name'],
+                command=step['command'],
+                delay=step['delay'],
+                repeat=step.get('repeat', False),
+                port=self.ports,
+                port_index=self.port_index,
+                next_id=step.get('next_id', []),
+                task_id=step['id']
+            )
+            self.tasks[step['id']] = task
+
+    def run_task_by_id(self, task_id):
+        if task_id not in self.tasks:
+            return
+        
+        task = self.tasks[task_id]
+        task.start_time = time.time()
+
+        task.execute(self.force)
+        while not task.is_completed():
+            time.sleep(0.1)
+            task.update(self.force)
+
+        for next_task_id in task.next_id:
+            self.run_task_by_id(next_task_id)
+
+    def run(self, starting_id = 1):
+        self.run_task_by_id(starting_id)
+
+    def join_all_threads(self):
+        for thread in self.threads:
+            thread.join()
+        print("All background threads have been joined.")
+
+
+class Task:
+    def __init__(self, name, command, delay, repeat, port, port_index=0, next_id=None, task_id=None):
+        self.name = name
+        self.command = command + "\n"
+        self.delay = delay
+        self.repeat = repeat
+        self.port = port
+        self.port_index = port_index
+        self.start_time = time.time()
+        self.completed = False
+        self.next_id = next_id if next_id else []
+        self.task_id = task_id
+
+    def execute(self, force = False):
+        send_command = self.command.encode('utf-8')
+        if ignition_in_progress or force:
+            for port in ports:
+                if port:
+                    port.write(send_command)
+                    port.flush()
+            print(f"Executed {self.name}: {send_command}")
+            if time.time() - self.start_time >= self.delay:
+                print(f"Completed {self.name}: {send_command}")
+                self.completed = True
+        else:
+            print(f"Aborted {self.name}: {send_command}")
+            self.completed = True
+    
+    def update(self, force = False): #execute but silent
+        send_command = self.command.encode('utf-8')
+        if ignition_in_progress or force:
+            for port in ports:
+                if port:
+                    port.write(send_command)
+                    port.flush()
+            if time.time() - self.start_time >= self.delay:
+                print(f"Completed {self.name}: {send_command}")
+                self.completed = True
+        else:
+            print(f"Aborted {self.name}: {send_command}")
+            self.completed = True
+        
+               
+    def is_completed(self):
+        return self.completed
+
+# Helper function to load YAML configuration
+def load_yaml(file_path):
+    with open(file_path, 'r') as file:
+        return yaml.safe_load(file)
+
+automation_config = load_yaml('automation_config.yaml')
+automanager = TaskManager(automation_config['automation_sequence'], ports)
+
+abort_config = load_yaml('abort_config.yaml')
+abort_manager = TaskManager(abort_config['abort_sequence'], ports, force=True)
 
 def auto_ignite():
-    try:
-        global ignition_in_progress
-        ignition_in_progress = True
+    global ignition_in_progress
+    automanager = TaskManager(automation_config['automation_sequence'], ports)
+    ignition_in_progress = True
+    automanager.run()
 
-        ematch_open = "401" + "\n"
-        ematch_open_send_command = ematch_open.encode('utf-8')
-        ematch_close = "400" + "\n"
-        ematch_close_send_command = ematch_close.encode('utf-8')
-        ox_main_open = "411" + "\n"
-        ox_main_open_send_command = ox_main_open.encode('utf-8')
-        ox_main_close = "410" + "\n"
-        ox_main_close_send_command = ox_main_close.encode('utf-8')
-        fuel_main_open = "421" + "\n"
-        fuel_main_open_send_command = fuel_main_open.encode('utf-8')
-        fuel_main_close = "420" + "\n"
-        fuel_main_close_send_command = fuel_main_close.encode('utf-8')
-        ox_purge_open = "431" + "\n"
-        ox_purge_open_command = ox_purge_open.encode('utf-8')
-        ox_purge_close = "430" + "\n"
-        ox_purge_close_command = ox_purge_close.encode('utf-8')
-        fuel_purge_open = "441" + "\n"
-        fuel_purge_open_command = fuel_purge_open.encode('utf-8')
-        fuel_purge_close = "440" + "\n"
-        fuel_purge_close_command = fuel_purge_close.encode('utf-8')
-
-        ports[0].write(ematch_open_send_command)
-        ports[0].flush()
-
-        if not ignition_in_progress: 
-            t4 = threading.Thread(target=abort_process)
-            t4.start()
-            print("Ignition aborted!")
-            return
-
-        time.sleep(0.500)
-
-        ports[0].write(ox_purge_open_command)
-        ports[0].flush()
-        ports[0].write(fuel_purge_open_command)
-        ports[0].flush()
-
-        if not ignition_in_progress: 
-            t4 = threading.Thread(target=abort_process)
-            t4.start()
-            print("Ignition aborted!")
-            return
-
-        time.sleep(2.700)
-
-        if not ignition_in_progress: 
-            t4 = threading.Thread(target=abort_process)
-            t4.start()
-            print("Ignition aborted!")
-            return
-
-        ports[0].write(ox_main_open_send_command)
-        ports[0].flush()
-
-        if not ignition_in_progress: 
-            t4 = threading.Thread(target=abort_process)
-            t4.start()
-            print("Ignition aborted!")
-            return
-
-        time.sleep(0.500)
-
-        if not ignition_in_progress: 
-            t4 = threading.Thread(target=abort_process)
-            t4.start()
-            print("Ignition aborted!")
-            return
-
-        ports[0].write(fuel_main_open_send_command)
-        ports[0].flush()
-
-        if not ignition_in_progress: 
-            t4 = threading.Thread(target=abort_process)
-            t4.start()
-            print("Ignition aborted!")
-            return
-
-        time.sleep(0.100)
-
-        if not ignition_in_progress: 
-            t4 = threading.Thread(target=abort_process)
-            t4.start()
-            print("Ignition aborted!")
-            return
-
-        ports[0].write(ox_purge_close_command)
-        ports[0].flush()
-        ports[0].write(fuel_purge_close_command)
-        ports[0].flush()
-
-        if not ignition_in_progress: 
-            t4 = threading.Thread(target=abort_process)
-            t4.start()
-            print("Ignition aborted!")
-            return
-
-        time.sleep(2.700)
-
-        if not ignition_in_progress: 
-            t4 = threading.Thread(target=abort_process)
-            t4.start()
-            print("Ignition aborted!")
-            return
-
-        ports[0].write(fuel_main_close_send_command)
-        ports[0].flush()
-
-        if not ignition_in_progress: 
-            t4 = threading.Thread(target=abort_process)
-            t4.start()
-            print("Ignition aborted!")
-            return
-
-        time.sleep(0.250)
-
-        if not ignition_in_progress: 
-            t4 = threading.Thread(target=abort_process)
-            t4.start()
-            print("Ignition aborted!")
-            return
-
-        ports[0].write(ox_main_close_send_command)
-        ports[0].flush()
-        
-        # E-Match Reset
-        ports[0].write(ematch_close_send_command)
-        ports[0].flush()
-
-        client.publish("AUTO", "IGNITION SUCCESSFUL")
-        print("IGNITION SUCCESSFUL")
-    except Exception as e:
-        print(e)
-        print("IGNITION UNSUCCESSFUL")
-    
-
+# Abort process that also runs abort tasks
 def abort_process():
-    try:
-        ematch_close = "400" + "\n"
-        ematch_close_send_command = ematch_close.encode('utf-8')
-        ox_main_close = "410" + "\n"
-        ox_main_close_send_command = ox_main_close.encode('utf-8')
-        fuel_main_close = "420" + "\n"
-        fuel_main_close_send_command = fuel_main_close.encode('utf-8')
+    abort_manager = TaskManager(abort_config['abort_sequence'], ports, force=True)
+    global ignition_in_progress
+    ignition_in_progress = False
+    print("Abort triggered! Completing current tasks and running abort sequence.")
+    automanager.join_all_threads()
 
-        ports[0].write(fuel_main_close_send_command)
-        ports[0].flush()
-        time.sleep(0.050)
-        ports[0].write(ox_main_close_send_command)
-        ports[0].flush()
+    abort_manager.run()
 
-        # E-Match Reset
-        ports[0].write(ematch_close_send_command)
-        ports[0].flush()
-
-        client.publish("AUTO", "ABORT SUCCESSFUL")
-        print("ABORT SUCCESSFUL")
-    except Exception as e:
-        print(e)
-        print("ABORT UNSUCCESSFUL")
-
-        
 
 def main():
     client.on_connect = on_connect
@@ -531,24 +568,16 @@ def main():
 
     open_serial_ports()
 
-    port0 = Board_DAQ(0)
-    port2 = Board_DAQ(2)
+    t1 = [None] * 5
+    t2 = [None] * 5
 
-    t1 = threading.Thread(target=port0.read_serial_and_log_high_freq)
-    t2 = threading.Thread(target=port0.publish_data)
-
-    text6read = threading.Thread(target=port2.read_serial_and_log_high_freq)
-    text6publish = threading.Thread(target=port2.publish_data)
-
-    if (ports[0]):
-        print("CAN BUS connection active")
-        t1.start()
-        t2.start()
-    
-    if (ports[2]):
-        text6read.start()
-        text6publish.start()
-
+    for i, port in enumerate(ports):
+        if port:
+            port_ = Board_DAQ(i)
+            t1[i] = threading.Thread(target=port_.read_serial_and_log_high_freq)
+            t2[i] = threading.Thread(target=port_.publish_data)
+            t1[i].start()
+            t2[i].start()
     
 
 if __name__ == '__main__':
