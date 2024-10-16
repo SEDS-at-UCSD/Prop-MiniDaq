@@ -516,12 +516,14 @@ class Task:
     def update(self, force = False): #execute but silent
         send_command = self.command.encode('utf-8')
         if ignition_in_progress or force:
+            '''
             for port in ports:
                 if port:
                     port.write(send_command)
                     port.flush()
                 time.sleep(0.01) #command response
             print(f"Executed {self.name}: {send_command}") 
+            '''
             if time.time() - self.start_time >= self.delay:
                 print(f"Completed {self.name}: {send_command}")
                 self.completed = True
