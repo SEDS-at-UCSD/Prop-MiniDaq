@@ -13,31 +13,50 @@ import yaml
 import subprocess
 import signal
 import sys
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.concurrency import run_in_threadpool
 
-# Define the range of boards
-SWITCH_BOARD_RANGE = range(4, 7) #DRIVERS
-ANAL_BOARD_RANGE = range(1,4) #DATA
+app = FastAPI()
 
-# IGNITION FLAG
-ignition_in_progress = False
+# Add CORS middleware
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:8000", "http://localhost:3000"],  # React
+    allow_credentials=True,
+    allow_methods=["*"],  # Allow all methods (GET, POST, etc.)
+    allow_headers=["*"],  # Allow all headers
+)
 
-# MQTT configuration
-#mqtt_broker_address = "169.254.32.191"
-mqtt_broker_address = "localhost"
-mqtt_topic_serial = "serial_data"
-
+# Dynamically generate conversion factors and add factors from JSON config
+board_id_to_conv_factor = {}
+board_id_to_conv_offset = {}
 
 # Dynamically generate MQTT topics for switch states (for boards 4, 5, 6)
 mqtt_switch_states_update = {}
 mqtt_switch_states_status = {}
 
-for board_num in SWITCH_BOARD_RANGE:  # Boards 4, 5, and 6
-    mqtt_switch_states_update[board_num] = f"switch_states_update_{board_num}"
-    mqtt_switch_states_status[board_num] = f"switch_states_status_{board_num}"
-
-
-# URL of the hosted fileserver
-fileserver_url = "http://localhost:8000/files"
+def update_conversion_factors():
+    global board_id_to_conv_factor, board_id_to_conv_offset
+    #reset factors
+    board_id_to_conv_factor = {}
+    board_id_to_conv_offset = {}
+    for board_num in range(1, 7):  # Boards from B1 to B6
+        board_key = f"B{board_num}"
+        
+        # Extract factors and offsets from the JSON config for each sensor type
+        board_id_to_conv_factor[str(board_num)] = [
+            conv_configs[f'{board_key}_Conv_Factor_ADS1015'],
+            conv_configs[f'{board_key}_Conv_Factor_ADS1115'],
+            conv_configs[f'{board_key}_Thermocouple']
+        ]
+        
+        board_id_to_conv_offset[str(board_num)] = [
+            conv_configs[f'{board_key}_1015_ADD'],
+            conv_configs[f'{board_key}_1115_ADD'],
+            conv_configs[f'{board_key}_Thermocouple_ADD']
+        ]
+    return board_id_to_conv_factor, board_id_to_conv_offset
 
 # Function to terminate the fileserver subprocess
 def stop_fileserver(fileserver_process):
@@ -45,7 +64,7 @@ def stop_fileserver(fileserver_process):
     fileserver_process.terminate()
     fileserver_process.wait()
 
-    # Function to fetch file data from the file server
+# Function to fetch file data from the file server
 def fetch_file_data(filename):
     try:
         response = requests.get(f"{fileserver_url}/{filename}")
@@ -60,8 +79,64 @@ def start_fileserver():
     print("Starting Fileserver")
     return subprocess.Popen([sys.executable, 'fileserver.py'])
 
+# Define the range of boards
+SWITCH_BOARD_RANGE = range(4, 7) #DRIVERS
+ANAL_BOARD_RANGE = range(1,4) #DATA
+
+# IGNITION FLAG
+ignition_in_progress = False
+
+# MQTT configuration
+#mqtt_broker_address = "169.254.32.191"
+mqtt_broker_address = "localhost"
+mqtt_topic_serial = "serial_data"
+
+# URL of the hosted fileserver
+fileserver_url = "http://localhost:8000/files"
+
+# Global variables for configurations
+conv_configs = {}
+automation_config = {}
+abort_config = {}
+
+# Function to reload configuration files
+def reload_config(filename):
+    global conv_configs, automation_config, abort_config
+    if filename == "conversion_factor_config.json":
+        with open(filename, 'r') as file:
+            conv_configs = fetch_file_data(filename)
+            update_conversion_factors()
+            print("Conversion factor config updated")
+    else:
+        print(f"Unknown config file: {filename}")
+
+# Create a thread-safe event flag
+reload_flag = threading.Event()
+
+# Endpoint to update the configs when notified by fileserver.py
+@app.post("/update_config/{filename}")
+async def update_config(filename: str):
+    #reload_config(filename)
+    reload_flag.set()
+    return {"message": f"{filename} reloaded successfully"}
+
+# Function to run FastAPI in a separate thread
+def start_fastapi():
+    import uvicorn
+    uvicorn.run(app, host="localhost", port=8001)
+
+# Start FastAPI server in a separate thread
+fastapi_thread = threading.Thread(target=start_fastapi)
+fastapi_thread.daemon = True
+fastapi_thread.start()
+
 # Start the fileserver in a separate process
 fileserver_process = start_fileserver()
+time.sleep(1)
+
+for board_num in SWITCH_BOARD_RANGE:  # Boards 4, 5, and 6
+    mqtt_switch_states_update[board_num] = f"switch_states_update_{board_num}"
+    mqtt_switch_states_status[board_num] = f"switch_states_status_{board_num}"
 
 # Fetch conversion factor config from file server
 conv_configs = fetch_file_data('conversion_factor_config.json')
@@ -70,25 +145,7 @@ if conv_configs is None:
     print("Failed to load conversion factor config. Exiting setup.")
     exit(1)  # Exit if the file could not be fetched
 
-# Dynamically generate conversion factors and add factors from JSON config
-board_id_to_conv_factor = {}
-board_id_to_conv_offset = {}
-
-for board_num in range(1, 7):  # Boards from B1 to B6
-    board_key = f"B{board_num}"
-    
-    # Extract factors and offsets from the JSON config for each sensor type
-    board_id_to_conv_factor[str(board_num)] = [
-        conv_configs[f'{board_key}_Conv_Factor_ADS1015'],
-        conv_configs[f'{board_key}_Conv_Factor_ADS1115'],
-        conv_configs[f'{board_key}_Thermocouple']
-    ]
-    
-    board_id_to_conv_offset[str(board_num)] = [
-        conv_configs[f'{board_key}_1015_ADD'],
-        conv_configs[f'{board_key}_1115_ADD'],
-        conv_configs[f'{board_key}_Thermocouple_ADD']
-    ]
+update_conversion_factors()
 
 client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION1,"propdaq")
 
@@ -143,8 +200,8 @@ raw_log_file_6 = open('raw_serial_log_6.txt', 'a')
 board_to_log_file_dict = {"Board 1": raw_log_file, "Board 2": raw_log_file_2, "Board 3": raw_log_file_3, "Board 4": raw_log_file_4, "Board 5": raw_log_file_5, "Board 6": raw_log_file_6}
 b_to_solenoid_status_topic_dict = {"Board 4": 'switch_states_status_4', "Board 5": 'switch_states_status_5', "Board 6": 'switch_states_status_6'}
 
-number_to_sensor_type = {"1": "ADS 1015", "2": "ADS 1115", "3": "TC", "4": "1116"}
-number_to_sensor_type_publish = {"1": "1015", "2": "1115", "3": "TC", "4": "1116"}
+number_to_sensor_type = {"1": "ADS 1015", "2": "ADS 1115", "3": "TC", "4": "ADS 1256"}
+number_to_sensor_type_publish = {"1": "1015", "2": "1115", "3": "TC", "4": "1115"} #ADS 1256 >= 16 bit, so rn show it as 1115 
 
 bit_to_V_factor = {"1": 2048, "2": 32768, "3": 1}
 
@@ -255,6 +312,14 @@ class Board_DAQ():
 
     def read_serial_and_log_high_freq(self):
         while True:
+            if reload_flag.is_set():
+                print("Reload flag set. Reloading configurations...")
+                
+                # Perform the reload operation
+                reload_config("conversion_factor_config.json")
+                
+                # Clear the flag after reloading
+                reload_flag.clear()
             try:
                 data = ports[self.port_index].readline().decode('utf-8').strip()
                 data_dict = json.loads(data)
@@ -345,6 +410,16 @@ class Board_DAQ():
                         for i in range(len(converted_array)):     
                             if (np.isnan(converted_array[i])):
                                 converted_array[i] = 0
+                    elif (data_dict['SensorType']  == "4"):
+                        for i in range(0, len(raw_byte_array), 2):
+                            value_to_append = np.uint16(0)
+                            value_to_append += np.uint16(raw_byte_array[i])*np.uint16(256) + np.uint16(raw_byte_array[i+1])
+                            #value_to_append += raw_byte_array[i]*256 + raw_byte_array[i+1]
+                            #value_to_append = float(np.array(np.uint16(value_to_append)).astype(np.int16))
+                            converted_array = np.append(converted_array,value_to_append)
+                        converted_array = converted_array.view(np.int16)
+                        for i in range(len(converted_array)):     
+                            converted_array[i] *= 5.000/5 #ADS 1256 5V max range / 0-5V operational range
                     else:
                         for i in range(0, len(raw_byte_array), 2):
                             value_to_append = np.uint16(0)
@@ -395,11 +470,15 @@ class Board_DAQ():
 
                     self.publish_dict[topic] = publish_json
             
+            except serial.SerialException as e:
+                if "Device not configured" in str(e):
+                    print(f"Serial read error: {e}. Retrying in 1 seconds...")
+                    time.sleep(1)
+                    open_serial_ports()
+                else:
+                    print(f"Serial read error: {e}")
             except Exception as e:
                 print(f"Serial read error: {e}")
-                # print(data_dict['BoardID'])
-                # print(Board_ID)
-                # , {data}")
         
                     
     def solenoid_write(self, message):

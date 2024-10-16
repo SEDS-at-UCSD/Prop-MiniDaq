@@ -173,17 +173,41 @@ function App() {
   return (
     <div className="App">
       <div className="settings">
-        <p className="status">{connectStatus}</p>
-        <p className="status">Receiving data: {isSub ? "True" : "False"}</p>
-        <div className="min_max_settings">
-          <button onClick={()=>setArrangable(!arrangable)} className="status control_button"> {arrangable ? "Stop Arranging" : "Arrange Dials"} </button>
-          <button onClick={()=>setSolenoidControl(!solenoidControl)} className="status control_button"> {solenoidControl ? "Disable Buttons" : "Enable Buttons"} </button>
-        </div> 
-        <div className="auto-ignition">
-          <button onClick={handleIgnitionClick}
-                  className={`auto-ignition-button ${!ignite ? "ignite" : "abort"}`}
-                  disabled={isAborting}> {!ignite ? "IGNITE" : "ABORT"} </button>
+        <div className="two-column-layout">
+
+          {/* Left column: Auto-Ignition Button */}
+          <div className="left-column">
+            <p className="Auto:">Automation </p>
+            <div className="auto-ignition">
+              <button
+                onClick={handleIgnitionClick}
+                className={`auto-ignition-button ${!ignite ? "ignite" : "abort"}`}
+                disabled={isAborting}
+              >
+                {!ignite ? "IGNITE" : "ABORT"}
+              </button>
+            </div>
+          </div>
+
+          {/* Right column: Status and Control Buttons */}
+          <div className="right-column">
+            <p className="status">{connectStatus}</p>
+            <p className="status">Receiving data: {isSub ? "True" : "False"}</p>
+
+            <div className="min_max_settings">
+              <button onClick={() => window.location.href = '/config'} className="status control_button">
+                Go to Config
+              </button>
+              <button onClick={() => setArrangable(!arrangable)} className="status control_button">
+                {arrangable ? "Stop Arranging" : "Arrange Dials"}
+              </button>
+              <button onClick={() => setSolenoidControl(!solenoidControl)} className="status control_button">
+                {solenoidControl ? "Disable Buttons" : "Enable Buttons"}
+              </button>
+            </div>
+          </div>
         </div>
+
         <div className='solenoid_cluster'>
         {Object.entries(solenoidBoardsData).map(([key,value])=>{
           return (

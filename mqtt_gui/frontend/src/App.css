@@ -20,6 +20,25 @@ body {
   top: 0px;
 }
 
+.two-column-layout {
+  display: flex;
+  justify-content: space-between;  /* Distribute the two columns */
+  align-items: flex-start;
+}
+
+
+.left-column {
+  margin-top: 10px;
+  flex: 1;
+}
+
+.right-column {
+  margin-top: 10px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
 .sensor_readings {
   display: flex;
   margin-top: 20px;
@@ -96,9 +115,9 @@ body {
 
 .auto-ignition {
   margin-top: 10px;
-  display: block;
-  position: absolute;
-  text-align: center;
+  display: flex;
+  justify-content: right; /* center */
+  text-align: right;
   right: 15px;
 }
 
