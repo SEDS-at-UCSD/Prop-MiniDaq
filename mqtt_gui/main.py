@@ -8,10 +8,15 @@ import threading
 import numpy as np
 import platform
 from collections import defaultdict
+import requests  # For making HTTP requests to fileserver.py
 import yaml
-import time
+import subprocess
+import signal
+import sys
 
-
+# Define the range of boards
+SWITCH_BOARD_RANGE = range(4, 7) #DRIVERS
+ANAL_BOARD_RANGE = range(1,4) #DATA
 
 # IGNITION FLAG
 ignition_in_progress = False
@@ -22,73 +27,68 @@ mqtt_broker_address = "localhost"
 mqtt_topic_serial = "serial_data"
 
 
-mqtt_switch_states_update_4 = "switch_states_update_4"
-mqtt_switch_states_status_4 = "switch_states_status_4"
-mqtt_switch_states_update_5 = "switch_states_update_5"
-mqtt_switch_states_status_5 = "switch_states_status_5"
-mqtt_switch_states_update_6 = "switch_states_update_6"
-mqtt_switch_states_status_6 = "switch_states_status_6"
+# Dynamically generate MQTT topics for switch states (for boards 4, 5, 6)
+mqtt_switch_states_update = {}
+mqtt_switch_states_status = {}
+
+for board_num in SWITCH_BOARD_RANGE:  # Boards 4, 5, and 6
+    mqtt_switch_states_update[board_num] = f"switch_states_update_{board_num}"
+    mqtt_switch_states_status[board_num] = f"switch_states_status_{board_num}"
 
 
+# URL of the hosted fileserver
+fileserver_url = "http://localhost:8000/files"
 
-with open('conversion_factor_config.json', 'r') as json_file:
-    conv_configs = json.load(json_file)
+# Function to terminate the fileserver subprocess
+def stop_fileserver(fileserver_process):
+    print("Stopping Fileserver")
+    fileserver_process.terminate()
+    fileserver_process.wait()
 
-# CONV FACTORS LISTS
-b1_cf_1015 = conv_configs['B1_Conv_Factor_ADS1015']
-b1_cf_1115 = conv_configs['B1_Conv_Factor_ADS1115']
-b1_thermocouple = conv_configs['B1_Thermocouple']
-b1_thermocouple_add = conv_configs['B1_Thermocouple_ADD']
+    # Function to fetch file data from the file server
+def fetch_file_data(filename):
+    try:
+        response = requests.get(f"{fileserver_url}/{filename}")
+        response.raise_for_status()  # Raise an error if the request failed
+        return response.json()  # Assuming the file is JSON formatted
+    except requests.RequestException as e:
+        print(f"Error fetching {filename}: {e}")
+        return None
 
-b2_cf_1015 = conv_configs['B2_Conv_Factor_ADS1015']
-b2_cf_1115 = conv_configs['B2_Conv_Factor_ADS1115']
-b2_thermocouple = conv_configs['B2_Thermocouple']
-b2_thermocouple_add = conv_configs['B2_Thermocouple_ADD']
+# Function to start the fileserver as a subprocess
+def start_fileserver():
+    print("Starting Fileserver")
+    return subprocess.Popen([sys.executable, 'fileserver.py'])
 
-b3_cf_1015 = conv_configs['B3_Conv_Factor_ADS1015']
-b3_cf_1115 = conv_configs['B3_Conv_Factor_ADS1115']
-b3_thermocouple = conv_configs['B3_Thermocouple']
-b3_thermocouple_add = conv_configs['B3_Thermocouple_ADD']
+# Start the fileserver in a separate process
+fileserver_process = start_fileserver()
 
-b4_cf_1015 = conv_configs['B4_Conv_Factor_ADS1015']
-b4_cf_1115 = conv_configs['B4_Conv_Factor_ADS1115']
-b4_thermocouple = conv_configs['B4_Thermocouple']
-b4_thermocouple_add = conv_configs['B4_Thermocouple_ADD']
+# Fetch conversion factor config from file server
+conv_configs = fetch_file_data('conversion_factor_config.json')
 
-b5_cf_1015 = conv_configs['B5_Conv_Factor_ADS1015']
-b5_cf_1115 = conv_configs['B5_Conv_Factor_ADS1115']
-b5_thermocouple = conv_configs['B5_Thermocouple']
-b5_thermocouple_add = conv_configs['B5_Thermocouple_ADD']
+if conv_configs is None:
+    print("Failed to load conversion factor config. Exiting setup.")
+    exit(1)  # Exit if the file could not be fetched
 
-b6_cf_1015 = conv_configs['B6_Conv_Factor_ADS1015']
-b6_cf_1115 = conv_configs['B6_Conv_Factor_ADS1115']
-b6_thermocouple = conv_configs['B6_Thermocouple']
-b6_thermocouple_add = conv_configs['B6_Thermocouple_ADD']
+# Dynamically generate conversion factors and add factors from JSON config
+board_id_to_conv_factor = {}
+board_id_to_conv_offset = {}
 
-# ADD ACTORS LISTS
-b1_cf_1015_add = conv_configs['B1_1015_ADD']
-b1_cf_1115_add = conv_configs['B1_1115_ADD']
-b2_cf_1015_add = conv_configs['B2_1015_ADD']
-b2_cf_1115_add = conv_configs['B2_1115_ADD']
-b3_cf_1015_add = conv_configs['B3_1015_ADD']
-b3_cf_1115_add = conv_configs['B3_1115_ADD']
-b4_cf_1015_add = conv_configs['B4_1015_ADD']
-b4_cf_1115_add = conv_configs['B4_1115_ADD']
-b5_cf_1015_add = conv_configs['B5_1015_ADD']
-b5_cf_1115_add = conv_configs['B5_1115_ADD']
-b6_cf_1015_add = conv_configs['B6_1015_ADD']
-b6_cf_1115_add = conv_configs['B6_1115_ADD']
-
-board_id_to_conv_factor = {"1": [b1_cf_1015, b1_cf_1115, b1_thermocouple],
-                           "2": [b2_cf_1015, b2_cf_1115, b2_thermocouple],
-                           "3": [b3_cf_1015, b3_cf_1115, b3_thermocouple]
-                        }
-
-board_id_to_conv_offset = {"1": [b1_cf_1015_add, b1_cf_1115_add, b1_thermocouple_add],
-                           "2": [b2_cf_1015_add, b2_cf_1115_add, b2_thermocouple_add],
-                           "3": [b3_cf_1015_add, b3_cf_1115_add, b3_thermocouple_add]
-                        }
-
+for board_num in range(1, 7):  # Boards from B1 to B6
+    board_key = f"B{board_num}"
+    
+    # Extract factors and offsets from the JSON config for each sensor type
+    board_id_to_conv_factor[str(board_num)] = [
+        conv_configs[f'{board_key}_Conv_Factor_ADS1015'],
+        conv_configs[f'{board_key}_Conv_Factor_ADS1115'],
+        conv_configs[f'{board_key}_Thermocouple']
+    ]
+    
+    board_id_to_conv_offset[str(board_num)] = [
+        conv_configs[f'{board_key}_1015_ADD'],
+        conv_configs[f'{board_key}_1115_ADD'],
+        conv_configs[f'{board_key}_Thermocouple_ADD']
+    ]
 
 client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION1,"propdaq")
 
@@ -143,15 +143,6 @@ raw_log_file_6 = open('raw_serial_log_6.txt', 'a')
 board_to_log_file_dict = {"Board 1": raw_log_file, "Board 2": raw_log_file_2, "Board 3": raw_log_file_3, "Board 4": raw_log_file_4, "Board 5": raw_log_file_5, "Board 6": raw_log_file_6}
 b_to_solenoid_status_topic_dict = {"Board 4": 'switch_states_status_4', "Board 5": 'switch_states_status_5', "Board 6": 'switch_states_status_6'}
 
-b1015_conv_factor_dict = {"Board 1": b1_cf_1015, "Board 2": b2_cf_1015, "Board 3": b3_cf_1015, "Board 4": b4_cf_1015, "Board 5": b5_cf_1015, "Board 6": b6_cf_1015}
-b1115_conv_factor_dict = {"Board 1": b1_cf_1115, "Board 2": b2_cf_1115, "Board 3": b3_cf_1115, "Board 4": b4_cf_1115, "Board 5": b5_cf_1115, "Board 6": b6_cf_1115}
-bTC_conv_factor_dict = {"Board 1": b1_thermocouple, "Board 2": b2_thermocouple, "Board 3": b3_thermocouple, "Board 4": b4_thermocouple, "Board 5": b5_thermocouple}
-
-b1015_add_factor_dict = {"Board 1": b1_cf_1015_add, "Board 2": b2_cf_1015_add, "Board 3": b3_cf_1015_add, "Board 4": b4_cf_1015_add, "Board 5": b5_cf_1015_add, "Board 6": b6_cf_1015_add}
-b1115_add_factor_dict = {"Board 1": b1_cf_1115_add, "Board 2": b2_cf_1115_add, "Board 3": b3_cf_1115_add, "Board 4": b4_cf_1115_add, "Board 5": b5_cf_1115_add, "Board 6": b6_cf_1115_add}
-
-
-
 number_to_sensor_type = {"1": "ADS 1015", "2": "ADS 1115", "3": "TC", "4": "1116"}
 number_to_sensor_type_publish = {"1": "1015", "2": "1115", "3": "TC", "4": "1116"}
 
@@ -179,9 +170,9 @@ data_lock = threading.Lock()
 
 def on_connect(client, userdata, flags, rc):
     print("Connected to MQTT broker with result code " + str(rc))
-    client.subscribe(mqtt_switch_states_update_4)
-    client.subscribe(mqtt_switch_states_update_5)
-    client.subscribe(mqtt_switch_states_update_6)
+    for board_num in SWITCH_BOARD_RANGE:  # Boards 4, 5, and 6
+        client.subscribe(mqtt_switch_states_update[board_num])
+        client.subscribe(mqtt_switch_states_status[board_num])
     client.subscribe(ignition_topic)
     
 
@@ -189,7 +180,7 @@ def on_connect(client, userdata, flags, rc):
 def on_message(client, userdata, message):
     global ignition_in_progress
     # MAP SOLENOID BOARDS HERE
-    print(f"Received message on topic '{message.topic}': {message.payload.decode('utf-8')}")
+    #print(f"Received message on topic '{message.topic}': {message.payload.decode('utf-8')}")
     message_payload = message.payload.decode('utf-8')
     
     if (message.topic == "AUTO"):
@@ -204,35 +195,17 @@ def on_message(client, userdata, message):
             t4 = threading.Thread(target=abort_process)
             t4.start()
             
-            
-        
     
-    if (message.topic == "switch_states_update_4"):
-        command = "4" + message_payload + "\n"
-        send_command = command.encode('utf-8')
-        for port in ports:
-            if port:
-                port.write(send_command)
-                port.flush()
-                print(send_command)
-        
-    if (message.topic == "switch_states_update_5"):
-        command = "5" + message_payload + "\n"
-        send_command = command.encode('utf-8')
-        for port in ports:
-            if port:
-                port.write(send_command)
-                port.flush()
-                print(send_command)
+    for board_num in SWITCH_BOARD_RANGE:  # Boards 4, 5, and 6
+        if message.topic == mqtt_switch_states_update[board_num]:
+            command = f"{board_num}{message_payload}\n"
+            send_command = command.encode('utf-8')
+            for port in ports:
+                if port:
+                    port.write(send_command)
+                    port.flush()
+                    print(send_command)
 
-    if (message.topic == "switch_states_update_6"):
-        command = "6" + message_payload + "\n"
-        send_command = command.encode('utf-8')
-        for port in ports:
-            if port:
-                port.write(send_command)
-                port.flush()
-                print(send_command)
 
 
 def extract_board_id(board_id_hex):
@@ -340,29 +313,23 @@ class Board_DAQ():
                     + "  ")
 
                 # SOLENOID BOARDS 
-                if int(Board_ID) in range(4, 7):
+                if int(Board_ID) in SWITCH_BOARD_RANGE:
                     raw_byte_array = data_dict['Sensors']
                     publish_array = raw_byte_array[0:5]
                     publish_json_dict = {"time": str(datetime.now())[11:22], "sensor_readings": publish_array}
                     publish_json = json.dumps(publish_json_dict)
                     #print(Board_ID + " " + publish_json)
 
-                    if (Board_ID == '4'):
-                        self.publish_dict[mqtt_switch_states_status_4] = publish_json
-                        #print("Trying to publish to 4")
-                    elif (Board_ID == '5'):
-                        self.publish_dict[mqtt_switch_states_status_5] = publish_json
-                        #print("Trying to publish to 5")
-                    elif (Board_ID == '6'):
-                        self.publish_dict[mqtt_switch_states_status_6] = publish_json
-                        #print("Trying to publish to 6")
+                    if int(Board_ID) in SWITCH_BOARD_RANGE:  # Check if the board is in the defined switch range
+                        self.publish_dict[mqtt_switch_states_status[int(Board_ID)]] = publish_json
+
                     
                     file_to_write.write(publish_json + "\n")
                     file_to_write.flush()  
 
                     
                 # DAQ BOARDS
-                elif (int(Board_ID) in range(1,4)):        
+                elif (int(Board_ID) in ANAL_BOARD_RANGE):        
                     raw_byte_array = data_dict['Sensors']
                     converted_array = np.array([],dtype=np.uint16)
 
@@ -564,25 +531,39 @@ def abort_process():
 
 
 def main():
-    client.on_connect = on_connect
-    client.on_message = on_message
 
-    client.connect(mqtt_broker_address, 1884, 60)
-    client.loop_start()
 
-    open_serial_ports()
+    try:
+        client.on_connect = on_connect
+        client.on_message = on_message
 
-    t1 = [None] * 5
-    t2 = [None] * 5
+        client.connect(mqtt_broker_address, 1884, 60)
+        client.loop_start()
 
-    for i, port in enumerate(ports):
-        if port:
-            port_ = Board_DAQ(i)
-            t1[i] = threading.Thread(target=port_.read_serial_and_log_high_freq)
-            t2[i] = threading.Thread(target=port_.publish_data)
-            t1[i].start()
-            t2[i].start()
-    
+        open_serial_ports()
+
+        t1 = [None] * 5
+        t2 = [None] * 5
+
+        for i, port in enumerate(ports):
+            if port:
+                port_ = Board_DAQ(i)
+                t1[i] = threading.Thread(target=port_.read_serial_and_log_high_freq)
+                t2[i] = threading.Thread(target=port_.publish_data)
+                t1[i].start()
+                t2[i].start()
+         # Wait for all threads to finish using join()
+        for i in range(len(ports)):
+            if t1[i]:
+                t1[i].join()  # Ensure read_serial_and_log_high_freq finishes
+            if t2[i]:
+                t2[i].join()  # Ensure publish_data finishes
+
+    finally:
+        # Ensure the fileserver process is stopped when exiting
+        stop_fileserver(fileserver_process)
+        
+
 
 if __name__ == '__main__':
     main()
