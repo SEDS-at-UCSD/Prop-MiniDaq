@@ -265,5 +265,21 @@ void sendSerialData(int16_t ADC_16bit[], double data[], String SensorType, int F
 
   serializeJson(sensorData, Serial);
   Serial.println();
-  twai_transmit(&txMessage, pdMS_TO_TICKS(1));
+  esp_err_t canStatus = twai_transmit(&txMessage, pdMS_TO_TICKS(1));
+  if (canStatus != ESP_OK){
+    Serial.println(canStatus);
+    if (canStatus == ESP_ERR_INVALID_STATE){
+      Serial.println("INVALID STATE");
+      //esp_restart(); // Trigger software reset
+      twai_stop();
+      twai_driver_uninstall();
+      delay(10);
+      twai_general_config_t g_config = TWAI_GENERAL_CONFIG_DEFAULT((gpio_num_t)CAN_TX, (gpio_num_t)CAN_RX, TWAI_MODE_NORMAL);
+      twai_timing_config_t t_config = TWAI_TIMING_CONFIG_500KBITS(); //TWAI_TIMING_CONFIG_500KBITS();
+      twai_filter_config_t f_config = TWAI_FILTER_CONFIG_ACCEPT_ALL();
+      twai_driver_install(&g_config, &t_config, &f_config);
+      twai_start();
+      delay(1);
+    }
+  }
 }

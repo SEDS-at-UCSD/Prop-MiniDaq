@@ -520,6 +520,8 @@ class Task:
                 if port:
                     port.write(send_command)
                     port.flush()
+                time.sleep(0.01) #command response
+            print(f"Executed {self.name}: {send_command}") 
             if time.time() - self.start_time >= self.delay:
                 print(f"Completed {self.name}: {send_command}")
                 self.completed = True
