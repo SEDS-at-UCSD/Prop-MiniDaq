@@ -198,6 +198,9 @@ function App() {
               <button onClick={() => window.location.href = '/config'} className="status control_button">
                 Go to Config
               </button>
+              <button onClick={() => window.location.href = '/autoconfig'} className="status control_button">
+                View Auto Flow
+              </button>
               <button onClick={() => setArrangable(!arrangable)} className="status control_button">
                 {arrangable ? "Stop Arranging" : "Arrange Dials"}
               </button>
