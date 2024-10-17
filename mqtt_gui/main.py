@@ -48,13 +48,15 @@ def update_conversion_factors():
         board_id_to_conv_factor[str(board_num)] = [
             conv_configs[f'{board_key}_Conv_Factor_ADS1015'],
             conv_configs[f'{board_key}_Conv_Factor_ADS1115'],
-            conv_configs[f'{board_key}_Thermocouple']
+            conv_configs[f'{board_key}_Thermocouple'],
+            conv_configs[f'{board_key}_Conv_Factor_ADS1115'] #TEMP FOR ADS 1256, USING ADS 1115 configs
         ]
         
         board_id_to_conv_offset[str(board_num)] = [
             conv_configs[f'{board_key}_1015_ADD'],
             conv_configs[f'{board_key}_1115_ADD'],
-            conv_configs[f'{board_key}_Thermocouple_ADD']
+            conv_configs[f'{board_key}_Thermocouple_ADD'],
+            conv_configs[f'{board_key}_1115_ADD'] #TEMP FOR ADS 1256, USING ADS 1115 configs
         ]
     return board_id_to_conv_factor, board_id_to_conv_offset
 
@@ -200,10 +202,10 @@ raw_log_file_6 = open('raw_serial_log_6.txt', 'a')
 board_to_log_file_dict = {"Board 1": raw_log_file, "Board 2": raw_log_file_2, "Board 3": raw_log_file_3, "Board 4": raw_log_file_4, "Board 5": raw_log_file_5, "Board 6": raw_log_file_6}
 b_to_solenoid_status_topic_dict = {"Board 4": 'switch_states_status_4', "Board 5": 'switch_states_status_5', "Board 6": 'switch_states_status_6'}
 
-number_to_sensor_type = {"1": "ADS 1015", "2": "ADS 1115", "3": "TC", "4": "ADS 1256"}
-number_to_sensor_type_publish = {"1": "1015", "2": "1115", "3": "TC", "4": "1115"} #ADS 1256 >= 16 bit, so rn show it as 1115 
+number_to_sensor_type = {"0": "Boot", "1": "ADS 1015", "2": "ADS 1115", "3": "TC", "4": "ADS 1256"}
+number_to_sensor_type_publish = {"0": "Alive", "1": "1015", "2": "1115", "3": "TC", "4": "1115"} #TEMP FOR ADS 1256, USING ADS 1115 configs >= 16 bit, so rn show it as 1115 
 
-bit_to_V_factor = {"1": 2048, "2": 32768, "3": 1}
+bit_to_V_factor = {"1": 2048, "2": 32768, "3": 1, "4": 32768} #TEMP FOR ADS 1256, USING ADS 1115 configs full unsigned 16bit
 
 # AUTO-IGNITION TOPIC
 ignition_topic = "AUTO"    # expects message "IGNITE" when pressed
@@ -322,9 +324,9 @@ class Board_DAQ():
                 reload_flag.clear()
             try:
                 data = ports[self.port_index].readline().decode('utf-8').strip()
+                #print(data)
                 data_dict = json.loads(data)
-
-                # print(data_dict)
+                #print(data_dict)
                 # Extract the board ID, skip if invalid hex or key is missing
                 try:
                     extractdata = data_dict.get("BoardID", "")
@@ -417,9 +419,9 @@ class Board_DAQ():
                             #value_to_append += raw_byte_array[i]*256 + raw_byte_array[i+1]
                             #value_to_append = float(np.array(np.uint16(value_to_append)).astype(np.int16))
                             converted_array = np.append(converted_array,value_to_append)
-                        converted_array = converted_array.view(np.int16)
+                        converted_array = converted_array.view(np.int16) #UINT 16
                         for i in range(len(converted_array)):     
-                            converted_array[i] *= 5.000/5 #ADS 1256 5V max range / 0-5V operational range
+                            converted_array[i] *= 1.00 #ADS PGA voltage 5.0 max range / 0-5V operational range 
                     else:
                         for i in range(0, len(raw_byte_array), 2):
                             value_to_append = np.uint16(0)
@@ -430,8 +432,8 @@ class Board_DAQ():
                         converted_array = converted_array.view(np.int16)
                         for i in range(len(converted_array)):     
                             converted_array[i] *= 6.144/5 #ADS PGA voltage 6.144V max range / 0-5V operational range
-
-                    converted_array = converted_array.tolist()
+            
+                    converted_array = converted_array.tolist() #here inherent max range 32768 = 5V
                     #print(converted_array)
                     data_formatted += "V: "
                     for i in range(len(converted_array)):
@@ -441,7 +443,8 @@ class Board_DAQ():
                     conversion_factor_V = bit_to_V_factor[sensor_type]
                     for i in range(len(converted_array)):
                         converted_array[i] /= conversion_factor_V
-        
+
+                    #print(converted_array)
                     #CONFIG CONVERSIONS
                     final_values = []
 
@@ -479,6 +482,7 @@ class Board_DAQ():
                     print(f"Serial read error: {e}")
             except Exception as e:
                 print(f"Serial read error: {e}")
+                print(f"Exception type: {type(e)}")
         
                     
     def solenoid_write(self, message):

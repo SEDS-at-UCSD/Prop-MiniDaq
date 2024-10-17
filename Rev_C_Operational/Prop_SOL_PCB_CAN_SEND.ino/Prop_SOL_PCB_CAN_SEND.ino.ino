@@ -11,7 +11,7 @@ twai_message_t txMessage;
 #define CAN_RX 10
 #define CAN_TX 9
 int canTXRXcount[2] = {0,0};
-int baseID_int = 4;
+int baseID_int = 5;
 int baseID  = (0x10)*baseID_int;
 
 StaticJsonDocument<512> sensorData;
