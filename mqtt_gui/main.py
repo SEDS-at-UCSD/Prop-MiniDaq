@@ -456,7 +456,6 @@ class Board_DAQ():
                     conversion_factor_V = bit_to_V_factor[sensor_type]
                     for i in range(len(converted_array)):
                         converted_array[i] /= conversion_factor_V
-                        converted_array[i] *= 5.0 #5V range
 
                     #print(converted_array)
                     #CONFIG CONVERSIONS
@@ -467,20 +466,23 @@ class Board_DAQ():
 
                     # Example block where sensor data processing happens
                     for i in range(len(converted_array)):
-                        # Fetch min/max values dynamically from config
-                        if int_sensor_type:  # ADS1015
-                            sensor_range = board_id_to_ranges[str(board_id)][number_to_sensor_type[sensor_type]][i]
+                        if (data_dict['SensorType']  == "3"):
+                            converted_value = converted_array[i] 
                         else:
-                            continue  # Skip if neither ADS1015 nor ADS1115
+                            # Fetch min/max values dynamically from config
+                            if int_sensor_type:  # ADS1015
+                                sensor_range = board_id_to_ranges[str(board_id)][number_to_sensor_type[sensor_type]][i]
+                            else:
+                                continue  # Skip if neither ADS1015 nor ADS1115
 
-                        # Perform dynamic conversion using the min/max values and readings
-                        min_reading = float(sensor_range["min_reading"])
-                        max_reading = float(sensor_range["max_reading"])
-                        min_value = float(sensor_range["min_value"])
-                        max_value = float(sensor_range["max_value"])
+                            # Perform dynamic conversion using the min/max values and readings
+                            min_reading = float(sensor_range["min_reading"])
+                            max_reading = float(sensor_range["max_reading"])
+                            min_value = float(sensor_range["min_value"])
+                            max_value = float(sensor_range["max_value"])
 
-                        # Apply conversion formula
-                        converted_value = ((converted_array[i] - min_reading) / (max_reading - min_reading)) * (max_value - min_value) + min_value
+                            # Apply conversion formula for 5.0V
+                            converted_value = ((5.0*converted_array[i] - min_reading) / (max_reading - min_reading)) * (max_value - min_value) + min_value
                         final_values.append(round(converted_value, 2))  # Append converted value to final list
 
 

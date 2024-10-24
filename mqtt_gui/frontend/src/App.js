@@ -153,9 +153,15 @@ function App() {
           parsedMessage = message.toString();
         }
 
-        const boardNum = topic.match(/\d+/)[0];
+        // Ensure the topic contains a valid board number (e.g., skip "AUTO")
+        const boardNumMatch = topic.match(/\d+/);
+        if (!boardNumMatch) {
+          console.warn(`Invalid topic received: ${topic}, skipping processing.`);
+          return; // Skip if no board number is found
+        }
+        const boardNum = boardNumMatch[0];
         const boardConfigEntry = boardConfig[`B${boardNum}`];
-
+        
         if (boardConfigEntry) {
           const isSolenoid = boardConfigEntry.data.some(group => group.sensor_type === 'solenoids');
           if (isSolenoid) {

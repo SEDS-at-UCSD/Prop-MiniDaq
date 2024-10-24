@@ -2,7 +2,7 @@
   "B1": {
     "data": [
       {
-        "sensor_type": "thermocouples",
+        "sensor_type": "TC",
         "sensors": [
           {
             "type": "TC",
@@ -16,12 +16,12 @@
           },
           {
             "type": "TC",
-            "tc_type": "K",
+            "tc_type": "T",
             "title": "Thermocouple 3"
           },
           {
             "type": "TC",
-            "tc_type": "K",
+            "tc_type": "T",
             "title": "Thermocouple 4"
           }
         ],
