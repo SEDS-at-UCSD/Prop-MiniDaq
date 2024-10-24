@@ -1,40 +1,330 @@
 {
-  "TO NOTE": "FORMULA: (Sensor Reading (aka max PSI if 0 to 5V range) * Conv_Factor) + Add_Factor",
-  "B1_Conv_Factor_ADS1015": [    1000,    1000,    1000,    1000,    1000],
-  "B1_Conv_Factor_ADS1115": [    1250,    1250,    3750,    40.625,    62.5],
-  "B1_1015_ADD": [    0,    0,    0,    0,    0],
-  "B1_1115_ADD": [    -250,    -250,    -750,    -250,    -250],
-  "B1_Thermocouple": [    1,    1,    1,    1,    1],
-  "B1_Thermocouple_ADD": [    0,    0,    0,    0,    0],
-  "B2_Conv_Factor_ADS1015": [    1000,    1000,    1000,    1000,    1000],
-  "B2_Conv_Factor_ADS1115": [    1250,    2500,    3750,    2000,    62.5],
-  "B2_1015_ADD": [    0,    0,    0,    0,    0],
-  "B2_1115_ADD": [    -250,    -500,    -750,    0,    250],
-  "B2_Thermocouple": [    1,    1,    1,    1,    1],
-  "B2_Thermocouple_ADD": [    0,    0,    0,    0,    0],
-  "B3_Conv_Factor_ADS1015": [    1000,    1000,    1000,    1000,    1000],
-  "B3_Conv_Factor_ADS1115": [    2000,    2000,    1000,    1000,    1000],
-  "B3_1015_ADD": [    0,    0,    0,    0,    0],
-  "B3_1115_ADD": [    0,    0,    0,    0,    0],
-  "B3_Thermocouple": [    1,    1,    1,    1,    1],
-  "B3_Thermocouple_ADD": [    0,    0,    0,    0,    0],
-  "B4_Conv_Factor_ADS1015": [    1000,    1000,    1000,    1000,    1000],
-  "B4_Conv_Factor_ADS1115": [    1000,    1000,    1000,    1000,    1000],
-  "B4_1015_ADD": [    0,    0,    0,    0,    0],
-  "B4_1115_ADD": [    0,    0,    0,    0,    0],
-  "B4_Thermocouple": [    1,    1,    1,    1,    1],
-  "B4_Thermocouple_ADD": [    0,    0,    0,    0,    0],
-  "B5_Conv_Factor_ADS1015": [    1000,    1000,    1000,    1000,    1000],
-  "B5_Conv_Factor_ADS1115": [    1000,    1000,    1000,    1000,    1000],
-  "B5_1015_ADD": [    0,    0,    0,    0,    0],
-  "B5_1115_ADD": [    0,    0,    0,    0,    0],
-  "B5_Thermocouple": [    1,    1,    1,    1,    1],
-  "B5_Thermocouple_ADD": [    0,    0,    0,    0,    0],
-  "B6_Conv_Factor_ADS1015": [    1000,    1000,    1000,    1000,    1000],
-  "B6_Conv_Factor_ADS1115": [    1000,    1000,    1000,    1000,    1000],
-  "B6_1015_ADD": [    0,    0,    0,    0,    0],
-  "B6_1115_ADD": [    0,    0,    0,    0,    0],
-  "B6_Thermocouple": [    1,    1,    1,    1,    1],
-  "B6_Thermocouple_ADD": [    0,    0,    0,    0,    0
-  ]
+  "B1": {
+    "data": [
+      {
+        "sensor_type": "thermocouples",
+        "sensors": [
+          {
+            "type": "TC",
+            "tc_type": "K",
+            "title": "Thermocouple 1"
+          },
+          {
+            "type": "TC",
+            "tc_type": "K",
+            "title": "Thermocouple 2"
+          },
+          {
+            "type": "TC",
+            "tc_type": "K",
+            "title": "Thermocouple 3"
+          },
+          {
+            "type": "TC",
+            "tc_type": "K",
+            "title": "Thermocouple 4"
+          }
+        ],
+        "topic": "b1_log_data_tc"
+      }
+    ]
+  },
+  "B2": {
+    "data": [
+      {
+        "sensor_type": "ADS1015",
+        "sensors": [
+          {
+            "min_reading": 0,
+            "max_reading": 5,
+            "min_value": 0,
+            "max_value": 1000,
+            "title": "FUEL TANK 1K (PSI)"
+          },
+          {
+            "min_reading": 0,
+            "max_reading": 5,
+            "min_value": 0,
+            "max_value": 1000,
+            "title": "OX TANK 1K (PSI)"
+          },
+          {
+            "min_reading": 0,
+            "max_reading": 5,
+            "min_value": 0,
+            "max_value": 1000,
+            "title": "FUEL DOME 1K (PSI)"
+          },
+          {
+            "min_reading": 0,
+            "max_reading": 5,
+            "min_value": 0,
+            "max_value": 1000,
+            "title": "OX DOME 1K (PSI)"
+          }
+        ],
+        "topic": "b2_log_data_1015"
+      },
+      {
+        "sensor_type": "ADS1115",
+        "sensors": [
+          {
+            "min_reading": 1,
+            "max_reading": 5,
+            "min_value": 0,
+            "max_value": 1000,
+            "title": "CHAMBER 1K (PSI)"
+          },
+          {
+            "min_reading": 1,
+            "max_reading": 5,
+            "min_value": 0,
+            "max_value": 2000,
+            "title": "FUEL MANIFOLD 1K (PSI)"
+          },
+          {
+            "min_reading": 1,
+            "max_reading": 5,
+            "min_value": 0,
+            "max_value": 3000,
+            "title": "OX MANIFOLD 3K (PSI)"
+          },
+          {
+            "min_reading": 0,
+            "max_reading": 5,
+            "min_value": 0,
+            "max_value": 1000,
+            "title": "OX FLOWRATE 32.5 (GPM)"
+          }
+        ],
+        "topic": "b2_log_data_1115"
+      },
+      {
+        "sensor_type": "ADS1256",
+        "sensors": [
+          {
+            "min_reading": "0",
+            "max_reading": 5,
+            "min_value": 0,
+            "max_value": "5000",
+            "title": "mV"
+          },
+          {
+            "min_reading": "0",
+            "max_reading": 5,
+            "min_value": 0,
+            "max_value": "5000",
+            "title": "mV"
+          },
+          {
+            "min_reading": 1,
+            "max_reading": 5,
+            "min_value": "4",
+            "max_value": "20",
+            "title": "mA"
+          },
+          {
+            "min_reading": "1",
+            "max_reading": 5,
+            "min_value": "4",
+            "max_value": "20",
+            "title": "mA"
+          }
+        ],
+        "topic": "b2_log_data_1256"
+      }
+    ]
+  },
+  "B3": {
+    "data": [
+      {
+        "sensor_type": "ADS1015",
+        "sensors": [
+          {
+            "min_reading": 0,
+            "max_reading": 5,
+            "min_value": 0,
+            "max_value": 1000,
+            "title": "FUEL TANK 1K (PSI)"
+          },
+          {
+            "min_reading": 0,
+            "max_reading": 5,
+            "min_value": 0,
+            "max_value": 1000,
+            "title": "OX TANK 1K (PSI)"
+          },
+          {
+            "min_reading": 0,
+            "max_reading": 5,
+            "min_value": 0,
+            "max_value": 1000,
+            "title": "FUEL DOME 1K (PSI)"
+          },
+          {
+            "min_reading": 0,
+            "max_reading": 5,
+            "min_value": 0,
+            "max_value": 1000,
+            "title": "OX DOME 1K (PSI)"
+          }
+        ],
+        "topic": "b3_log_data_1015"
+      },
+      {
+        "sensor_type": "ADS1115",
+        "sensors": [
+          {
+            "min_reading": "0",
+            "max_reading": 5,
+            "min_value": 0,
+            "max_value": "5000",
+            "title": "mV"
+          },
+          {
+            "min_reading": "0",
+            "max_reading": 5,
+            "min_value": 0,
+            "max_value": "5000",
+            "title": "mV"
+          },
+          {
+            "min_reading": 1,
+            "max_reading": 5,
+            "min_value": "4",
+            "max_value": "20",
+            "title": "mA"
+          },
+          {
+            "min_reading": 0,
+            "max_reading": 5,
+            "min_value": "4",
+            "max_value": "20",
+            "title": "mA"
+          }
+        ],
+        "topic": "b3_log_data_1115"
+      },
+      {
+        "sensor_type": "ADS1256",
+        "sensors": [
+          {
+            "min_reading": "0",
+            "max_reading": 5,
+            "min_value": 0,
+            "max_value": "5000",
+            "title": "mV"
+          },
+          {
+            "min_reading": "0",
+            "max_reading": 5,
+            "min_value": 0,
+            "max_value": "5000",
+            "title": "mV"
+          },
+          {
+            "min_reading": 1,
+            "max_reading": 5,
+            "min_value": "4",
+            "max_value": "20",
+            "title": "mA"
+          },
+          {
+            "min_reading": "1",
+            "max_reading": 5,
+            "min_value": "4",
+            "max_value": "20",
+            "title": "mA"
+          }
+        ],
+        "topic": "b3_log_data_1256"
+      }
+    ]
+  },
+  "B4": {
+    "data": [
+      {
+        "sensor_type": "solenoids",
+        "sensors": [
+          {
+            "type": "Solenoid",
+            "title": "E-match"
+          },
+          {
+            "type": "Solenoid",
+            "title": "OX MAIN"
+          },
+          {
+            "type": "Solenoid",
+            "title": "FUEL MAIN"
+          },
+          {
+            "type": "Solenoid",
+            "title": "OX PURGE"
+          },
+          {
+            "type": "Solenoid",
+            "title": "FUEL PURGE"
+          }
+        ],
+        "topic": "b4_switch_states_status"
+      }
+    ]
+  },
+  "B5": {
+    "data": [
+      {
+        "sensor_type": "solenoids",
+        "sensors": [
+          {
+            "type": "Solenoid",
+            "title": "OX VENT"
+          },
+          {
+            "type": "Solenoid",
+            "title": "FUEL VENT"
+          },
+          {
+            "type": "Solenoid",
+            "title": "OX DOME IN"
+          },
+          {
+            "type": "Solenoid",
+            "title": "FUEL DOME IN"
+          },
+          {
+            "type": "Solenoid",
+            "title": "4"
+          }
+        ],
+        "topic": "b5_switch_states_status"
+      }
+    ]
+  },
+  "B6": {
+    "data": [
+      {
+        "sensor_type": "solenoids",
+        "sensors": [
+          {
+            "type": "Solenoid",
+            "title": "0"
+          },
+          {
+            "type": "Solenoid",
+            "title": "1"
+          },
+          {
+            "type": "Solenoid",
+            "title": "2"
+          },
+          {
+            "type": "Solenoid",
+            "title": "3"
+          }
+        ],
+        "topic": "b6_switch_states_status"
+      }
+    ]
+  }
 }

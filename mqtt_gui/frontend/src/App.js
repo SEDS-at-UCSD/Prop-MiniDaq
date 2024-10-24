@@ -15,69 +15,99 @@ function App() {
   const [ignite, setIgnite] = useState(false);
   const [isAborting, setIsAborting] = useState(false);
 
-  const solenoidLabels = {
-    // "4": ['LOX DOME IN', 'LNG VENT NO', 'LNG MAIN NC', 'LOX MAIN NC', 'LOX VENT NO'],
-    // "5": ['LNG DOME IN ', 'LNG DOME OUT', '12V: NIL', '12V: NIL', 'LOX DOME OUT']
-    "4": ['E-match','OX MAIN','FUEL MAIN','OX PURGE','FUEL PURGE'],
-    "5": ['OX VENT','FUEL VENT','OX DOME IN','FUEL DOME IN','4'],
-    "6": ['0','1','2','3','4']
-  };
-
-  const PTLabels = {
-    "log_data_1015": ['FUEL TANK 1K (PSI)', 'OX TANK 1K (PSI)', 'FUEL DOME 1K (PSI)', 'OX DOME 1K (PSI)'],
-    "log_data_1115": ['CHAMBER 1K (PSI)', 'FUEL MANIFOLD 1K (PSI)', 'OX MANIFOLD 3K (PSI)', 'OX FLOWRATE 32.5 (GPM)']
-  };
-
-  const topics_list = [
-    "b1_log_data_1015",
-    "b1_log_data_1115",
-    "b1_log_data_TC",
-    "b2_log_data_1015",
-    "b2_log_data_1115",
-    "b2_log_data_TC",
-    "b3_log_data_1015",
-    "b3_log_data_1115",
-    "b3_log_data_TC"
-  ]
-
-  const [boardData, setBoardData] = useState({})
-
+  const [topicsList, setTopicsList] = useState([]);
+  const [labels, setLabels] = useState({});
+  const [boardConfig, setBoardConfig] = useState({});  // Store config here
+  const [boardData, setBoardData] = useState({});
   const [solenoidBoardsData, setSolenoidBoardsData] = useState({});
-  
+
+  // Fetch the config file dynamically
+  const fetchConfigData = async () => {
+    try {
+      const response = await fetch('http://localhost:8000/files/conversion_factor_config.json');
+      const configData = await response.json();
+      setBoardConfig(configData);  // Store the full config
+      generateTopicsAndLabels(configData);
+    } catch (error) {
+      console.error('Error fetching config:', error);
+    }
+  };
+
+  // Generate topics and labels based on the config
+  const generateTopicsAndLabels = (configData) => {
+    const tempTopicsList = [];
+    const tempLabels = {};
+
+    Object.entries(configData).forEach(([boardKey, boardData]) => {
+      boardData.data.forEach((sensorGroup) => {
+        const topic = sensorGroup.topic;
+        const sensors = sensorGroup.sensors;
+
+        // Add topic to the list
+        tempTopicsList.push(topic);
+
+        // Store the labels for each sensor topic
+        tempLabels[topic] = sensors.map(sensor => sensor.title);
+      });
+    });
+
+    setTopicsList(tempTopicsList);
+    setLabels(tempLabels);
+  };
+
+  // Get min/max values dynamically from the config
+  const getMinMaxValues = (topic) => {
+    const boardNum = topic.match(/\d+/)[0];  // Extract board number
+    const boardConfigEntry = boardConfig[`B${boardNum}`];
+
+    if (boardConfigEntry) {
+      const sensorGroup = boardConfigEntry.data.find(group => group.topic === topic);
+      if (sensorGroup) {
+        const minValues = sensorGroup.sensors.map(sensor => sensor.min_value || 0);
+        const maxValues = sensorGroup.sensors.map(sensor => sensor.max_value || 1000);
+        return { minValues, maxValues };
+      }
+    }
+
+    return { minValues: [0], maxValues: [1000] };  // Default min/max
+  };
+
+  useEffect(() => {
+    // Fetch the config data when the component mounts
+    fetchConfigData();
+  }, []);
+
   const mqttSub = (topic) => {
     if (client) {
       client.subscribe(topic, (error) => {
         if (error) {
-          console.log("Subscribe to " + topic + " error", error)
-          return
+          console.log("Subscribe to " + topic + " error", error);
+          return;
         }
       });
     }
   };
 
   const sendMessage = (topic, message) => {
-    client.publish(topic,message,(error)=>{
+    client.publish(topic, message, (error) => {
       if (error) {
-        console.log("Publish to " + topic + " error", error)
-        return
+        console.log("Publish to " + topic + " error", error);
+        return;
       }
-    })
-  }
+    });
+  };
 
   const handleIgnitionClick = () => {
-    if (!ignite){
-      // IN IGNITABLE STATE
+    if (!ignite) {
       sendMessage("AUTO", "IGNITE");
-      setIgnite(true); // Change to abortable state
-    }
-    else {
-      // IN ABORTABLE STATE
+      setIgnite(true);
+    } else {
       sendMessage("AUTO", "ABORT");
       setIsAborting(true);
     }
-  }
+  };
 
-  useEffect(()=> { 
+  useEffect(() => {
     const mqttConnect = (host, mqttOption) => {
       setConnectStatus('Connecting');
       setClient(mqtt.connect(host, mqttOption));
@@ -90,94 +120,66 @@ function App() {
       password: 'emqx_test',
     };
 
-    mqttConnect(connectionurl,initialConnectionOptions);
+    mqttConnect(connectionurl, initialConnectionOptions);
   }, []);
 
   useEffect(() => {
     if (client) {
       client.on('connect', () => {
         setConnectStatus('Connected');
-        topics_list.forEach((topic)=>{
+  
+        topicsList.forEach((topic) => {
           mqttSub(topic);
-        })
-        mqttSub("switch_states_status_4");
-        mqttSub("switch_states_status_5");
-        mqttSub("switch_states_status_6");
+        });
+  
         mqttSub("AUTO");
         setIsSub(true);
       });
-
+  
       client.on('error', (err) => {
         console.error('Connection error: ', err);
         client.end();
       });
-
+  
       client.on('reconnect', () => {
         setConnectStatus('Lost connection, attempting to reconnect');
       });
-
+  
       client.on('message', (topic, message) => {
         let parsedMessage;
         try {
-          // Try to parse the message as JSON
           parsedMessage = JSON.parse(message);
         } catch (error) {
-          // If parsing fails, treat it as a plain string
           parsedMessage = message.toString();
         }
-        if (!isSub && topic === "topics_list") {
-          parsedMessage.topics.forEach((subscription)=>{
-            mqttSub(subscription);
-          });
-          setIsSub(true);
-        }
-        // CAN CHANGE TO IGNITE AGAIN
-        // Expects JSON of format {state: "ABORT SUCCESSFUL"} or {state: "IGNITION SUCCESSFUL"} from back-end
-        else if (topic === "AUTO" && parsedMessage === "ABORT SUCCESSFUL") {
-          setIsAborting(false);
-          setIgnite(false);
-        }
-        else if (topic === "AUTO" && parsedMessage === "IGNITION SUCCESSFUL") {
-          setIgnite(true);
-        }
-        else if (topic === "switch_states_status_4") {
-          setSolenoidBoardsData((prev)=>{
-            const newSolenoidData = { ...prev };
-            newSolenoidData[4] = parsedMessage.sensor_readings;
-            return newSolenoidData
-          });
-        }
-        else if (topic === "switch_states_status_5") {
-          setSolenoidBoardsData((prev)=>{
-            const newSolenoidData = { ...prev };
-            newSolenoidData[5] = parsedMessage.sensor_readings; 
-            return newSolenoidData
-          });
-        }
-        else if (topic === "switch_states_status_6") {
-          setSolenoidBoardsData((prev)=>{
-            const newSolenoidData = { ...prev };
-            newSolenoidData[6] = parsedMessage.sensor_readings; 
-            return newSolenoidData
-          });
-        }
-        else {
-          setBoardData((prev)=>{
-            return { ...prev, [topic]: parsedMessage };
-          })
+
+        const boardNum = topic.match(/\d+/)[0];
+        const boardConfigEntry = boardConfig[`B${boardNum}`];
+
+        if (boardConfigEntry) {
+          const isSolenoid = boardConfigEntry.data.some(group => group.sensor_type === 'solenoids');
+          if (isSolenoid) {
+            setSolenoidBoardsData((prev) => ({
+              ...prev,
+              [topic]: parsedMessage.sensor_readings
+            }));
+          } else {
+            setBoardData((prev) => ({
+              ...prev,
+              [topic]: parsedMessage
+            }));
+          }
         }
       });
     }
-  }, [client]);
+  }, [client, topicsList, boardConfig]);
 
   return (
     <div className="App">
       <div className="settings">
         <div className="two-column-layout">
-
-          {/* Left column: Auto-Ignition Button */}
           <div className="left-column">
-            <p className="Auto:">Automation </p>
+            <p className="Auto:">Automation</p>
             <div className="auto-ignition">
               <button
                 onClick={handleIgnitionClick}
@@ -189,7 +191,6 @@ function App() {
             </div>
           </div>
 
-          {/* Right column: Status and Control Buttons */}
           <div className="right-column">
             <p className="status">{connectStatus}</p>
             <p className="status">Receiving data: {isSub ? "True" : "False"}</p>
@@ -212,37 +213,39 @@ function App() {
         </div>
 
         <div className='solenoid_cluster'>
-        {Object.entries(solenoidBoardsData).map(([key,value])=>{
-          return (
-            <div>
-              <h3 className="solenoid_board">Board {key}</h3>
-              <SwitchConfigure 
-                boardlabel={key}
+          {Object.entries(solenoidBoardsData).map(([topic, value]) => (
+            <div key={topic}>
+              <h3 className="solenoid_board">Board {topic}</h3>
+              <SwitchConfigure
+                boardlabel={topic}
                 switchStates={value}
                 sendMessage={sendMessage}
                 editable={solenoidControl}
-                solLabels={solenoidLabels} 
+                solLabels={labels[topic]}
               />
             </div>
-          )
-        })}
+          ))}
         </div>
       </div>
 
       <div className="board_cluster">
-        {Object.entries(boardData).map(([key,value])=>{
+        {Object.entries(boardData).map(([topic, value]) => {
+          const { minValues, maxValues } = getMinMaxValues(topic);  // Get min/max values for all sensors
           return (
-            <DialCluster 
-              label={"Board " + key[1] + " ADS " + key.substring(12)}
+            <DialCluster
+              key={topic}
+              label={"Board " + topic}
               data={value}
+              sensor_name={topic}
               arrangable={arrangable}
-              sensor_name={key.substring(3)}
-              psiLabels={PTLabels} 
+              psiLabels={labels[topic] || []}
+              minValues={minValues}  // Pass all min values for each sensor
+              maxValues={maxValues}  // Pass all max values for each sensor
             />
-          )
+          );
         })}
       </div>
-      <img src="../seds_logo.png" alt="SEDS Logo" className="logo"/>
+      <img src="../seds_logo.png" alt="SEDS Logo" className="logo" />
     </div>
   );
 }

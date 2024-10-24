@@ -29,36 +29,43 @@ app.add_middleware(
 )
 
 # Dynamically generate conversion factors and add factors from JSON config
-board_id_to_conv_factor = {}
-board_id_to_conv_offset = {}
+board_id_to_ranges = {}
+board_id_to_topics = {}
 
 # Dynamically generate MQTT topics for switch states (for boards 4, 5, 6)
 mqtt_switch_states_update = {}
 mqtt_switch_states_status = {}
 
+# Update function
 def update_conversion_factors():
-    global board_id_to_conv_factor, board_id_to_conv_offset
-    #reset factors
-    board_id_to_conv_factor = {}
-    board_id_to_conv_offset = {}
-    for board_num in range(1, 7):  # Boards from B1 to B6
+    global board_id_to_ranges, board_id_to_topics
+    # Reset ranges and topics
+    board_id_to_ranges = {}
+    board_id_to_topics = {}
+
+    # For each board, iterate through the data field to dynamically assign ranges and topics
+    for board_num in range(1, 7):  # Assuming boards are B1 to B6
         board_key = f"B{board_num}"
-        
-        # Extract factors and offsets from the JSON config for each sensor type
-        board_id_to_conv_factor[str(board_num)] = [
-            conv_configs[f'{board_key}_Conv_Factor_ADS1015'],
-            conv_configs[f'{board_key}_Conv_Factor_ADS1115'],
-            conv_configs[f'{board_key}_Thermocouple'],
-            conv_configs[f'{board_key}_Conv_Factor_ADS1115'] #TEMP FOR ADS 1256, USING ADS 1115 configs
-        ]
-        
-        board_id_to_conv_offset[str(board_num)] = [
-            conv_configs[f'{board_key}_1015_ADD'],
-            conv_configs[f'{board_key}_1115_ADD'],
-            conv_configs[f'{board_key}_Thermocouple_ADD'],
-            conv_configs[f'{board_key}_1115_ADD'] #TEMP FOR ADS 1256, USING ADS 1115 configs
-        ]
-    return board_id_to_conv_factor, board_id_to_conv_offset
+        board_id_to_ranges[str(board_num)] = {}
+        board_id_to_topics[str(board_num)] = {}
+
+        # Iterate through each sensor or solenoid in the data array
+        for sensor_data in conv_configs[board_key]["data"]:
+            sensor_type = sensor_data.get("sensor_type", "")
+            sensors = sensor_data.get("sensors", [])
+            topic = sensor_data.get("topic", "")
+
+            if sensor_type.lower() == "solenoids":
+                mqtt_switch_states_update[board_num] = f"update_{board_key.lower()}_switch_states_status"
+                mqtt_switch_states_status[board_num] = f"{board_key.lower()}_switch_states_status"
+
+            if sensor_type and sensors:
+                board_id_to_ranges[str(board_num)][sensor_type] = sensors  # Store ranges for sensors
+                board_id_to_topics[str(board_num)][sensor_type] = topic    # Store topics for sensors
+    #print(board_id_to_ranges)
+    #print("\n")
+    #print(board_id_to_topics)
+
 
 # Function to terminate the fileserver subprocess
 def stop_fileserver(fileserver_process):
@@ -136,10 +143,6 @@ fastapi_thread.start()
 fileserver_process = start_fileserver()
 time.sleep(1)
 
-for board_num in SWITCH_BOARD_RANGE:  # Boards 4, 5, and 6
-    mqtt_switch_states_update[board_num] = f"switch_states_update_{board_num}"
-    mqtt_switch_states_status[board_num] = f"switch_states_status_{board_num}"
-
 # Fetch conversion factor config from file server
 conv_configs = fetch_file_data('conversion_factor_config.json')
 
@@ -202,7 +205,7 @@ raw_log_file_6 = open('raw_serial_log_6.txt', 'a')
 board_to_log_file_dict = {"Board 1": raw_log_file, "Board 2": raw_log_file_2, "Board 3": raw_log_file_3, "Board 4": raw_log_file_4, "Board 5": raw_log_file_5, "Board 6": raw_log_file_6}
 b_to_solenoid_status_topic_dict = {"Board 4": 'switch_states_status_4', "Board 5": 'switch_states_status_5', "Board 6": 'switch_states_status_6'}
 
-number_to_sensor_type = {"0": "Boot", "1": "ADS 1015", "2": "ADS 1115", "3": "TC", "4": "ADS 1256"}
+number_to_sensor_type = {"0": "Boot", "1": "ADS1015", "2": "ADS1115", "3": "TC", "4": "ADS1256"}
 number_to_sensor_type_publish = {"0": "Alive", "1": "1015", "2": "1115", "3": "TC", "4": "1115"} #TEMP FOR ADS 1256, USING ADS 1115 configs >= 16 bit, so rn show it as 1115 
 
 bit_to_V_factor = {"1": 2048, "2": 32768, "3": 1, "4": 32768} #TEMP FOR ADS 1256, USING ADS 1115 configs full unsigned 16bit
@@ -308,7 +311,7 @@ class Board_DAQ():
     
     def publish_data(self):
         while True:
-            time.sleep(0.05)
+            time.sleep(0.001)
             for topic in self.publish_dict:
                 client.publish(topic,self.publish_dict[topic])
 
@@ -364,8 +367,6 @@ class Board_DAQ():
 
                 # processing starts:
                 Board_ID = data_dict['BoardID'][0]
-                if data_dict['BoardID'] == 'Board 6':
-                    Board_ID = '6'
                 Board_ID_worded = "Board " +  Board_ID
                 sensor_type = data_dict['SensorType'] 
 
@@ -387,8 +388,20 @@ class Board_DAQ():
                     publish_json = json.dumps(publish_json_dict)
                     #print(Board_ID + " " + publish_json)
 
+                    
                     if int(Board_ID) in SWITCH_BOARD_RANGE:  # Check if the board is in the defined switch range
-                        self.publish_dict[mqtt_switch_states_status[int(Board_ID)]] = publish_json
+                        #print(Board_ID)
+                        board_key = f"B{Board_ID}"
+                        #print(board_key)
+                        #print(conv_configs[board_key]["data"])
+
+                        # Since conv_configs[board_key]["data"] is a list, we need to loop through the items
+                        for sensor_data in conv_configs[board_key]["data"]:
+                            # Find the sensor type and topic
+                            topic = sensor_data.get("topic", "")
+                            if topic:
+                               #print(topic)
+                                self.publish_dict[topic] = publish_json
 
                     
                     file_to_write.write(publish_json + "\n")
@@ -443,16 +456,33 @@ class Board_DAQ():
                     conversion_factor_V = bit_to_V_factor[sensor_type]
                     for i in range(len(converted_array)):
                         converted_array[i] /= conversion_factor_V
+                        converted_array[i] *= 5.0 #5V range
 
                     #print(converted_array)
                     #CONFIG CONVERSIONS
+                    
+                    # CONFIG CONVERSIONS
                     final_values = []
-
                     int_sensor_type = int(sensor_type)
-                    conv_factor = board_id_to_conv_factor[Board_ID][int_sensor_type - 1]
-                    offset = board_id_to_conv_offset[Board_ID][int_sensor_type - 1]
-                    for i in range(len(converted_array)):     
-                        final_values.append(round((converted_array[i] * conv_factor[i]) + offset[i], 2))
+
+                    # Example block where sensor data processing happens
+                    for i in range(len(converted_array)):
+                        # Fetch min/max values dynamically from config
+                        if int_sensor_type:  # ADS1015
+                            sensor_range = board_id_to_ranges[str(board_id)][number_to_sensor_type[sensor_type]][i]
+                        else:
+                            continue  # Skip if neither ADS1015 nor ADS1115
+
+                        # Perform dynamic conversion using the min/max values and readings
+                        min_reading = float(sensor_range["min_reading"])
+                        max_reading = float(sensor_range["max_reading"])
+                        min_value = float(sensor_range["min_value"])
+                        max_value = float(sensor_range["max_value"])
+
+                        # Apply conversion formula
+                        converted_value = ((converted_array[i] - min_reading) / (max_reading - min_reading)) * (max_value - min_value) + min_value
+                        final_values.append(round(converted_value, 2))  # Append converted value to final list
+
 
                     data_formatted += "Converted: "
                     for i in range(len(final_values)):
@@ -465,13 +495,20 @@ class Board_DAQ():
 
                     
                     # PUBLISH 
-
                     publish_json_dict = {"time": str(datetime.now())[11:22], "sensor_readings": final_values}
                     publish_json = json.dumps(publish_json_dict)
+                    board_key = f"B{board_id}"
 
-                    topic = "b" + Board_ID + "_log_data_" + number_to_sensor_type_publish[sensor_type]
-
-                    self.publish_dict[topic] = publish_json
+                    # Get the relevant sensor type for this board (e.g., ADS1015, ADS1115)
+                    for sensor_config in conv_configs[board_key]["data"]:
+                        sensor_config_type = sensor_config.get("sensor_type")
+                        
+                        # Check the sensor type (it could be ADS1015, ADS1115, or others)
+                        #print(sensor_config_type,number_to_sensor_type[sensor_type])
+                        if sensor_config_type == number_to_sensor_type[sensor_type]:
+                            topic = sensor_config["topic"]  
+                            self.publish_dict[topic] = publish_json
+                            #print(f"Published data to topic {topic}")
             
             except serial.SerialException as e:
                 if "Device not configured" in str(e):

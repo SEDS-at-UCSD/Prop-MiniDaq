@@ -75,7 +75,7 @@ void setup() {
   Serial.begin(921600);
 
   // Start the simulated CAN reader task
-  xTaskCreatePinnedToCore(canReaderTask, "CANReaderTask", 4096, NULL, 1, NULL, 1);
+  xTaskCreatePinnedToCore(canReaderTask, "CANReaderTask", 4096, NULL, 1, NULL, 0);
 
   Serial.println("Simulated CAN Reader Hub started...");
 }

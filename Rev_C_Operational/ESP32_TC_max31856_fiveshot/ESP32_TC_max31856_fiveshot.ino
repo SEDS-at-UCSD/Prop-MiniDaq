@@ -163,12 +163,15 @@ void loop() {
 }
 
 uint16_t floatToIEEE754(float value) {
+  //e.g. 1100 1100 0000 1000 0100......
   uint32_t intValue = *(uint32_t*)&value; // Interpret the float as an unsigned 32-bit integer
 
   // Extract the sign, exponent, and mantissa from the 32-bit integer
-  uint16_t sign = (intValue >> 31) & 0x1;
-  uint16_t exponent = ((intValue >> 23) & 0xFF) - 127;
-  uint16_t mantissa = (intValue & 0x7FFFFF) >> 16;
+  uint16_t sign = (intValue >> 31) & 0x1; 
+  //e.g. 1
+  uint16_t exponent = ((intValue >> 23) & 0xFF) - 127; //extracts upper (-127 for unbiased) 8 bit exponent from float32
+  //e.g. 1100 1100 & 11111111 = 11001100 - 01111111 = 10001101 // same as 16 bit first 5 bit conversion
+  uint16_t mantissa = (intValue & 0x7FFFFF) >> 16; //extracts upper 7 bit mantissa from float32
 
   // Combine the sign, exponent, and mantissa into a 16-bit IEEE 754 representation
   uint16_t ieee754Value = (sign << 15) | ((exponent + 15) << 10) | mantissa;

@@ -9,7 +9,6 @@ function Config() {
   const [isLoading, setIsLoading] = useState(true);  // State to indicate loading
   const [isSaving, setIsSaving] = useState(false);  // State for saving
   const [saveStatus, setSaveStatus] = useState('');  // Track 'success', 'failure', or ''
-  const [saveMessage, setSaveMessage] = useState('');  // State for save feedback
   const [error, setError] = useState(null);  // State to handle errors
 
   // Fetch the JSON configuration from FastAPI server
@@ -33,10 +32,14 @@ function Config() {
   };
 
   // Handle input change in the textboxes
-  const handleValueChange = (prefix, key, index, newValue) => {
+  const handleValueChange = (boardKey, sensorType, sensorIndex, field, newValue) => {
     setConversionFactors((prevState) => {
       const updatedFactors = { ...prevState };
-      updatedFactors[`${prefix}_${key}`][index] = newValue;  // Update the specific value
+      updatedFactors[boardKey].data.forEach((dataBlock) => {
+        if (dataBlock.sensor_type === sensorType) {
+          dataBlock.sensors[sensorIndex][field] = newValue;  // Update the specific field value
+        }
+      });
       return updatedFactors;  // Return the updated state
     });
   };
@@ -45,23 +48,11 @@ function Config() {
   const saveConfig = () => {
     setIsSaving(true);  // Show saving state
   
-    // Pretty print with 2 spaces
-    let formattedConfig = JSON.stringify(conversionFactors, null, 2);
-  
-    // Clean up the formatting
-    formattedConfig = formattedConfig
-      .replace(/,\n(?!\s*\])/g, ',')  // Remove newline after commas, unless followed by a closing bracket
-      .replace(/\[\n/g, '[')          // Remove newline after opening square brackets
-      .replace(/\s*\],/g, '],\n')     // Ensure newline after closing square brackets with a comma
-      .replace(/\s*\",/g, '",\n');    // Ensure newline after double-quoted strings followed by a comma
-    
-    console.log(formattedConfig)
+    const formattedConfig = JSON.stringify(conversionFactors, null, 2);
 
     const blob = new Blob([formattedConfig], { type: 'application/json' });
     const formData = new FormData();
     formData.append('file', blob, 'conversion_factor_config.json');  // Append the file blob
-
-    
   
     fetch(`http://${SERVER_ADDRESS}:${SERVER_PORT}/upload/conversion_factor_config.json`, {
       method: 'POST',
@@ -71,48 +62,19 @@ function Config() {
         if (!response.ok) {
           throw new Error('Failed to save configuration');
         }
+        console.log(response)
         return response.json();
       })
       .then(() => {
         setSaveStatus('success');  // Mark as success
         setIsSaving(false);  // Stop saving state
-
-        // Set timeout to fade back to blue after 3 seconds
-        setTimeout(() => {
-          let fadeInterval = setInterval(() => {
-            setSaveStatus('');  // Reset the button color to default (blue)
-            clearInterval(fadeInterval);  // Clear the interval once done
-          }, 3000);
-        }, 3000);
+        setTimeout(() => setSaveStatus(''), 3000);  // Reset after delay
       })
       .catch(() => {
         setSaveStatus('failure');  // Mark as failure
         setIsSaving(false);
-
-        // Set timeout to fade back to blue after 3 seconds
-        setTimeout(() => {
-          let fadeInterval = setInterval(() => {
-            setSaveStatus('');  // Reset the button color to default (blue)
-            clearInterval(fadeInterval);  // Clear the interval once done
-          }, 3000);
-        }, 3000);
+        setTimeout(() => setSaveStatus(''), 3000);  // Reset after delay
       });
-  };
-  
-
-  // Group the entries by their "block" (e.g., B1, B2)
-  const groupByPrefix = (config) => {
-    const grouped = {};
-    Object.keys(config).forEach((key) => {
-      const prefix = key.split('_')[0];  // Get the prefix before the first underscore (e.g., B1, B2)
-      const suffix = key.split('_').slice(1).join('_');  // Get the rest of the key after the prefix
-      
-      if (!grouped[prefix]) {
-        grouped[prefix] = {};
-      }
-      grouped[prefix][suffix] = config[key];  // Group the suffix under the prefix
-    });
-    return grouped;
   };
 
   // Load the configuration when the component mounts
@@ -132,8 +94,6 @@ function Config() {
     return <div>No configuration loaded.</div>;
   }
 
-  const groupedConfig = groupByPrefix(conversionFactors);
-
   // Determine the button color based on the save status
   const getButtonColor = () => {
     if (saveStatus === 'success') return '#4CAF50';  // Green for success
@@ -148,15 +108,14 @@ function Config() {
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '30px' }}>
         <h1 style={{ margin: 0 }}>Configuration</h1>
 
-        {/* Save button with dynamic color */}
         <button onClick={() => window.location.href = '/'} className="status control_button"
             style={{
                 borderRadius: '5px',
             }}    
         >
-            Back to Dashboard
+        Back to Dashboard
         </button>
-
+        {/* Save button */}
         <button
           onClick={saveConfig}
           disabled={isSaving}
@@ -175,10 +134,10 @@ function Config() {
       </div>
 
       <form>
-        {/* Display grouped blocks */}
-        {Object.entries(groupedConfig).map(([prefix, entries]) => (
+        {/* Display each board */}
+        {Object.entries(conversionFactors).map(([boardKey, boardData]) => (
           <div
-            key={prefix}
+            key={boardKey}
             style={{
               border: '1px solid #fff',
               padding: '20px',
@@ -187,31 +146,49 @@ function Config() {
               boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)',
             }}
           >
-            <h2>{prefix}</h2>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '20px' }}>
-              {Object.entries(entries).map(([key, values]) => (
-                <div key={key}>
-                  <h4>{key}</h4>
-                  {Array.isArray(values) ? (
-                    values.map((value, index) => (
-                      <div key={index} style={{ marginBottom: '10px' }}>
-                        <label>
-                          {key}[{index}]:
-                          <input
-                            type="number"
-                            value={value}
-                            onChange={(e) => handleValueChange(prefix, key, index, parseFloat(e.target.value))}
-                            style={{ marginLeft: '10px', width: '100px' }}
-                          />
-                        </label>
-                      </div>
-                    ))
-                  ) : (
-                    <p>{values}</p>
-                  )}
+            <h2>{boardKey}</h2>
+
+            {/* Display sensor types and sensors under each board */}
+            {boardData.data.map((dataBlock, dataIndex) => (
+              <div key={dataIndex}>
+                <h3>{dataBlock.sensor_type}</h3>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '20px' }}>
+                  {/* Display each sensor */}
+                  {dataBlock.sensors.map((sensor, sensorIndex) => (
+                    <div key={sensorIndex}>
+                      <h4>{sensor.title}</h4>
+                      {Object.entries(sensor).map(([field, value]) => {
+                        const inputType = typeof value === 'boolean'
+                          ? 'checkbox'
+                          : typeof value === 'number'
+                          ? 'number'
+                          : 'text';
+                        return (
+                          <label key={field} style={{ display: 'block', marginBottom: '10px' }}>
+                            {field}:
+                            <input
+                              type={inputType}
+                              value={inputType === 'checkbox' ? undefined : value}
+                              checked={inputType === 'checkbox' ? value : undefined}
+                              onChange={(e) =>
+                                handleValueChange(
+                                  boardKey,
+                                  dataBlock.sensor_type,
+                                  sensorIndex,
+                                  field,
+                                  inputType === 'checkbox' ? e.target.checked : e.target.value
+                                )
+                              }
+                              style={{ marginLeft: '10px', width: '100px' }}
+                            />
+                          </label>
+                        );
+                      })}
+                    </div>
+                  ))}
                 </div>
-              ))}
-            </div>
+              </div>
+            ))}
           </div>
         ))}
       </form>

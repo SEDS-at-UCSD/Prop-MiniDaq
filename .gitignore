@@ -24,3 +24,5 @@ mqtt_gui/raw_serial_log.txt
 mqtt_gui/raw_serial_log.txt
 mqtt_gui/raw_serial_log.txt
 /.venv
+/mqtt_gui/newvenv
+/mqtt_gui/newvenv/lib
