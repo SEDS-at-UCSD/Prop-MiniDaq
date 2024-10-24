@@ -190,7 +190,7 @@ function App() {
               <button
                 onClick={handleIgnitionClick}
                 className={`auto-ignition-button ${!ignite ? "ignite" : "abort"}`}
-                disabled={isAborting}
+                disabled={isAborting | !solenoidControl}
               >
                 {!ignite ? "IGNITE" : "ABORT"}
               </button>
