@@ -13,7 +13,8 @@ void transmitTask(void *pvParameters);
 void receiveTask(void *pvParameters);
 void commandTask(void *pvParameters);
 
-volatile int pinStatus[10][5] = {};
+volatile bool pinStatusUpdated[64] = {};
+volatile int pinStatus[64][5] = {};
 
 StaticJsonDocument<512> sensorDataGlobal;
 
@@ -173,6 +174,7 @@ void command2pin(char solboardIDnum, char command, char mode){
   else if (command == '3') {statusPin = 3;}
   else if (command == '4') {statusPin = 4;}
 
+  xSemaphoreTake(mutex_d, portMAX_DELAY); 
   if (mode == '0') {
     pinStatus[ID][statusPin] = 0;
   } else if (mode == '1') {
@@ -181,19 +183,23 @@ void command2pin(char solboardIDnum, char command, char mode){
     Serial.println("Invalid mode");
   }
 
-  for (int i = 0; i < 5; i++){
-    txMessage_command.data[i] = pinStatus[ID][i];
-    /*
-    Serial.print("\t Pin ");
-    Serial.print(i);
-    Serial.print(":");
-    Serial.print(pinStatus[i]);
-    */
+  if (pinStatusUpdated[ID]) {
+    for (int i = 0; i < 5; i++){
+      txMessage_command.data[i] = pinStatus[ID][i];
+      /*
+      Serial.print("\t Pin ");
+      Serial.print(i);
+      Serial.print(":");
+      Serial.print(pinStatus[i]);
+      */
+    }
+    
+
+    //Serial.println();
+
+    twai_transmit(&txMessage_command, pdMS_TO_TICKS(1));
   }
-
-  //Serial.println();
-
-  twai_transmit(&txMessage_command, pdMS_TO_TICKS(1));
+  xSemaphoreGive(mutex_d); 
   //Serial.println("CAN sent");
     
 }
@@ -203,7 +209,7 @@ void receiveTask(void *pvParameters) {
   StaticJsonDocument<512> sensorData;
   static String receivedCANmessagetoprint;
   Serial.println("Starting receive task...");
-  delay(1000);
+  delay(1);
 
   while (1) {
     if (printCAN == 1) {
@@ -220,10 +226,15 @@ void receiveTask(void *pvParameters) {
         // Prepare sensorData JSON
         sensorData["BoardID"] = String(copiedMessage.identifier, HEX);
         sensorData["SensorType"] = String((copiedMessage.identifier - 0x10 * (copiedMessage.identifier / 0x10)), HEX);
-
+        int id_local = copiedMessage.identifier/16;
         for (int i = 0; i < copiedMessage.data_length_code; i++) {
           sensorData["Sensors"][i] = copiedMessage.data[i];
+          if (id_local < 64)
+            pinStatus[id_local][i] = copiedMessage.data[i];
         }
+        if (id_local < 64)
+            pinStatusUpdated[id_local] = true;
+
 
         xSemaphoreGive(mutex_d); 
         // Add the JSON document to the queue for serialization
