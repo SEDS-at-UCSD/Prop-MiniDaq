@@ -152,9 +152,9 @@ void transmitTask(void *pvParameters) {
   }
 }
 
-void command2pin(char solboardIDnum, char command, char mode){
+void command2pin(String solboardIDnum, char command, char mode){
   twai_message_t txMessage_command;
-  int ID = solboardIDnum - '0';
+  int ID = solboardIDnum.toInt();
   txMessage_command.identifier = ID*0x10 + 0x0F;           // Solenoid Board WRITE COMMAND 0xIDf
   txMessage_command.flags = TWAI_MSG_FLAG_EXTD;  // Example flags (extended frame)
   txMessage_command.data_length_code = 8;        // Example data length (8 bytes)
@@ -272,9 +272,10 @@ void commandTask(void *pvParameters) {
 
   while (1) {
     String message = Serial.readStringUntil('\n');
-    char solboardIDnum = message[0];
-    char command = message[1];
-    char mode = message[2];
+    // Capture all characters except the last three for solboardIDnum
+    String solboardIDnum = message.substring(0, message.length() - 2);
+    char command = message[message.length() - 2];
+    char mode = message[message.length() - 1];
     switch (command) {
       case '0':
       case '1':

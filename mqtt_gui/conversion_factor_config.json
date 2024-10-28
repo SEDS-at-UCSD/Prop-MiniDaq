@@ -2,136 +2,52 @@
   "B1": {
     "data": [
       {
-        "sensor_type": "TC",
+        "sensor_type": "solenoids",
         "sensors": [
           {
-            "type": "TC",
-            "tc_type": "K",
-            "title": "Thermocouple 1"
+            "type": "Solenoid",
+            "title": "0"
           },
           {
-            "type": "TC",
-            "tc_type": "K",
-            "title": "Thermocouple 2"
+            "type": "Solenoid",
+            "title": "1"
           },
           {
-            "type": "TC",
-            "tc_type": "T",
-            "title": "Thermocouple 3"
+            "type": "Solenoid",
+            "title": "2"
           },
           {
-            "type": "TC",
-            "tc_type": "T",
-            "title": "Thermocouple 4"
+            "type": "Solenoid",
+            "title": "3"
           }
         ],
-        "topic": "b1_log_data_tc"
+        "topic": "b1_switch_states_status"
       }
     ]
   },
   "B2": {
     "data": [
       {
-        "sensor_type": "ADS1015",
+        "sensor_type": "solenoids",
         "sensors": [
           {
-            "min_reading": 0,
-            "max_reading": 5,
-            "min_value": 0,
-            "max_value": 1000,
-            "title": "FUEL TANK 1K (PSI)"
+            "type": "Solenoid",
+            "title": "0"
           },
           {
-            "min_reading": 0,
-            "max_reading": 5,
-            "min_value": 0,
-            "max_value": 1000,
-            "title": "OX TANK 1K (PSI)"
+            "type": "Solenoid",
+            "title": "1"
           },
           {
-            "min_reading": 0,
-            "max_reading": 5,
-            "min_value": 0,
-            "max_value": 1000,
-            "title": "FUEL DOME 1K (PSI)"
+            "type": "Solenoid",
+            "title": "2"
           },
           {
-            "min_reading": 0,
-            "max_reading": 5,
-            "min_value": 0,
-            "max_value": 1000,
-            "title": "OX DOME 1K (PSI)"
+            "type": "Solenoid",
+            "title": "3"
           }
         ],
-        "topic": "b2_log_data_1015"
-      },
-      {
-        "sensor_type": "ADS1115",
-        "sensors": [
-          {
-            "min_reading": 1,
-            "max_reading": 5,
-            "min_value": 0,
-            "max_value": 1000,
-            "title": "CHAMBER 1K (PSI)"
-          },
-          {
-            "min_reading": 1,
-            "max_reading": 5,
-            "min_value": 0,
-            "max_value": 2000,
-            "title": "FUEL MANIFOLD 1K (PSI)"
-          },
-          {
-            "min_reading": 1,
-            "max_reading": 5,
-            "min_value": 0,
-            "max_value": 3000,
-            "title": "OX MANIFOLD 3K (PSI)"
-          },
-          {
-            "min_reading": 0,
-            "max_reading": 5,
-            "min_value": 0,
-            "max_value": 1000,
-            "title": "OX FLOWRATE 32.5 (GPM)"
-          }
-        ],
-        "topic": "b2_log_data_1115"
-      },
-      {
-        "sensor_type": "ADS1256",
-        "sensors": [
-          {
-            "min_reading": "0",
-            "max_reading": 5,
-            "min_value": 0,
-            "max_value": "5000",
-            "title": "mV"
-          },
-          {
-            "min_reading": "0",
-            "max_reading": 5,
-            "min_value": 0,
-            "max_value": "5000",
-            "title": "mV"
-          },
-          {
-            "min_reading": 1,
-            "max_reading": 5,
-            "min_value": "4",
-            "max_value": "20",
-            "title": "mA"
-          },
-          {
-            "min_reading": "1",
-            "max_reading": 5,
-            "min_value": "4",
-            "max_value": "20",
-            "title": "mA"
-          }
-        ],
-        "topic": "b2_log_data_1256"
+        "topic": "b2_switch_states_status"
       }
     ]
   },
@@ -301,7 +217,7 @@
       }
     ]
   },
-  "B6": {
+  "B11": {
     "data": [
       {
         "sensor_type": "solenoids",
@@ -323,7 +239,59 @@
             "title": "3"
           }
         ],
-        "topic": "b6_switch_states_status"
+        "topic": "b11_switch_states_status"
+      }
+    ]
+  },
+  "B12": {
+    "data": [
+      {
+        "sensor_type": "solenoids",
+        "sensors": [
+          {
+            "type": "Solenoid",
+            "title": "0"
+          },
+          {
+            "type": "Solenoid",
+            "title": "1"
+          },
+          {
+            "type": "Solenoid",
+            "title": "2"
+          },
+          {
+            "type": "Solenoid",
+            "title": "3"
+          }
+        ],
+        "topic": "b12_switch_states_status"
+      }
+    ]
+  },
+  "B13": {
+    "data": [
+      {
+        "sensor_type": "solenoids",
+        "sensors": [
+          {
+            "type": "Solenoid",
+            "title": "0"
+          },
+          {
+            "type": "Solenoid",
+            "title": "1"
+          },
+          {
+            "type": "Solenoid",
+            "title": "2"
+          },
+          {
+            "type": "Solenoid",
+            "title": "3"
+          }
+        ],
+        "topic": "b13_switch_states_status"
       }
     ]
   }

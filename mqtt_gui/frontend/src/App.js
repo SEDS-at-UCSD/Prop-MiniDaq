@@ -5,8 +5,7 @@ import { DialCluster } from './components/DialCluster';
 import { SwitchConfigure } from './components/SwitchConfigure';
 
 function App() {
-  //const connectionurl = "ws://localhost:9002";
-  const connectionurl = "ws://169.254.32.191:9002"
+  const connectionurl = "ws://localhost:9002";
   const [client, setClient] = useState(null);
   const [connectStatus, setConnectStatus] = useState("Not Connected");
   const [isSub, setIsSub] = useState(false);
