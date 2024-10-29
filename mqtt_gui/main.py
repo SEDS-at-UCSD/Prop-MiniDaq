@@ -311,7 +311,7 @@ class Board_DAQ():
     
     def publish_data(self):
         while True:
-            time.sleep(0.001)
+            time.sleep(0.05)
             try:
                 for topic in self.publish_dict:
                     client.publish(topic,self.publish_dict[topic])
