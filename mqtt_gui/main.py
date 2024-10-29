@@ -132,7 +132,7 @@ async def update_config(filename: str):
 # Function to run FastAPI in a separate thread
 def start_fastapi():
     import uvicorn
-    uvicorn.run(app, host="localhost", port=8001)
+    uvicorn.run(app, host="0.0.0.0", port=8001)
 
 # Start FastAPI server in a separate thread
 fastapi_thread = threading.Thread(target=start_fastapi)
