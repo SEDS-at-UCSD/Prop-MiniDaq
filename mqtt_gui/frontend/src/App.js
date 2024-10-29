@@ -6,7 +6,8 @@ import { SwitchConfigure } from './components/SwitchConfigure';
 
 function App() {
   //const connectionurl = "ws://localhost:9002";
-  const connectionurl = "ws://169.254.32.191:9002"
+  const urllocal = "169.254.32.191";
+  const connectionurl = `ws://${urllocal}":9002`
   const [client, setClient] = useState(null);
   const [connectStatus, setConnectStatus] = useState("Not Connected");
   const [isSub, setIsSub] = useState(false);
@@ -24,7 +25,7 @@ function App() {
   // Fetch the config file dynamically
   const fetchConfigData = async () => {
     try {
-      const response = await fetch('http://localhost:8000/files/conversion_factor_config.json');
+      const response = await fetch(`http://${urllocal}:8000/files/conversion_factor_config.json`);
       const configData = await response.json();
       setBoardConfig(configData);  // Store the full config
       generateTopicsAndLabels(configData);
