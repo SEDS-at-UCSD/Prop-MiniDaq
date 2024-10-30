@@ -22,7 +22,7 @@ app = FastAPI()
 # Add CORS middleware
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:8000", "http://localhost:3000"],  # React
+    allow_origins=["*"],  # React
     allow_credentials=True,
     allow_methods=["*"],  # Allow all methods (GET, POST, etc.)
     allow_headers=["*"],  # Allow all headers
@@ -132,7 +132,7 @@ async def update_config(filename: str):
 # Function to run FastAPI in a separate thread
 def start_fastapi():
     import uvicorn
-    uvicorn.run(app, host="localhost", port=8001)
+    uvicorn.run(app, host="0.0.0.0", port=8001)
 
 # Start FastAPI server in a separate thread
 fastapi_thread = threading.Thread(target=start_fastapi)
@@ -307,7 +307,7 @@ class Board_DAQ():
     
     def publish_data(self):
         while True:
-            time.sleep(0.001)
+            time.sleep(0.05)
             try:
                 for topic in self.publish_dict:
                     client.publish(topic,self.publish_dict[topic])
