@@ -3,7 +3,7 @@ import YAML from 'js-yaml';
 import { ReactFlow, ReactFlowProvider, MiniMap, Controls, Background } from 'reactflow';
 import 'reactflow/dist/style.css';
 
-let SERVER_ADDRESS = 'localhost';
+let SERVER_ADDRESS = window.location.hostname;
 const SERVER_PORT = 8000;
 
 function AutoConfig() {

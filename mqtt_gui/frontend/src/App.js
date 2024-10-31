@@ -6,7 +6,7 @@ import { SwitchConfigure } from './components/SwitchConfigure';
 
 function App() {
   //const connectionurl = "ws://localhost:9002";
-  const urllocal = '169.254.32.191';
+  const urllocal =  window.location.hostname; 
   const connectionurl = `ws://${urllocal}:9002`
   const [client, setClient] = useState(null);
   const [connectStatus, setConnectStatus] = useState("Not Connected");

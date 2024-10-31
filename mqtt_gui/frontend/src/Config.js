@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 
 // Configurable server address (change 'localhost' if needed)
-let SERVER_ADDRESS = '169.254.32.191'; //'localhost';  // Change this to the desired server address or IP
+let SERVER_ADDRESS = window.location.hostname; //'localhost';  // Change this to the desired server address or IP
 const SERVER_PORT = 8000;  // Change port if needed
 
 function Config() {
