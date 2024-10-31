@@ -13,9 +13,10 @@ import yaml
 import subprocess
 import signal
 import sys
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.concurrency import run_in_threadpool
+import socket
 
 app = FastAPI()
 
@@ -128,6 +129,22 @@ async def update_config(filename: str):
     #reload_config(filename)
     reload_flag.set()
     return {"message": f"{filename} reloaded successfully"}
+
+def get_all_ips():
+    ip_addresses = []
+    # Get all IPv4 addresses for the hostname, excluding loopback addresses like 127.0.0.1
+    addresses = socket.getaddrinfo(socket.gethostname(), None, socket.AF_INET)
+    for addr in addresses:
+        ip = addr[4][0]
+        # Exclude loopback addresses (127.x.x.x range)
+        if not ip.startswith("127.") and ip not in ip_addresses:
+            ip_addresses.append(ip)
+    return ip_addresses
+
+@app.get("/get-server-ip")
+async def get_server_ip():
+    ips = get_all_ips()
+    return {"ips": ips}
 
 # Function to run FastAPI in a separate thread
 def start_fastapi():
