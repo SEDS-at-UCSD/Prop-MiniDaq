@@ -24,7 +24,12 @@ StaticJsonDocument<512> solenoidsData;
 #define CHANNEL_4_PIN 18
 #define EXTERNAL_POWER_PIN 8
 
-volatile int pinStatus[5] = {0,0,0,0,0};
+uint8_t pinChannels[5] = {CHANNEL_0_PIN,CHANNEL_1_PIN,CHANNEL_2_PIN,CHANNEL_3_PIN,CHANNEL_4_PIN};
+uint32_t pinFreq[5] = {200,200,200,200,200}; //200Hz
+
+volatile int pinStatus[5] = {0,0,0,0,0}; 
+volatile uint32_t pinLevels[5] = {255,255,255,255,255}; //uint8, default HIGH
+
 
 Adafruit_INA260 ina260;
 QueueHandle_t powerQueue;
@@ -58,7 +63,7 @@ void powerTask(void *pvParameters) {
   }
 }
 
-void command2pin(char command, char mode){
+void command2pin(char command, String mode){
   int channelPin, statusPin;
   if (command == '0') {channelPin = CHANNEL_0_PIN; statusPin = 0;}
   else if (command == '1') {channelPin = CHANNEL_1_PIN; statusPin = 1;}
@@ -66,18 +71,24 @@ void command2pin(char command, char mode){
   else if (command == '3') {channelPin = CHANNEL_3_PIN; statusPin = 3;}
   else if (command == '4') {channelPin = CHANNEL_4_PIN; statusPin = 4;}
 
-  if (mode == '0') {
+  if (mode == "0") {
     pinStatus[statusPin] = 0;
-    digitalWrite(channelPin, LOW);
+    ledcWrite(pinChannels[statusPin], 0);
+    //digitalWrite(channelPin, LOW);
+
     //Serial.print("Channel ");
     //Serial.print(command);
     //Serial.println(" turned OFF");
-  } else if (mode == '1') {
+  } else if (mode == "1") {
     pinStatus[statusPin] = 1;
-    digitalWrite(channelPin, HIGH);
-    //Serial.print("Channel ");
+    ledcWrite(pinChannels[statusPin], pinLevels[statusPin]);
+    //digitalWrite(channelPin, HIGH);
+
     //Serial.print(command);
     //Serial.println(" turned ON");
+  } else if (mode[0] == 'f' || mode[0] == 'F') {
+    pinLevels[statusPin] = (mode.substring(1)).toInt();
+    ledcWrite(pinChannels[statusPin], pinLevels[statusPin]);
   } else {
     Serial.println("Invalid mode");
   }
@@ -96,7 +107,7 @@ void receiveTask(void *pvParameters) {
         char modes[2] = {'0','1'};
         for (int i = 0; i < 5; i++){
           int mode = rxMessage.data[i];
-          command2pin(commands[i],modes[mode]);
+          command2pin(commands[i],String(mode));
         }
       }
       else if (rxMessage.identifier > 0x1F){ //for CAN Debug
@@ -132,8 +143,9 @@ void commandTask(void *pvParameters) {
   (void)pvParameters;
 
   while (1) {
-    char command = Serial.read();
-    char mode = Serial.read();;
+    String readbuffer = Serial.readStringUntil('\n');
+    char command = readbuffer[0];
+    String mode = readbuffer.substring(1);
     switch (command) {
       case '0':
       case '1':
@@ -196,6 +208,9 @@ void setup() {
   pinMode(CHANNEL_2_PIN, OUTPUT);
   pinMode(CHANNEL_3_PIN, OUTPUT);
   pinMode(CHANNEL_4_PIN, OUTPUT);
+  for (int i = 0; i < 5; i++){
+    ledcAttach(pinChannels[i], pinFreq[i], 8); //8 bit = 255 max
+  }
 
   if (!ina260.begin()) {
     Serial.println("Couldn't find INA260 chip");
