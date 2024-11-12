@@ -190,12 +190,12 @@ void command2pin(String solboardIDnum, char command, char mode){
     for (int i = 0; i < 5; i++){
       // supposed to keep track of pin, unneccessary. Also, weird bug rn
       //txMessage_command.data[i] = pinStatus[ID][i];
-      /*
+      
       Serial.print("\t Pin ");
       Serial.print(i);
       Serial.print(":");
       Serial.print(pinStatus[i]);
-      */
+      
     }
     
 
@@ -233,7 +233,7 @@ void receiveTask(void *pvParameters) {
         sensorData["BoardID"] = String(copiedMessage.identifier, HEX);
         sensorData["SensorType"] = String((copiedMessage.identifier - 0x10 * (copiedMessage.identifier / 0x10)), HEX);
         int id_local = copiedMessage.identifier/0x10;
-        Serial.println(id_local);
+        //Serial.println(id_local);
         for (int i = 0; i < copiedMessage.data_length_code; i++) {
           sensorData["Sensors"][i] = copiedMessage.data[i];
           if (id_local < 64){
