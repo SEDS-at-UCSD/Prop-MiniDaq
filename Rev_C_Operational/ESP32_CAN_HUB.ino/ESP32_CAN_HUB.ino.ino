@@ -158,8 +158,8 @@ void command2pin(char solboardIDnum, char command, char mode){
   txMessage_command.identifier = ID*0x10 + 0x0F;           // Solenoid Board WRITE COMMAND 0xIDf
   txMessage_command.flags = TWAI_MSG_FLAG_EXTD;  // Example flags (extended frame)
   txMessage_command.data_length_code = 8;        // Example data length (8 bytes)
-  txMessage_command.data[0] = 0xFF;              // Sol 0
-  txMessage_command.data[1] = 0xFF;              // Sol 1
+  txMessage_command.data[0] = 0xFF;              // Sol 0 //Be default, over CAN hex FF does not trigger valid response
+  txMessage_command.data[1] = 0xFF;              // Sol 1 //HOWEVER, String FXXX over serial may update frequency
   txMessage_command.data[2] = 0xFF;              // Sol 2
   txMessage_command.data[3] = 0xFF;              // Sol 3
   txMessage_command.data[4] = 0xFF;              // Sol 4
@@ -177,15 +177,19 @@ void command2pin(char solboardIDnum, char command, char mode){
   xSemaphoreTake(mutex_d, portMAX_DELAY); 
   if (mode == '0') {
     pinStatus[ID][statusPin] = 0;
+    txMessage_command.data[statusPin] = 0;
   } else if (mode == '1') {
     pinStatus[ID][statusPin] = 1;
+    txMessage_command.data[statusPin] = 1;
   } else {
     Serial.println("Invalid mode");
   }
 
+  /*
   if (pinStatusUpdated[ID]) {
     for (int i = 0; i < 5; i++){
-      txMessage_command.data[i] = pinStatus[ID][i];
+      // supposed to keep track of pin, unneccessary. Also, weird bug rn
+      //txMessage_command.data[i] = pinStatus[ID][i];
       /*
       Serial.print("\t Pin ");
       Serial.print(i);
@@ -197,8 +201,10 @@ void command2pin(char solboardIDnum, char command, char mode){
 
     //Serial.println();
 
-    twai_transmit(&txMessage_command, pdMS_TO_TICKS(1));
+    
   }
+  */
+  twai_transmit(&txMessage_command, pdMS_TO_TICKS(1));
   xSemaphoreGive(mutex_d); 
   //Serial.println("CAN sent");
     
@@ -226,15 +232,17 @@ void receiveTask(void *pvParameters) {
         // Prepare sensorData JSON
         sensorData["BoardID"] = String(copiedMessage.identifier, HEX);
         sensorData["SensorType"] = String((copiedMessage.identifier - 0x10 * (copiedMessage.identifier / 0x10)), HEX);
-        int id_local = copiedMessage.identifier/16;
+        int id_local = copiedMessage.identifier/0x10;
+        Serial.println(id_local);
         for (int i = 0; i < copiedMessage.data_length_code; i++) {
           sensorData["Sensors"][i] = copiedMessage.data[i];
-          if (id_local < 64)
+          if (id_local < 64){
             pinStatus[id_local][i] = copiedMessage.data[i];
+          }
         }
-        if (id_local < 64)
-            pinStatusUpdated[id_local] = true;
-
+        if (id_local < 64){
+          pinStatusUpdated[id_local] = true;
+        }
 
         xSemaphoreGive(mutex_d); 
         // Add the JSON document to the queue for serialization
