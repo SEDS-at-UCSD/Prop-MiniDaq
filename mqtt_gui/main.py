@@ -84,6 +84,16 @@ def fetch_file_data(filename):
         print(f"Error fetching {filename}: {e}")
         return None
 
+def fetch_file_data_yaml(filename):
+    try:
+        response = requests.get(f"{fileserver_url}/{filename}")
+        response.raise_for_status()  # Raise an error if the request failed
+        yaml_data = yaml.safe_load(response.text)
+        return yaml_data  # Return the parsed YAML as a dictionary
+    except requests.RequestException as e:
+        print(f"Error fetching {filename}: {e}")
+        return None
+
 # Function to start the fileserver as a subprocess
 def start_fileserver():
     print("Starting Fileserver")
@@ -108,15 +118,24 @@ fileserver_url = "http://localhost:8000/files"
 conv_configs = {}
 automation_config = {}
 abort_config = {}
+channel_calc_config = {}
 
 # Function to reload configuration files
 def reload_config(filename):
-    global conv_configs, automation_config, abort_config
+    global conv_configs, automation_config, abort_config, channel_calc_config
     if filename == "conversion_factor_config.json":
         with open(filename, 'r') as file:
             conv_configs = fetch_file_data(filename)
             update_conversion_factors()
             print("Conversion factor config updated")
+
+    if filename == "calculation_config.yaml":
+        with open(filename, 'r') as file:
+            channel_calc_dict = fetch_file_data_yaml(filename)
+            channel_calc_config = channel_calc_dict
+            print(channel_calc_config)
+            print("Channel calculations updated")
+    
     else:
         print(f"Unknown config file: {filename}")
 
@@ -162,6 +181,7 @@ time.sleep(1)
 
 # Fetch conversion factor config from file server
 conv_configs = fetch_file_data('conversion_factor_config.json')
+channel_calc_config = fetch_file_data_yaml('calculation_config.yaml')
 
 if conv_configs is None:
     print("Failed to load conversion factor config. Exiting setup.")
@@ -296,6 +316,14 @@ def extract_board_id(board_id_hex):
         return None
     except TypeError as e:
         return None
+    
+import re
+
+def convert_c_to_final_values(text):
+    # Regular expression to find C1, C2, C3, etc.
+    text = text.lower().strip()
+    return re.sub(r'c(\d+)', lambda match: f'final_values[{int(match.group(1)) - 1}]', text)
+
 
 def process_data(data):
     try:
@@ -330,6 +358,7 @@ class Board_DAQ():
         while True:
             time.sleep(0.05)
             try:
+                reload_config("calculation_config.yaml")
                 for topic in self.publish_dict:
                     client.publish(topic,self.publish_dict[topic])
             except Exception as e:
@@ -342,6 +371,7 @@ class Board_DAQ():
                 
                 # Perform the reload operation
                 reload_config("conversion_factor_config.json")
+                reload_config("calculation_config.yaml")
                 
                 # Clear the flag after reloading
                 reload_flag.clear()
@@ -432,7 +462,6 @@ class Board_DAQ():
                 elif (int(Board_ID) in ANAL_BOARD_RANGE):        
                     raw_byte_array = data_dict['Sensors']
                     converted_array = np.array([],dtype=np.uint16)
-
                     
                     if (data_dict['SensorType']  == "3"):
                         for i in range(0, len(raw_byte_array), 2):
@@ -478,7 +507,6 @@ class Board_DAQ():
                         converted_array[i] /= conversion_factor_V
 
                     #print(converted_array)
-                    #CONFIG CONVERSIONS
                     
                     # CONFIG CONVERSIONS
                     final_values = []
@@ -504,6 +532,21 @@ class Board_DAQ():
                             # Apply conversion formula for 5.0V
                             converted_value = ((5.0*converted_array[i] - min_reading) / (max_reading - min_reading)) * (max_value - min_value) + min_value
                         final_values.append(round(converted_value, 2))  # Append converted value to final list
+
+                    
+                    ## Inter Channel Calc
+                    calculations = channel_calc_config[f'B{Board_ID}']['calculations']
+                    print(calculations)
+                    if calculations:
+                        interchannel_calc = []
+                        for calc in calculations:
+                            val_to_calc = int(eval(convert_c_to_final_values(calc)))
+                            interchannel_calc.append(val_to_calc)
+
+                        publish_calc_dict = {"time": str(datetime.now())[11:22], "sensor_readings": interchannel_calc}
+                        publish_calc_json = json.dumps(publish_calc_dict)
+                        calc_topic = f"b{Board_ID}_calc"
+                        self.publish_dict[calc_topic] = publish_calc_json
 
 
                     data_formatted += "Converted: "

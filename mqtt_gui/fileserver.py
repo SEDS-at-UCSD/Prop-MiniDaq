@@ -20,7 +20,9 @@ app.add_middleware(
 allowed_files = [
     'conversion_factor_config.json',
     'abort_config.yaml',
-    'automation_config.yaml'
+    'automation_config.yaml',
+    'calculation_config.yaml',
+    ''
 ]
 
 # Endpoint to retrieve file contents
