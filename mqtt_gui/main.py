@@ -536,12 +536,12 @@ class Board_DAQ():
 
                     
                     ## Inter Channel Calc
-                    calculations = channel_calc_config[f'B{Board_ID}']['calculations']
-                    print(calculations)
+                    calculations = channel_calc_config[f'B{Board_ID}']["calculations"]
+                    #print(calculations)
                     if calculations:
                         interchannel_calc = []
                         for calc in calculations:
-                            val_to_calc = int(eval(convert_c_to_final_values(calc)))
+                            val_to_calc = float(eval(convert_c_to_final_values(calc)))
                             interchannel_calc.append(val_to_calc)
 
                         publish_calc_dict = {"time": str(datetime.now())[11:22], "sensor_readings": interchannel_calc}
