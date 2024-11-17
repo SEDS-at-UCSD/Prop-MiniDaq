@@ -19,7 +19,7 @@
           {
             "type": "Solenoid",
             "title": "3"
-          }
+          }          
         ],
         "topic": "b1_switch_states_status"
       }
@@ -237,6 +237,10 @@
           {
             "type": "Solenoid",
             "title": "3"
+          },
+          {
+            "type": "Solenoid",
+            "title": "4"
           }
         ],
         "topic": "b11_switch_states_status"
@@ -263,6 +267,10 @@
           {
             "type": "Solenoid",
             "title": "3"
+          },
+          {
+            "type": "Solenoid",
+            "title": "4"
           }
         ],
         "topic": "b12_switch_states_status"
