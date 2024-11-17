@@ -28,6 +28,9 @@ twai_message_t txMessage;
 //#define CAN_TX 1 //using protoboard pins, RevA onwards://9
 #define CAN_RX 10 //using protoboard pins, RevA onwards://10
 #define CAN_TX 9 //using protoboard pins, RevA onwards://9
+// these used to test the lora - can connection
+//#define CAN_RX 38 //using protoboard pins, RevA onwards://10
+//#define CAN_TX 39 //using protoboard pins, RevA onwards://9
 int canTXRXcount[2] = { 0, 0 };
 
 
