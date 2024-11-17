@@ -20,6 +20,25 @@ body {
   top: 0px;
 }
 
+.two-column-layout {
+  display: flex;
+  justify-content: space-between;  /* Distribute the two columns */
+  align-items: flex-start;
+}
+
+
+.left-column {
+  margin-top: 10px;
+  flex: 1;
+}
+
+.right-column {
+  margin-top: 10px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
 .sensor_readings {
   display: flex;
   margin-top: 20px;
@@ -92,4 +111,53 @@ body {
   bottom: 5px;
   right: 5px;
   z-index: -1;
+}
+
+.auto-ignition {
+  margin-top: 10px;
+  display: flex;
+  justify-content: right; /* center */
+  text-align: right;
+  right: 15px;
+}
+
+.auto-ignition button {
+  width: 140px; /* Adjust width as needed */
+  height: 80px; /* Adjust height as needed */
+  color: white;
+  font-size: 22px; /* Adjust font size as needed */
+  font-weight: bold;
+  border: none;
+  border-radius: 5px; /* Optional: add rounded corners */
+  cursor: pointer;
+  display: block;
+}
+
+/* IGNITE state: blue background */
+.auto-ignition-button.ignite {
+  background-color: blue;
+}
+
+.auto-ignition-button.ignite:hover {
+  background-color: darkblue; 
+}
+
+/* ABORT state: red background */
+.auto-ignition-button.abort {
+  background-color: red;
+}
+
+.auto-ignition-button.abort:hover {
+  background-color: darkred; 
+}
+
+/* Disabled button style */
+.auto-ignition-button:disabled {
+  background-color: gray;
+  cursor: not-allowed;
+}
+
+.auto-ignition-button:disabled:hover {
+  background-color: gray;
+  cursor: not-allowed;
 }

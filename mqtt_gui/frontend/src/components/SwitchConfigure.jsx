@@ -7,13 +7,13 @@ export const SwitchConfigure = ({boardlabel, switchStates, sendMessage, editable
                 return (
                 <div>
                 <p className="solenoid_control">
-                    {solLabels[boardlabel][i] || `Sol ${i}`}: &nbsp;
+                    {solLabels[i] || `Sol ${i}`}: &nbsp;
                     <button 
                         className={value !== 0 ? "on_selected sol_button": "sol_button"}
                         type="radio" 
                         onClick={()=>{
                             const message = i  + "1";
-                            sendMessage("switch_states_update_" + boardlabel,message);
+                            sendMessage("update_" + boardlabel,message);
                         }}
                         disabled={!editable}
                     >
@@ -24,7 +24,7 @@ export const SwitchConfigure = ({boardlabel, switchStates, sendMessage, editable
                         type="radio" 
                         onClick={()=>{
                             const message = i + "0";
-                            sendMessage("switch_states_update_" + boardlabel,message);
+                            sendMessage("update_" + boardlabel,message);
                         }}
                         disabled={!editable}
                     >

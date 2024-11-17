@@ -1,3 +1,8 @@
 pyserial
 paho-mqtt
 npm 
+pyyaml
+fastapi
+uvicorn
+requests
+python-multipart

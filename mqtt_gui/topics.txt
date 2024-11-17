@@ -28,8 +28,11 @@ Board Data:
 
 Solenoid Control/States:
     Frontend sending updates to backend: 
-    switch_states_update_4
-    switch_states_update_5
+    "switch_states_update_4"
+    "switch_states_update_5"
     Backend sending current state: 
-    switch_states_status_4
-    switch_states_status_5
+    "switch_states_status_4"
+    "switch_states_status_5"
+    
+    Auto Ignition Topic:
+    "AUTO"

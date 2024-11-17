@@ -6,62 +6,109 @@ import { SwitchConfigure } from './components/SwitchConfigure';
 
 function App() {
   //const connectionurl = "ws://localhost:9002";
-  const connectionurl = "ws://169.254.32.191:9002"
+  const urllocal =  window.location.hostname; 
+  const connectionurl = `ws://${urllocal}:9002`
   const [client, setClient] = useState(null);
   const [connectStatus, setConnectStatus] = useState("Not Connected");
   const [isSub, setIsSub] = useState(false);
   const [arrangable, setArrangable] = useState(false);
   const [solenoidControl, setSolenoidControl] = useState(false);
+  const [ignite, setIgnite] = useState(false);
+  const [isAborting, setIsAborting] = useState(false);
 
-  const solenoidLabels = {
-    // "4": ['LOX DOME IN', 'LNG VENT NO', 'LNG MAIN NC', 'LOX MAIN NC', 'LOX VENT NO'],
-    // "5": ['LNG DOME IN ', 'LNG DOME OUT', '12V: NIL', '12V: NIL', 'LOX DOME OUT']
-    "4": ['0','1','2','3','4'],
-    "5": ['0','1','2','3','4']
-  };
-
-  const PTLabels = {
-    "log_data_1015": ['LOX INJ  1K (PSI)', 'LNG INJ  1K (PSI)', 'LNG COOL 1K (PSI)', 'IGN PREC 1K (PSI)'],
-    "log_data_1115": ['LNG DOME 2K (PSI)', 'LNG TANK 2K (PSI)', 'LOX TANK 1K (PSI)', 'LOX DOME 1K (PSI)']
-  };
-
-  const topics_list = [
-    "b1_log_data_1015",
-    "b1_log_data_1115",
-    "b1_log_data_TC",
-    "b2_log_data_1015",
-    "b2_log_data_1115",
-    "b2_log_data_TC",
-    "b3_log_data_1015",
-    "b3_log_data_1115",
-    "b3_log_data_TC"
-  ]
-
-  const [boardData, setBoardData] = useState({})
-
+  const [topicsList, setTopicsList] = useState([]);
+  const [labels, setLabels] = useState({});
+  const [boardConfig, setBoardConfig] = useState({});  // Store config here
+  const [boardData, setBoardData] = useState({});
   const [solenoidBoardsData, setSolenoidBoardsData] = useState({});
-  
+
+  // Fetch the config file dynamically
+  const fetchConfigData = async () => {
+    try {
+      const response = await fetch(`http://${urllocal}:8000/files/conversion_factor_config.json`);
+      const configData = await response.json();
+      setBoardConfig(configData);  // Store the full config
+      generateTopicsAndLabels(configData);
+    } catch (error) {
+      console.error('Error fetching config:', error);
+    }
+  };
+
+  // Generate topics and labels based on the config
+  const generateTopicsAndLabels = (configData) => {
+    const tempTopicsList = [];
+    const tempLabels = {};
+
+    Object.entries(configData).forEach(([boardKey, boardData]) => {
+      boardData.data.forEach((sensorGroup) => {
+        const topic = sensorGroup.topic;
+        const sensors = sensorGroup.sensors;
+
+        // Add topic to the list
+        tempTopicsList.push(topic);
+
+        // Store the labels for each sensor topic
+        tempLabels[topic] = sensors.map(sensor => sensor.title);
+      });
+    });
+
+    setTopicsList(tempTopicsList);
+    setLabels(tempLabels);
+  };
+
+  // Get min/max values dynamically from the config
+  const getMinMaxValues = (topic) => {
+    const boardNum = topic.match(/\d+/)[0];  // Extract board number
+    const boardConfigEntry = boardConfig[`B${boardNum}`];
+
+    if (boardConfigEntry) {
+      const sensorGroup = boardConfigEntry.data.find(group => group.topic === topic);
+      if (sensorGroup) {
+        const minValues = sensorGroup.sensors.map(sensor => sensor.min_value || 0);
+        const maxValues = sensorGroup.sensors.map(sensor => sensor.max_value || 1000);
+        return { minValues, maxValues };
+      }
+    }
+
+    return { minValues: [0], maxValues: [1000] };  // Default min/max
+  };
+
+  useEffect(() => {
+    // Fetch the config data when the component mounts
+    fetchConfigData();
+  }, []);
+
   const mqttSub = (topic) => {
     if (client) {
       client.subscribe(topic, (error) => {
         if (error) {
-          console.log("Subscribe to " + topic + " error", error)
-          return
+          console.log("Subscribe to " + topic + " error", error);
+          return;
         }
       });
     }
   };
 
   const sendMessage = (topic, message) => {
-    client.publish(topic,message,(error)=>{
+    client.publish(topic, message, (error) => {
       if (error) {
-        console.log("Publish to " + topic + " error", error)
-        return
+        console.log("Publish to " + topic + " error", error);
+        return;
       }
-    })
-  }
+    });
+  };
 
-  useEffect(()=> { 
+  const handleIgnitionClick = () => {
+    if (!ignite) {
+      sendMessage("AUTO", "IGNITE");
+      setIgnite(true);
+    } else {
+      sendMessage("AUTO", "ABORT");
+      setIsAborting(true);
+    }
+  };
+
+  useEffect(() => {
     const mqttConnect = (host, mqttOption) => {
       setConnectStatus('Connecting');
       setClient(mqtt.connect(host, mqttOption));
@@ -74,102 +121,138 @@ function App() {
       password: 'emqx_test',
     };
 
-    mqttConnect(connectionurl,initialConnectionOptions);
+    mqttConnect(connectionurl, initialConnectionOptions);
   }, []);
 
   useEffect(() => {
     if (client) {
       client.on('connect', () => {
         setConnectStatus('Connected');
-        topics_list.forEach((topic)=>{
+  
+        topicsList.forEach((topic) => {
           mqttSub(topic);
-        })
-        mqttSub("switch_states_status_4");
-        mqttSub("switch_states_status_5");
+        });
+  
+        mqttSub("AUTO");
         setIsSub(true);
       });
-
+  
       client.on('error', (err) => {
         console.error('Connection error: ', err);
         client.end();
       });
-
+  
       client.on('reconnect', () => {
         setConnectStatus('Lost connection, attempting to reconnect');
       });
-
+  
       client.on('message', (topic, message) => {
-        message = JSON.parse(String(message));
-        if (!isSub && topic === "topics_list") {
-          message.topics.forEach((subscription)=>{
-            mqttSub(subscription);
-          });
-          setIsSub(true);
+        let parsedMessage;
+        try {
+          parsedMessage = JSON.parse(message);
+        } catch (error) {
+          parsedMessage = message.toString();
         }
-        else if (topic === "switch_states_status_4") {
-          setSolenoidBoardsData((prev)=>{
-            const newSolenoidData = { ...prev };
-            newSolenoidData[4] = message.sensor_readings;
-            return newSolenoidData
-          });
+
+        // Ensure the topic contains a valid board number (e.g., skip "AUTO")
+        const boardNumMatch = topic.match(/\d+/);
+        if (!boardNumMatch) {
+          console.warn(`Invalid topic received: ${topic}, skipping processing.`);
+          return; // Skip if no board number is found
         }
-        else if (topic === "switch_states_status_5") {
-          setSolenoidBoardsData((prev)=>{
-            const newSolenoidData = { ...prev };
-            newSolenoidData[5] = message.sensor_readings; 
-            return newSolenoidData
-          });
-        }
-        else {
-          setBoardData((prev)=>{
-            return { ...prev, [topic]: message };
-          })
+        const boardNum = boardNumMatch[0];
+        const boardConfigEntry = boardConfig[`B${boardNum}`];
+        
+        if (boardConfigEntry) {
+          const isSolenoid = boardConfigEntry.data.some(group => group.sensor_type === 'solenoids');
+          if (isSolenoid) {
+            setSolenoidBoardsData((prev) => ({
+              ...prev,
+              [topic]: parsedMessage.sensor_readings
+            }));
+          } else {
+            setBoardData((prev) => ({
+              ...prev,
+              [topic]: parsedMessage
+            }));
+          }
         }
       });
     }
-  }, [client]);
+  }, [client, topicsList, boardConfig]);
 
   return (
     <div className="App">
       <div className="settings">
-        <p className="status">{connectStatus}</p>
-        <p className="status">Receiving data: {isSub ? "True" : "False"}</p>
-        <div className="min_max_settings">
-          <button onClick={()=>setArrangable(!arrangable)} className="status control_button"> {arrangable ? "Stop Arranging" : "Arrange Dials"} </button>
-          <button onClick={()=>setSolenoidControl(!solenoidControl)} className="status control_button"> {solenoidControl ? "Disable Buttons" : "Enable Buttons"} </button>
-        </div> 
+        <div className="two-column-layout">
+          <div className="left-column">
+            <p className="Auto:">Automation</p>
+            <div className="auto-ignition">
+              <button
+                onClick={handleIgnitionClick}
+                className={`auto-ignition-button ${!ignite ? "ignite" : "abort"}`}
+                disabled={isAborting | !solenoidControl}
+              >
+                {!ignite ? "IGNITE" : "ABORT"}
+              </button>
+            </div>
+          </div>
+
+          <div className="right-column">
+            <p className="status">{connectStatus}</p>
+            <p className="status">Receiving data: {isSub ? "True" : "False"}</p>
+
+            <div className="min_max_settings">
+              <button onClick={() => window.location.href = '/config'} className="status control_button">
+                Go to Config
+              </button>
+              <button onClick={() => window.location.href = '/autoconfig'} className="status control_button">
+                View Auto Flow
+              </button>
+              <button onClick={() => setArrangable(!arrangable)} className="status control_button">
+                {arrangable ? "Stop Arranging" : "Arrange Dials"}
+              </button>
+              <button onClick={() => setSolenoidControl(!solenoidControl)} className="status control_button">
+                {solenoidControl ? "Disable Buttons" : "Enable Buttons"}
+              </button>
+            </div>
+          </div>
+        </div>
+
         <div className='solenoid_cluster'>
-        {Object.entries(solenoidBoardsData).map(([key,value])=>{
-          return (
-            <div>
-              <h3 className="solenoid_board">Board {key}</h3>
-              <SwitchConfigure 
-                boardlabel={key}
+          {Object.entries(solenoidBoardsData).map(([topic, value]) => (
+            <div key={topic}>
+              <h3 className="solenoid_board">Board {topic}</h3>
+              <SwitchConfigure
+                boardlabel={topic}
                 switchStates={value}
                 sendMessage={sendMessage}
                 editable={solenoidControl}
-                solLabels={solenoidLabels} 
+                solLabels={labels[topic]}
               />
             </div>
-          )
-        })}
+          ))}
         </div>
       </div>
 
       <div className="board_cluster">
-        {Object.entries(boardData).map(([key,value])=>{
+        {Object.entries(boardData).map(([topic, value]) => {
+          const { minValues, maxValues } = getMinMaxValues(topic);  // Get min/max values for all sensors
           return (
-            <DialCluster 
-              label={"Board " + key[1] + " ADS " + key.substring(12)}
+            <DialCluster
+              key={topic}
+              label={"Board " + topic}
               data={value}
+              sensor_name={topic}
               arrangable={arrangable}
-              sensor_name={key.substring(3)}
-              psiLabels={PTLabels} 
+              psiLabels={labels[topic] || []}
+              minValues={minValues}  // Pass all min values for each sensor
+              maxValues={maxValues}  // Pass all max values for each sensor
             />
-          )
+          );
         })}
       </div>
-      <img src="../seds_logo.png" alt="SEDS Logo" className="logo"/>
+      <img src="../seds_logo.png" alt="SEDS Logo" className="logo" />
     </div>
   );
 }

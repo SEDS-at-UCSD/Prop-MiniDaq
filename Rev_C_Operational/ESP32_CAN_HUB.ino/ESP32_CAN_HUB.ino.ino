@@ -1,5 +1,4 @@
 #include <Wire.h>
-#include <ADS1X15.h>
 #include <ArduinoJson.h>
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
@@ -14,9 +13,12 @@ void transmitTask(void *pvParameters);
 void receiveTask(void *pvParameters);
 void commandTask(void *pvParameters);
 
-volatile int pinStatus[6][5] = {};
+volatile bool pinStatusUpdated[64] = {};
+volatile int pinStatus[64][5] = {};
 
-StaticJsonDocument<512> sensorData;
+StaticJsonDocument<512> sensorDataGlobal;
+
+SemaphoreHandle_t mutex_d; //dataserialize
 
 // CAN TWAI message to send
 twai_message_t txMessage;
@@ -47,6 +49,28 @@ String loopprint;
 
 int cycledelay = 2;
 
+// Define a queue to hold the JSON data
+QueueHandle_t jsonQueue;
+
+// Task for serializing and sending JSON data
+void serializeTask(void *pvParameters) {
+  StaticJsonDocument<512> sensorDataToSerialize;
+  while (1) {
+    // Wait for data to be placed into the queue
+    if (xQueueReceive(jsonQueue, &sensorDataToSerialize, portMAX_DELAY) == pdTRUE) {
+      // Serialize the JSON data and send it over Serial
+      xSemaphoreTake(mutex_d, portMAX_DELAY); 
+      size_t bytesWritten = serializeJson(sensorDataToSerialize, Serial);
+      Serial.println();  // Add newline after the serialized data
+      xSemaphoreGive(mutex_d); 
+      //Serial.println(bytesWritten); 
+    } else {
+      yield();
+      vTaskDelay(1);
+    }
+  }
+}
+
 
 void setup() {
   // Start the I2C interfaces
@@ -56,8 +80,14 @@ void setup() {
   pinMode(CAN_TX, OUTPUT);
   pinMode(CAN_RX, INPUT);
 
+  mutex_d = xSemaphoreCreateMutex(); 
+  if (mutex_d == NULL) { 
+  Serial.println("Mutex can not be created"); 
+  } 
+
+
   twai_general_config_t g_config = TWAI_GENERAL_CONFIG_DEFAULT((gpio_num_t)CAN_TX, (gpio_num_t)CAN_RX, TWAI_MODE_NORMAL);
-  twai_timing_config_t t_config = TWAI_TIMING_CONFIG_500KBITS();
+  twai_timing_config_t t_config = TWAI_TIMING_CONFIG_500KBITS(); //TWAI_TIMING_CONFIG_500KBITS();
   twai_filter_config_t f_config = TWAI_FILTER_CONFIG_ACCEPT_ALL();
 
   // Install and start the TWAI driver
@@ -88,7 +118,13 @@ void setup() {
   //xTaskCreatePinnedToCore(transmitTask, "Transmit Task", 4096, NULL, 1, &transmitTaskHandle, 0);
   // Create receive task
   xTaskCreatePinnedToCore(receiveTask, "Receive Task", 2048, NULL, 2, &receiveTaskHandle, 1);
-  xTaskCreatePinnedToCore(commandTask, "CommandTask", 4096, NULL, 1, NULL, 0);
+  xTaskCreatePinnedToCore(commandTask, "CommandTask", 2048, NULL, 1, NULL, 0);
+
+  // Create the queue for holding JSON data (can hold 10 items)
+  jsonQueue = xQueueCreate(6, sizeof(StaticJsonDocument<512>)); //3072
+
+  // Create the serialize task
+  xTaskCreatePinnedToCore(serializeTask, "Serialize Task", 4096, NULL, 2, NULL, 0);
 
   Serial.println("RTOS Tasks Created");
 }
@@ -122,8 +158,8 @@ void command2pin(char solboardIDnum, char command, char mode){
   txMessage_command.identifier = ID*0x10 + 0x0F;           // Solenoid Board WRITE COMMAND 0xIDf
   txMessage_command.flags = TWAI_MSG_FLAG_EXTD;  // Example flags (extended frame)
   txMessage_command.data_length_code = 8;        // Example data length (8 bytes)
-  txMessage_command.data[0] = 0xFF;              // Sol 0
-  txMessage_command.data[1] = 0xFF;              // Sol 1
+  txMessage_command.data[0] = 0xFF;              // Sol 0 //Be default, over CAN hex FF does not trigger valid response
+  txMessage_command.data[1] = 0xFF;              // Sol 1 //HOWEVER, String FXXX over serial may update frequency
   txMessage_command.data[2] = 0xFF;              // Sol 2
   txMessage_command.data[3] = 0xFF;              // Sol 3
   txMessage_command.data[4] = 0xFF;              // Sol 4
@@ -138,81 +174,100 @@ void command2pin(char solboardIDnum, char command, char mode){
   else if (command == '3') {statusPin = 3;}
   else if (command == '4') {statusPin = 4;}
 
+  xSemaphoreTake(mutex_d, portMAX_DELAY); 
   if (mode == '0') {
     pinStatus[ID][statusPin] = 0;
+    txMessage_command.data[statusPin] = 0;
   } else if (mode == '1') {
     pinStatus[ID][statusPin] = 1;
+    txMessage_command.data[statusPin] = 1;
   } else {
     Serial.println("Invalid mode");
   }
 
-  for (int i = 0; i < 5; i++){
-    txMessage_command.data[i] = pinStatus[ID][i];
-    /*
-    Serial.print("\t Pin ");
-    Serial.print(i);
-    Serial.print(":");
-    Serial.print(pinStatus[i]);
-    */
+  /*
+  if (pinStatusUpdated[ID]) {
+    for (int i = 0; i < 5; i++){
+      // supposed to keep track of pin, unneccessary. Also, weird bug rn
+      //txMessage_command.data[i] = pinStatus[ID][i];
+      
+      Serial.print("\t Pin ");
+      Serial.print(i);
+      Serial.print(":");
+      Serial.print(pinStatus[i]);
+      
+    }
+    
+
+    //Serial.println();
+
+    
   }
-
-  //Serial.println();
-
+  */
   twai_transmit(&txMessage_command, pdMS_TO_TICKS(1));
+  xSemaphoreGive(mutex_d); 
   //Serial.println("CAN sent");
     
 }
 
 
 void receiveTask(void *pvParameters) {
+  StaticJsonDocument<512> sensorData;
   static String receivedCANmessagetoprint;
   Serial.println("Starting receive task...");
-  delay(1000);
+  delay(1);
+
   while (1) {
     if (printCAN == 1) {
       twai_message_t rxMessage;
       esp_err_t receiveerror = twai_receive(&rxMessage, pdMS_TO_TICKS(50));
+
       if (receiveerror == ESP_OK) {
-        
-        if (String(rxMessage.identifier, HEX) == "41"){ //Check if Write Command issued at 0x41 (Current Status)
-        //char modes[2] = {'0','1'};
-          for (int i = 0; i < 5; i++){
-            pinStatus[4][i] = rxMessage.data[i];
+        // Copy rxMessage data at the start after ESP_OK
+        twai_message_t copiedMessage;
+        memcpy(&copiedMessage, &rxMessage, sizeof(twai_message_t));
+
+        xSemaphoreTake(mutex_d, portMAX_DELAY); 
+
+        // Prepare sensorData JSON
+        sensorData["BoardID"] = String(copiedMessage.identifier, HEX);
+        sensorData["SensorType"] = String((copiedMessage.identifier - 0x10 * (copiedMessage.identifier / 0x10)), HEX);
+        int id_local = copiedMessage.identifier/0x10;
+        //Serial.println(id_local);
+        for (int i = 0; i < copiedMessage.data_length_code; i++) {
+          sensorData["Sensors"][i] = copiedMessage.data[i];
+          if (id_local < 64){
+            pinStatus[id_local][i] = copiedMessage.data[i];
           }
         }
+        if (id_local < 64){
+          pinStatusUpdated[id_local] = true;
+        }
 
-        if (String(rxMessage.identifier, HEX) == "51"){ //Check if Write Command issued at 0x51 (Current Status)
-        //char modes[2] = {'0','1'};
-          for (int i = 0; i < 5; i++){
-            pinStatus[5][i] = rxMessage.data[i];
-          }
+        xSemaphoreGive(mutex_d); 
+        // Add the JSON document to the queue for serialization
+        if (xQueueSend(jsonQueue, &sensorData, portMAX_DELAY) != pdTRUE) {
+          Serial.println("Queue is full, data not sent to serialization task");
         }
         
-        sensorData["BoardID"] = String(rxMessage.identifier, HEX);
-        sensorData["SensorType"] =  String((rxMessage.identifier - 0x10*(rxMessage.identifier/0x10)), HEX);
-
-        //Print the received message
+        // Print the received message
         canTXRXcount[1] += 1;
         receivedCANmessagetoprint += "Total Can Received: ";
         receivedCANmessagetoprint += String(canTXRXcount[1]) + "\n";
         receivedCANmessagetoprint += "Received Message - ID: 0x";
-        receivedCANmessagetoprint += String(rxMessage.identifier, HEX);
+        receivedCANmessagetoprint += String(copiedMessage.identifier, HEX);
         receivedCANmessagetoprint += ", DLC: ";
-        receivedCANmessagetoprint += String(rxMessage.data_length_code);
+        receivedCANmessagetoprint += String(copiedMessage.data_length_code);
         receivedCANmessagetoprint += ", Data: ";
-        for (uint8_t i = 0; i < rxMessage.data_length_code; i++) {
-          receivedCANmessagetoprint += String(rxMessage.data[i], HEX);
+        for (uint8_t i = 0; i < copiedMessage.data_length_code; i++) {
+          receivedCANmessagetoprint += String(copiedMessage.data[i], HEX);
           receivedCANmessagetoprint += " ";
-          sensorData["Sensors"][i] = rxMessage.data[i];
         }
         receivedCANmessagetoprint += "\n";
-        /*if ((String(rxMessage.identifier, HEX) == "41")||(String(rxMessage.identifier, HEX) == "51")){
-          serializeJson(sensorData, Serial);
-          Serial.println();
-        }*/
-        serializeJson(sensorData, Serial);
-        Serial.println();
-        //Serial.println(receivedCANmessagetoprint);
+
+        // Serialize the sensorData JSON to Serial
+        //serializeJson(sensorData, Serial);
+        //Serial.println();
         receivedCANmessagetoprint = "";
       }
     }
@@ -238,7 +293,9 @@ void commandTask(void *pvParameters) {
         break;
       default:
         //Serial.println("Invalid command");
-        delay(10);
+        vTaskDelay(10 / portTICK_PERIOD_MS);
+      yield();
+      vTaskDelay(10);
     }
   }
 }
@@ -248,5 +305,5 @@ void loop() {
   static String loopmessagetoprint;
   yield();
   delay(1000);
-  Serial.println("CAN Reader Active");
+  //Serial.println("CAN Reader Active");
 }

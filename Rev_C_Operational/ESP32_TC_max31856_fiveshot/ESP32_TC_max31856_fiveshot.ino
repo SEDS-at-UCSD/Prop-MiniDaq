@@ -142,20 +142,86 @@ void loop() {
   sensorData["FPS"] = 1000.0/(timePassed);
   serializeJson(sensorData, Serial);
   Serial.println();
-  twai_transmit(&txMessage, pdMS_TO_TICKS(1));
+  esp_err_t canStatus = twai_transmit(&txMessage, pdMS_TO_TICKS(1));
+  if (canStatus != ESP_OK){
+    Serial.println(canStatus);
+    if (canStatus == ESP_ERR_INVALID_STATE){
+      Serial.println("INVALID STATE");
+      //esp_restart(); // Trigger software reset
+      twai_stop();
+      twai_driver_uninstall();
+      delay(10);
+      twai_general_config_t g_config = TWAI_GENERAL_CONFIG_DEFAULT((gpio_num_t)CAN_TX, (gpio_num_t)CAN_RX, TWAI_MODE_NORMAL);
+      twai_timing_config_t t_config = TWAI_TIMING_CONFIG_500KBITS(); //TWAI_TIMING_CONFIG_500KBITS();
+      twai_filter_config_t f_config = TWAI_FILTER_CONFIG_ACCEPT_ALL();
+      twai_driver_install(&g_config, &t_config, &f_config);
+      twai_start();
+      delay(1);
+    }
+  }
   //Serial.print("\t FPS: "); //Serial.println(1000.0/(timePassed),3);
 }
 
+#include <stdint.h>
+#include <math.h>
+
 uint16_t floatToIEEE754(float value) {
-  uint32_t intValue = *(uint32_t*)&value; // Interpret the float as an unsigned 32-bit integer
+    uint32_t intValue = *(uint32_t*)&value; // Interpret the float as an unsigned 32-bit integer
 
-  // Extract the sign, exponent, and mantissa from the 32-bit integer
-  uint16_t sign = (intValue >> 31) & 0x1;
-  uint16_t exponent = ((intValue >> 23) & 0xFF) - 127;
-  uint16_t mantissa = (intValue & 0x7FFFFF) >> 16;
+    uint16_t sign = (intValue >> 31) & 0x1; // Extract the sign (1 bit)
+    int16_t exponent = ((intValue >> 23) & 0xFF) - 127; // Extract and unbias the exponent (8 bits)
+    uint32_t mantissa = intValue & 0x7FFFFF; // Extract the mantissa (23 bits)
 
-  // Combine the sign, exponent, and mantissa into a 16-bit IEEE 754 representation
-  uint16_t ieee754Value = (sign << 15) | ((exponent + 15) << 10) | mantissa;
+    // Handle special cases
+    if (exponent == 128) { // NaN or Infinity
+        if (mantissa != 0) {
+            // NaN
+            return (sign << 15) | 0x7E00; // Set exponent to all 1s, mantissa non-zero
+        } else {
+            // Infinity
+            return (sign << 15) | 0x7C00; // Set exponent to all 1s, mantissa zero
+        }
+    } else if (exponent == -127) { // Zero or Denormals
+        if (mantissa == 0) {
+            // Zero
+            return (sign << 15); // Sign bit only, everything else is zero
+        } else {
+            // Handle denormals by right-shifting the mantissa and fitting into 10 bits
+            while ((mantissa & 0x400000) == 0) { // Normalize mantissa
+                mantissa <<= 1;
+                exponent--;
+            }
+            exponent++;
+            mantissa &= 0x7FFFFF; // Clear the implicit 1 bit
+        }
+    }
 
-  return ieee754Value;
+    // Adjust exponent from single precision to half precision
+    exponent += 15; // Add half-precision bias (15) to the unbiased exponent
+
+    // Handle overflow or underflow in the exponent
+    if (exponent >= 31) {
+        // Overflow, return infinity
+        return (sign << 15) | 0x7C00;
+    } else if (exponent <= 0) {
+        // Underflow, return denormals or zero
+        if (exponent < -10) {
+            // Too small, return zero
+            return (sign << 15);
+        }
+        // Denormalized number (shift mantissa appropriately)
+        mantissa = (mantissa | 0x800000) >> (1 - exponent);
+        exponent = 0;
+    }
+
+    // Shift mantissa to fit in 10 bits (with rounding)
+    uint16_t mantissa_16 = mantissa >> 13;
+    if ((mantissa & 0x1000) != 0) { // Check for rounding
+        mantissa_16++; // Round up if needed
+    }
+
+    // Combine sign, exponent, and mantissa into 16-bit half-precision float
+    uint16_t ieee754Value = (sign << 15) | (exponent << 10) | (mantissa_16 & 0x3FF);
+
+    return ieee754Value;
 }
