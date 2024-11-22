@@ -6,19 +6,19 @@
         "sensors": [
           {
             "type": "Solenoid",
-            "title": "0"
+            "title": "D0 HLY-N2-COPV"
           },
           {
             "type": "Solenoid",
-            "title": "1"
+            "title": "D1 HLY-LOX-VENT"
           },
           {
             "type": "Solenoid",
-            "title": "2"
+            "title": "D2 HLY-LNG-VENT"
           },
           {
             "type": "Solenoid",
-            "title": "3"
+            "title": "4"
           }          
         ],
         "topic": "b1_switch_states_status"
@@ -32,19 +32,19 @@
         "sensors": [
           {
             "type": "Solenoid",
-            "title": "0"
+            "title": "C0 HLY-MV-LOX"
           },
           {
             "type": "Solenoid",
-            "title": "1"
+            "title": "C1 HLY-MV-LNG"
           },
           {
             "type": "Solenoid",
-            "title": "2"
+            "title": "C2 HLY-IGNITER-LOX"
           },
           {
             "type": "Solenoid",
-            "title": "3"
+            "title": "C3 HLY-IGNITER-LNG"
           }
         ],
         "topic": "b2_switch_states_status"
@@ -224,23 +224,23 @@
         "sensors": [
           {
             "type": "Solenoid",
-            "title": "0"
+            "title": "B0 GSE-PRECHILL-LNG"
           },
           {
             "type": "Solenoid",
-            "title": "1"
+            "title": "B1 GSE-PRECHILL-LOX"
           },
           {
             "type": "Solenoid",
-            "title": "2"
+            "title": "B2 GSE-LOX-FILL"
           },
           {
             "type": "Solenoid",
-            "title": "3"
+            "title": "B3 GSE-DRAIN-LOX"
           },
           {
             "type": "Solenoid",
-            "title": "4"
+            "title": "B4 GSE-DRAIN-LNG"
           }
         ],
         "topic": "b11_switch_states_status"
@@ -254,23 +254,23 @@
         "sensors": [
           {
             "type": "Solenoid",
-            "title": "0"
+            "title": "A0 GSE-LOX-DOME"
           },
           {
             "type": "Solenoid",
-            "title": "1"
+            "title": "A1 GSE-LNG-DOME"
           },
           {
             "type": "Solenoid",
-            "title": "2"
+            "title": "A2 GSE-HI-VENT"
           },
           {
             "type": "Solenoid",
-            "title": "3"
+            "title": "A3 GSE-HI"
           },
           {
             "type": "Solenoid",
-            "title": "4"
+            "title": "A4 GSE-LNG-FILL"
           }
         ],
         "topic": "b12_switch_states_status"
