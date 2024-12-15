@@ -337,6 +337,8 @@ class Board_DAQ():
                 print(e)
 
     def read_serial_and_log_high_freq(self):
+        decode_fail_count = 0  # Track consecutive decoding failures
+        max_decode_failures = 20  # Threshold for resetting the serial port on json failures
         while True:
             if reload_flag.is_set():
                 print("Reload flag set. Reloading configurations...")
@@ -348,7 +350,7 @@ class Board_DAQ():
                 reload_flag.clear()
             try:
                 data = ports[self.port_index].readline().decode('utf-8').strip()
-                #print(data)
+                print(data)
                 data_dict = json.loads(data)
                 #print(data_dict)
                 # Extract the board ID, skip if invalid hex or key is missing
@@ -540,6 +542,45 @@ class Board_DAQ():
                     open_serial_ports()
                 else:
                     print(f"Serial read error: {e}")
+                # Close the problematic port
+                try:
+                    ports[self.port_index].close()
+                    print(f"Closed port {ports[self.port_index].port} due to an error.")
+                except Exception as close_error:
+                    print(f"Error while closing port {ports[self.port_index].port}: {close_error}")
+
+                # Reopen the port
+                try:
+                    port_info = ports[self.port_index].port  # Retrieve the port name
+                    ports[self.port_index] = serial.Serial(port_info, 921600)
+                    print(f"Reopened port {port_info}.")
+                except Exception as reopen_error:
+                    print(f"Failed to reopen port {port_info}: {reopen_error}. Retrying in 1 second...")
+                    time.sleep(1)  # Wait before retrying
+            except json.JSONDecodeError as e:
+                print(f"JSON decode error: {e}. Possible buffer corruption.")
+                decode_fail_count += 1
+                
+                # Reset the port if decoding failures persist
+                if decode_fail_count >= max_decode_failures:
+                    decode_fail_count = 0
+                    ports[self.port_index].reset_input_buffer()
+                    # Close the problematic port
+                    try:
+                        ports[self.port_index].close()
+                        print(f"Closed port {ports[self.port_index].port} due to an error.")
+                    except Exception as close_error:
+                        print(f"Error while closing port {ports[self.port_index].port}: {close_error}")
+
+                    # Reopen the port
+                    try:
+                        port_info = ports[self.port_index].port  # Retrieve the port name
+                        ports[self.port_index] = serial.Serial(port_info, 921600)
+                        print(f"Reopened port {port_info}.")
+                    except Exception as reopen_error:
+                        print(f"Failed to reopen port {port_info}: {reopen_error}. Retrying in 1 second...")
+                        time.sleep(1)  # Wait before retrying
+                    
             except Exception as e:
                 print(f"Serial read error: {e}")
                 print(f"Exception type: {type(e)}")
