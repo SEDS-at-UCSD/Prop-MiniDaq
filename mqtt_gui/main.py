@@ -211,15 +211,15 @@ gui_log_file = open('gui_serial.txt', 'w')
 
 # Mapped to boards
 raw_log_file = open('raw_serial_log.txt', 'a')
-raw_log_file_2 = open('raw_serial_log_2.txt', 'a')
+"""raw_log_file_2 = open('raw_serial_log_2.txt', 'a')
 raw_log_file_3 = open('raw_serial_log_3.txt', 'a')
 raw_log_file_4 = open('raw_serial_log_4.txt', 'a')
 raw_log_file_5 = open('raw_serial_log_5.txt', 'a')
-raw_log_file_6 = open('raw_serial_log_6.txt', 'a')
+raw_log_file_6 = open('raw_serial_log_6.txt', 'a')"""
 
 
 # Switch Case Dicts
-board_to_log_file_dict = {"Board 1": raw_log_file, "Board 2": raw_log_file_2, "Board 3": raw_log_file_3, "Board 4": raw_log_file_4, "Board 5": raw_log_file_5, "Board 6": raw_log_file_6}
+#board_to_log_file_dict = {"Board 1": raw_log_file, "Board 2": raw_log_file_2, "Board 3": raw_log_file_3, "Board 4": raw_log_file_4, "Board 5": raw_log_file_5, "Board 6": raw_log_file_6}
 b_to_solenoid_status_topic_dict = {"Board 4": 'switch_states_status_4', "Board 5": 'switch_states_status_5', "Board 6": 'switch_states_status_6'}
 
 number_to_sensor_type = {"0": "Boot", "1": "ADS1015", "2": "ADS1115", "3": "TC", "4": "ADS1256"}
@@ -390,7 +390,8 @@ class Board_DAQ():
                 Board_ID_worded = "Board " +  Board_ID
                 sensor_type = data_dict['SensorType'] 
 
-                file_to_write = board_to_log_file_dict[Board_ID_worded]                
+                file_to_write = raw_log_file
+                #board_to_log_file_dict[Board_ID_worded]                
                 
                 data_formatted = (
                     str(datetime.now())[11:] 
