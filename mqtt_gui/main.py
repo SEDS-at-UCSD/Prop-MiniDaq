@@ -536,8 +536,8 @@ class Board_DAQ():
             
             except serial.SerialException as e:
                 if "Device not configured" in str(e):
-                    print(f"Serial read error: {e}. Retrying in 1 seconds...")
-                    time.sleep(1)
+                    print(f"Serial read error: {e}. Retrying in 0.5 seconds...")
+                    time.sleep(0.5)
                 else:
                     print(f"Serial read error: {e}")
                 # Close the problematic port
@@ -562,6 +562,21 @@ class Board_DAQ():
                 # Reset the port if decoding failures persist
                 if decode_fail_count >= max_decode_failures:
                     ports[self.port_index].reset_input_buffer()
+                    # Close the problematic port
+                    try:
+                        ports[self.port_index].close()
+                        print(f"Closed port {ports[self.port_index].port} due to an error.")
+                    except Exception as close_error:
+                        print(f"Error while closing port {ports[self.port_index].port}: {close_error}")
+
+                    # Reopen the port
+                    try:
+                        port_info = ports[self.port_index].port  # Retrieve the port name
+                        ports[self.port_index] = serial.Serial(port_info, 921600)
+                        print(f"Reopened port {port_info}.")
+                    except Exception as reopen_error:
+                        print(f"Failed to reopen port {port_info}: {reopen_error}. Retrying in 1 second...")
+                        time.sleep(1)  # Wait before retrying
                     
             except Exception as e:
                 print(f"Serial read error: {e}")
