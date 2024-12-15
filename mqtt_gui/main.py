@@ -561,6 +561,7 @@ class Board_DAQ():
                 
                 # Reset the port if decoding failures persist
                 if decode_fail_count >= max_decode_failures:
+                    decode_fail_count = 0
                     ports[self.port_index].reset_input_buffer()
                     # Close the problematic port
                     try:
