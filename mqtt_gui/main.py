@@ -184,7 +184,7 @@ def open_serial_ports():
     if system == "Darwin":  # macOS
         port_list = ['/dev/cu.usbserial-0001', '/dev/cu.usbserial-3', '/dev/cu.usbserial-4', '/dev/cu.usbmodem56292564361', '/dev/cu.usbmodem56292564362']  # Example ports
     elif system == "Windows":
-        port_list = ['COM6', 'COM5', 'COM4']  # Example ports
+        port_list = ['COM6', 'COM5', 'COM4', 'COM3']  # Example ports
     elif system == "Linux":
         port_list = ['/dev/ttyUSB0', '/dev/ttyUSB1', '/dev/ttyUSB2']  # Example ports
 
@@ -195,7 +195,7 @@ def open_serial_ports():
         try:
             for available_port in available_ports:
                 if available_port.device == port_info:
-                    ports[i] = serial.Serial(port_info, 921600)
+                    ports[i] = serial.Serial(port_info, 921600,timeout=0.1)
                     ports[i].set_buffer_size(rx_size=4096, tx_size=4096)
                     print(f"Opened port: {port_info}")
                     break  # Stop checking after opening the port
@@ -580,6 +580,7 @@ class Board_DAQ():
                     except Exception as reopen_error:
                         print(f"Failed to reopen port {port_info}: {reopen_error}. Retrying in 1 second...")
                         time.sleep(1)  # Wait before retrying
+                    
                     
             except Exception as e:
                 print(f"Serial read error: {e}")
