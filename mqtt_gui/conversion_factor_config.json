@@ -42,11 +42,11 @@
             "title": "FUEL TANK 1K (PSI)"
           },
           {
-            "min_reading": 0,
+            "min_reading": "1",
             "max_reading": 5,
-            "min_value": 0,
-            "max_value": 1000,
-            "title": "OX TANK 1K (PSI)"
+            "min_value": "-15",
+            "max_value": "3000",
+            "title": "MSH MANIFOLD 1K (PSI)"
           },
           {
             "min_reading": 0,
@@ -69,32 +69,32 @@
         "sensor_type": "ADS1115",
         "sensors": [
           {
-            "min_reading": 1,
+            "min_reading": "0",
             "max_reading": 5,
             "min_value": 0,
             "max_value": 1000,
-            "title": "CHAMBER 1K (PSI)"
+            "title": "VENTURI BIG D 1K (PSI)"
           },
           {
-            "min_reading": 1,
+            "min_reading": "0",
             "max_reading": 5,
             "min_value": 0,
-            "max_value": 2000,
-            "title": "FUEL MANIFOLD 1K (PSI)"
+            "max_value": "1000",
+            "title": "VENTURI SMALL D 1K (PSI)"
           },
           {
-            "min_reading": 1,
+            "min_reading": "0",
             "max_reading": 5,
             "min_value": 0,
-            "max_value": 3000,
-            "title": "OX MANIFOLD 3K (PSI)"
+            "max_value": "2000",
+            "title": "VENTURI INLET 2K (PSI)"
           },
           {
             "min_reading": 0,
             "max_reading": 5,
             "min_value": 0,
-            "max_value": 1000,
-            "title": "OX FLOWRATE 32.5 (GPM)"
+            "max_value": "1000",
+            "title": "VENTURI OUTLET 1K (PSI)"
           }
         ],
         "topic": "b2_log_data_1115"
@@ -137,74 +137,6 @@
   },
   "B3": {
     "data": [
-      {
-        "sensor_type": "ADS1015",
-        "sensors": [
-          {
-            "min_reading": 0,
-            "max_reading": 5,
-            "min_value": 0,
-            "max_value": 1000,
-            "title": "FUEL TANK 1K (PSI)"
-          },
-          {
-            "min_reading": 0,
-            "max_reading": 5,
-            "min_value": 0,
-            "max_value": 1000,
-            "title": "OX TANK 1K (PSI)"
-          },
-          {
-            "min_reading": 0,
-            "max_reading": 5,
-            "min_value": 0,
-            "max_value": 1000,
-            "title": "FUEL DOME 1K (PSI)"
-          },
-          {
-            "min_reading": 0,
-            "max_reading": 5,
-            "min_value": 0,
-            "max_value": 1000,
-            "title": "OX DOME 1K (PSI)"
-          }
-        ],
-        "topic": "b3_log_data_1015"
-      },
-      {
-        "sensor_type": "ADS1115",
-        "sensors": [
-          {
-            "min_reading": "0",
-            "max_reading": 5,
-            "min_value": 0,
-            "max_value": "5000",
-            "title": "mV"
-          },
-          {
-            "min_reading": "0",
-            "max_reading": 5,
-            "min_value": 0,
-            "max_value": "5000",
-            "title": "mV"
-          },
-          {
-            "min_reading": 1,
-            "max_reading": 5,
-            "min_value": "4",
-            "max_value": "20",
-            "title": "mA"
-          },
-          {
-            "min_reading": 0,
-            "max_reading": 5,
-            "min_value": "4",
-            "max_value": "20",
-            "title": "mA"
-          }
-        ],
-        "topic": "b3_log_data_1115"
-      },
       {
         "sensor_type": "ADS1256",
         "sensors": [
@@ -324,6 +256,122 @@
           }
         ],
         "topic": "b6_switch_states_status"
+      }
+    ]
+  },
+  "B7": {
+    "data": [
+      {
+        "sensor_type": "ADS1256",
+        "sensors": [
+          {
+            "min_reading": "0",
+            "max_reading": 5,
+            "min_value": 0,
+            "max_value": "5000",
+            "title": "mV"
+          },
+          {
+            "min_reading": "0",
+            "max_reading": 5,
+            "min_value": 0,
+            "max_value": "5000",
+            "title": "mV"
+          },
+          {
+            "min_reading": 1,
+            "max_reading": 5,
+            "min_value": "4",
+            "max_value": "20",
+            "title": "mA"
+          },
+          {
+            "min_reading": "1",
+            "max_reading": 5,
+            "min_value": "4",
+            "max_value": "20",
+            "title": "mA"
+          }
+        ],
+        "topic": "b7_log_data_1256"
+      }
+    ]
+  },
+  "B8": {
+    "data": [
+      {
+        "sensor_type": "solenoids",
+        "sensors": [
+          {
+            "type": "Solenoid",
+            "title": "0"
+          },
+          {
+            "type": "Solenoid",
+            "title": "1"
+          },
+          {
+            "type": "Solenoid",
+            "title": "2"
+          },
+          {
+            "type": "Solenoid",
+            "title": "3"
+          }
+        ],
+        "topic": "b8_switch_states_status"
+      }
+    ]
+  },
+  "B9": {
+    "data": [
+      {
+        "sensor_type": "solenoids",
+        "sensors": [
+          {
+            "type": "Solenoid",
+            "title": "0"
+          },
+          {
+            "type": "Solenoid",
+            "title": "1"
+          },
+          {
+            "type": "Solenoid",
+            "title": "2"
+          },
+          {
+            "type": "Solenoid",
+            "title": "3"
+          }
+        ],
+        "topic": "b9_switch_states_status"
+      }
+    ]
+  },
+  "B10": {
+    "data": [
+      {
+        "sensor_type": "solenoids",
+        "sensors": [
+          {
+            "type": "Solenoid",
+            "title": "0"
+          },
+          {
+            "type": "Solenoid",
+            "title": "1"
+          },
+          {
+            "type": "Solenoid",
+            "title": "2"
+          },
+          {
+            "type": "Solenoid",
+            "title": "3"
+          }
+        ],
+        "topic": "b10_switch_states_status"
       }
     ]
   }
