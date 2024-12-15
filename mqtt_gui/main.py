@@ -349,192 +349,198 @@ class Board_DAQ():
                 # Clear the flag after reloading
                 reload_flag.clear()
             try:
-                data = ports[self.port_index].readline().decode('utf-8').strip()
+                data_arr = []
+                for i in range(10):
+                    data = ports[self.port_index].readline().decode('utf-8').strip()
+                    data_arr.append(data)
+
                 print(data)
-                data_dict = json.loads(data)
-                #print(data_dict)
-                # Extract the board ID, skip if invalid hex or key is missing
-                try:
-                    extractdata = data_dict.get("BoardID", "")
-                    board_id = extract_board_id(extractdata)
-                    if board_id is None:
-                        continue
 
-                    # Process sensor data, skip if there's an error
-                    sensor_type, sensors = process_data(data_dict)
-                    if sensor_type is None or sensors is None:
-                        continue
+                for data in data_arr:
+                    data_dict = json.loads(data)
+                    #print(data_dict)
+                    # Extract the board ID, skip if invalid hex or key is missing
+                    try:
+                        extractdata = data_dict.get("BoardID", "")
+                        board_id = extract_board_id(extractdata)
+                        if board_id is None:
+                            continue
 
-                    # Update count of sensor types for this specific board ID
-                    boards_data[board_id][sensor_type] += 1
-                    
-                    # Check if interval has passed
-                    current_time = time.time()
-                    if True: #printing frequencies
-                        if current_time - self.last_time >= interval:
-                            print(f"\nData summary for the past {interval} second(s):")
+                        # Process sensor data, skip if there's an error
+                        sensor_type, sensors = process_data(data_dict)
+                        if sensor_type is None or sensors is None:
+                            continue
 
-                            # Print data for each board ID
-                            for board, sensor_data in boards_data.items():
-                                print(f"\nBoard ID: {board}")
-                                print("Sensor Type Frequencies (per second):")
-                                for stype, count in sensor_data.items():
-                                    print(f"  Sensor Type {stype}: {count / interval} Hz")
-                            
-                            # Reset counts and timer
-                            boards_data.clear()
-                            self.last_time = current_time
-                except AttributeError as e:
-                    print(e)
-                    continue
-
-                # processing starts:
-                Board_ID = data_dict['BoardID'][0]
-                Board_ID_worded = "Board " +  Board_ID
-                sensor_type = data_dict['SensorType'] 
-
-                file_to_write = board_to_log_file_dict[Board_ID_worded]                
-                
-                data_formatted = (
-                    str(datetime.now())[11:] 
-                    + " "
-                    + str(Board_ID_worded)
-                    + "  "
-                    + str(number_to_sensor_type[sensor_type])
-                    + "  ")
-
-                # SOLENOID BOARDS 
-                if int(Board_ID) in SWITCH_BOARD_RANGE:
-                    raw_byte_array = data_dict['Sensors']
-                    publish_array = raw_byte_array[0:5]
-                    publish_json_dict = {"time": str(datetime.now())[11:22], "sensor_readings": publish_array}
-                    publish_json = json.dumps(publish_json_dict)
-                    #print(Board_ID + " " + publish_json)
-
-                    
-                    if int(Board_ID) in SWITCH_BOARD_RANGE:  # Check if the board is in the defined switch range
-                        #print(Board_ID)
-                        board_key = f"B{Board_ID}"
-                        #print(board_key)
-                        #print(conv_configs[board_key]["data"])
-
-                        # Since conv_configs[board_key]["data"] is a list, we need to loop through the items
-                        for sensor_data in conv_configs[board_key]["data"]:
-                            # Find the sensor type and topic
-                            topic = sensor_data.get("topic", "")
-                            if topic:
-                               #print(topic)
-                                self.publish_dict[topic] = publish_json
-
-                    
-                    file_to_write.write(publish_json + "\n")
-                    file_to_write.flush()  
-
-                    
-                # DAQ BOARDS
-                elif (int(Board_ID) in ANAL_BOARD_RANGE):        
-                    raw_byte_array = data_dict['Sensors']
-                    converted_array = np.array([],dtype=np.uint16)
-
-                    
-                    if (data_dict['SensorType']  == "3"):
-                        for i in range(0, len(raw_byte_array), 2):
-                            #print(raw_byte_array[i],raw_byte_array[i+1])
-                            value_to_append = np.uint16(0)
-                            value_to_append += np.uint16(raw_byte_array[i])*np.uint16(256) + np.uint16(raw_byte_array[i+1])
-                            #value_to_append = float(np.array(np.uint16(value_to_append)).astype(np.float16))
-                            converted_array = np.append(converted_array,value_to_append)
-                        converted_array = converted_array.view(np.float16)
-                        for i in range(len(converted_array)):     
-                            if (np.isnan(converted_array[i])):
-                                converted_array[i] = 0
-                    elif (data_dict['SensorType']  == "4"):
-                        for i in range(0, len(raw_byte_array), 2):
-                            value_to_append = np.uint16(0)
-                            value_to_append += np.uint16(raw_byte_array[i])*np.uint16(256) + np.uint16(raw_byte_array[i+1])
-                            #value_to_append += raw_byte_array[i]*256 + raw_byte_array[i+1]
-                            #value_to_append = float(np.array(np.uint16(value_to_append)).astype(np.int16))
-                            converted_array = np.append(converted_array,value_to_append)
-                        converted_array = converted_array.view(np.int16) #UINT 16
-                        for i in range(len(converted_array)):     
-                            converted_array[i] *= 1.00 #ADS PGA voltage 5.0 max range / 0-5V operational range 
-                    else:
-                        for i in range(0, len(raw_byte_array), 2):
-                            value_to_append = np.uint16(0)
-                            value_to_append += np.uint16(raw_byte_array[i])*np.uint16(256) + np.uint16(raw_byte_array[i+1])
-                            #value_to_append += raw_byte_array[i]*256 + raw_byte_array[i+1]
-                            #value_to_append = float(np.array(np.uint16(value_to_append)).astype(np.int16))
-                            converted_array = np.append(converted_array,value_to_append)
-                        converted_array = converted_array.view(np.int16)
-                        for i in range(len(converted_array)):     
-                            converted_array[i] *= 6.144/5 #ADS PGA voltage 6.144V max range / 0-5V operational range
-            
-                    converted_array = converted_array.tolist() #here inherent max range 32768 = 5V
-                    #print(converted_array)
-                    data_formatted += "V: "
-                    for i in range(len(converted_array)):
-                        data_formatted += str(converted_array[i]) + " "
-
-                    #print(converted_array)
-                    conversion_factor_V = bit_to_V_factor[sensor_type]
-                    for i in range(len(converted_array)):
-                        converted_array[i] /= conversion_factor_V
-
-                    #print(converted_array)
-                    #CONFIG CONVERSIONS
-                    
-                    # CONFIG CONVERSIONS
-                    final_values = []
-                    int_sensor_type = int(sensor_type)
-
-                    # Example block where sensor data processing happens
-                    for i in range(len(converted_array)):
-                        if (data_dict['SensorType']  == "3"):
-                            converted_value = converted_array[i] 
-                        else:
-                            # Fetch min/max values dynamically from config
-                            if int_sensor_type:  # ADS1015
-                                sensor_range = board_id_to_ranges[str(board_id)][number_to_sensor_type[sensor_type]][i]
-                            else:
-                                continue  # Skip if neither ADS1015 nor ADS1115
-
-                            # Perform dynamic conversion using the min/max values and readings
-                            min_reading = float(sensor_range["min_reading"])
-                            max_reading = float(sensor_range["max_reading"])
-                            min_value = float(sensor_range["min_value"])
-                            max_value = float(sensor_range["max_value"])
-
-                            # Apply conversion formula for 5.0V
-                            converted_value = ((5.0*converted_array[i] - min_reading) / (max_reading - min_reading)) * (max_value - min_value) + min_value
-                        final_values.append(round(converted_value, 2))  # Append converted value to final list
-
-
-                    data_formatted += "Converted: "
-                    for i in range(len(final_values)):
-                        data_formatted += str(final_values[i]) + " "
-
-                    data_formatted += "\n"
-
-                    file_to_write.write(data_formatted)
-                    file_to_write.flush()  
-
-                    
-                    # PUBLISH 
-                    publish_json_dict = {"time": str(datetime.now())[11:22], "sensor_readings": final_values}
-                    publish_json = json.dumps(publish_json_dict)
-                    board_key = f"B{board_id}"
-
-                    # Get the relevant sensor type for this board (e.g., ADS1015, ADS1115)
-                    for sensor_config in conv_configs[board_key]["data"]:
-                        sensor_config_type = sensor_config.get("sensor_type")
+                        # Update count of sensor types for this specific board ID
+                        boards_data[board_id][sensor_type] += 1
                         
-                        # Check the sensor type (it could be ADS1015, ADS1115, or others)
-                        #print(sensor_config_type,number_to_sensor_type[sensor_type])
-                        if sensor_config_type == number_to_sensor_type[sensor_type]:
-                            topic = sensor_config["topic"]  
-                            self.publish_dict[topic] = publish_json
-                            #print(f"Published data to topic {topic}")
-            
+                        # Check if interval has passed
+                        current_time = time.time()
+                        if True: #printing frequencies
+                            if current_time - self.last_time >= interval:
+                                print(f"\nData summary for the past {interval} second(s):")
+
+                                # Print data for each board ID
+                                for board, sensor_data in boards_data.items():
+                                    print(f"\nBoard ID: {board}")
+                                    print("Sensor Type Frequencies (per second):")
+                                    for stype, count in sensor_data.items():
+                                        print(f"  Sensor Type {stype}: {count / interval} Hz")
+                                
+                                # Reset counts and timer
+                                boards_data.clear()
+                                self.last_time = current_time
+                    except AttributeError as e:
+                        print(e)
+                        continue
+
+                    # processing starts:
+                    Board_ID = data_dict['BoardID'][0]
+                    Board_ID_worded = "Board " +  Board_ID
+                    sensor_type = data_dict['SensorType'] 
+
+                    file_to_write = board_to_log_file_dict[Board_ID_worded]                
+                    
+                    data_formatted = (
+                        str(datetime.now())[11:] 
+                        + " "
+                        + str(Board_ID_worded)
+                        + "  "
+                        + str(number_to_sensor_type[sensor_type])
+                        + "  ")
+
+                    # SOLENOID BOARDS 
+                    if int(Board_ID) in SWITCH_BOARD_RANGE:
+                        raw_byte_array = data_dict['Sensors']
+                        publish_array = raw_byte_array[0:5]
+                        publish_json_dict = {"time": str(datetime.now())[11:22], "sensor_readings": publish_array}
+                        publish_json = json.dumps(publish_json_dict)
+                        #print(Board_ID + " " + publish_json)
+
+                        
+                        if int(Board_ID) in SWITCH_BOARD_RANGE:  # Check if the board is in the defined switch range
+                            #print(Board_ID)
+                            board_key = f"B{Board_ID}"
+                            #print(board_key)
+                            #print(conv_configs[board_key]["data"])
+
+                            # Since conv_configs[board_key]["data"] is a list, we need to loop through the items
+                            for sensor_data in conv_configs[board_key]["data"]:
+                                # Find the sensor type and topic
+                                topic = sensor_data.get("topic", "")
+                                if topic:
+                                #print(topic)
+                                    self.publish_dict[topic] = publish_json
+
+                        
+                        file_to_write.write(publish_json + "\n")
+                        file_to_write.flush()  
+
+                        
+                    # DAQ BOARDS
+                    elif (int(Board_ID) in ANAL_BOARD_RANGE):        
+                        raw_byte_array = data_dict['Sensors']
+                        converted_array = np.array([],dtype=np.uint16)
+
+                        
+                        if (data_dict['SensorType']  == "3"):
+                            for i in range(0, len(raw_byte_array), 2):
+                                #print(raw_byte_array[i],raw_byte_array[i+1])
+                                value_to_append = np.uint16(0)
+                                value_to_append += np.uint16(raw_byte_array[i])*np.uint16(256) + np.uint16(raw_byte_array[i+1])
+                                #value_to_append = float(np.array(np.uint16(value_to_append)).astype(np.float16))
+                                converted_array = np.append(converted_array,value_to_append)
+                            converted_array = converted_array.view(np.float16)
+                            for i in range(len(converted_array)):     
+                                if (np.isnan(converted_array[i])):
+                                    converted_array[i] = 0
+                        elif (data_dict['SensorType']  == "4"):
+                            for i in range(0, len(raw_byte_array), 2):
+                                value_to_append = np.uint16(0)
+                                value_to_append += np.uint16(raw_byte_array[i])*np.uint16(256) + np.uint16(raw_byte_array[i+1])
+                                #value_to_append += raw_byte_array[i]*256 + raw_byte_array[i+1]
+                                #value_to_append = float(np.array(np.uint16(value_to_append)).astype(np.int16))
+                                converted_array = np.append(converted_array,value_to_append)
+                            converted_array = converted_array.view(np.int16) #UINT 16
+                            for i in range(len(converted_array)):     
+                                converted_array[i] *= 1.00 #ADS PGA voltage 5.0 max range / 0-5V operational range 
+                        else:
+                            for i in range(0, len(raw_byte_array), 2):
+                                value_to_append = np.uint16(0)
+                                value_to_append += np.uint16(raw_byte_array[i])*np.uint16(256) + np.uint16(raw_byte_array[i+1])
+                                #value_to_append += raw_byte_array[i]*256 + raw_byte_array[i+1]
+                                #value_to_append = float(np.array(np.uint16(value_to_append)).astype(np.int16))
+                                converted_array = np.append(converted_array,value_to_append)
+                            converted_array = converted_array.view(np.int16)
+                            for i in range(len(converted_array)):     
+                                converted_array[i] *= 6.144/5 #ADS PGA voltage 6.144V max range / 0-5V operational range
+                
+                        converted_array = converted_array.tolist() #here inherent max range 32768 = 5V
+                        #print(converted_array)
+                        data_formatted += "V: "
+                        for i in range(len(converted_array)):
+                            data_formatted += str(converted_array[i]) + " "
+
+                        #print(converted_array)
+                        conversion_factor_V = bit_to_V_factor[sensor_type]
+                        for i in range(len(converted_array)):
+                            converted_array[i] /= conversion_factor_V
+
+                        #print(converted_array)
+                        #CONFIG CONVERSIONS
+                        
+                        # CONFIG CONVERSIONS
+                        final_values = []
+                        int_sensor_type = int(sensor_type)
+
+                        # Example block where sensor data processing happens
+                        for i in range(len(converted_array)):
+                            if (data_dict['SensorType']  == "3"):
+                                converted_value = converted_array[i] 
+                            else:
+                                # Fetch min/max values dynamically from config
+                                if int_sensor_type:  # ADS1015
+                                    sensor_range = board_id_to_ranges[str(board_id)][number_to_sensor_type[sensor_type]][i]
+                                else:
+                                    continue  # Skip if neither ADS1015 nor ADS1115
+
+                                # Perform dynamic conversion using the min/max values and readings
+                                min_reading = float(sensor_range["min_reading"])
+                                max_reading = float(sensor_range["max_reading"])
+                                min_value = float(sensor_range["min_value"])
+                                max_value = float(sensor_range["max_value"])
+
+                                # Apply conversion formula for 5.0V
+                                converted_value = ((5.0*converted_array[i] - min_reading) / (max_reading - min_reading)) * (max_value - min_value) + min_value
+                            final_values.append(round(converted_value, 2))  # Append converted value to final list
+
+
+                        data_formatted += "Converted: "
+                        for i in range(len(final_values)):
+                            data_formatted += str(final_values[i]) + " "
+
+                        data_formatted += "\n"
+
+                        file_to_write.write(data_formatted)
+                        file_to_write.flush()  
+
+                        
+                        # PUBLISH 
+                        publish_json_dict = {"time": str(datetime.now())[11:22], "sensor_readings": final_values}
+                        publish_json = json.dumps(publish_json_dict)
+                        board_key = f"B{board_id}"
+
+                        # Get the relevant sensor type for this board (e.g., ADS1015, ADS1115)
+                        for sensor_config in conv_configs[board_key]["data"]:
+                            sensor_config_type = sensor_config.get("sensor_type")
+                            
+                            # Check the sensor type (it could be ADS1015, ADS1115, or others)
+                            #print(sensor_config_type,number_to_sensor_type[sensor_type])
+                            if sensor_config_type == number_to_sensor_type[sensor_type]:
+                                topic = sensor_config["topic"]  
+                                self.publish_dict[topic] = publish_json
+                                #print(f"Published data to topic {topic}")
+                
             except serial.SerialException as e:
                 if "Device not configured" in str(e):
                     print(f"Serial read error: {e}. Retrying in 1 seconds...")
@@ -580,8 +586,8 @@ class Board_DAQ():
                     except Exception as reopen_error:
                         print(f"Failed to reopen port {port_info}: {reopen_error}. Retrying in 1 second...")
                         time.sleep(1)  # Wait before retrying
-                    
-                    
+                        
+                        
             except Exception as e:
                 print(f"Serial read error: {e}")
                 print(f"Exception type: {type(e)}")
