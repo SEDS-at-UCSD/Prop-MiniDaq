@@ -184,7 +184,7 @@ def open_serial_ports():
     if system == "Darwin":  # macOS
         port_list = ['/dev/cu.usbserial-0001', '/dev/cu.usbserial-3', '/dev/cu.usbserial-4', '/dev/cu.usbmodem56292564361', '/dev/cu.usbmodem56292564362']  # Example ports
     elif system == "Windows":
-        port_list = ['COM6', 'COM5', 'COM4']  # Example ports
+        port_list = ['COM6', 'COM5', 'COM4', 'COM3']  # Example ports
     elif system == "Linux":
         port_list = ['/dev/ttyUSB0', '/dev/ttyUSB1', '/dev/ttyUSB2']  # Example ports
 
@@ -195,7 +195,7 @@ def open_serial_ports():
         try:
             for available_port in available_ports:
                 if available_port.device == port_info:
-                    ports[i] = serial.Serial(port_info, 921600)
+                    ports[i] = serial.Serial(port_info, 921600,timeout=0.1)
                     print(f"Opened port: {port_info}")
                     break  # Stop checking after opening the port
         except Exception as e:
@@ -336,6 +336,8 @@ class Board_DAQ():
                 print(e)
 
     def read_serial_and_log_high_freq(self):
+        decode_fail_count = 0  # Track consecutive decoding failures
+        max_decode_failures = 10  # Threshold for resetting the serial port on json failures
         while True:
             if reload_flag.is_set():
                 print("Reload flag set. Reloading configurations...")
@@ -535,11 +537,48 @@ class Board_DAQ():
             
             except serial.SerialException as e:
                 if "Device not configured" in str(e):
-                    print(f"Serial read error: {e}. Retrying in 1 seconds...")
-                    time.sleep(1)
-                    open_serial_ports()
+                    print(f"Serial read error: {e}. Retrying in 0.5 seconds...")
+                    time.sleep(0.5)
                 else:
                     print(f"Serial read error: {e}")
+                # Close the problematic port
+                try:
+                    ports[self.port_index].close()
+                    print(f"Closed port {ports[self.port_index].port} due to an error.")
+                except Exception as close_error:
+                    print(f"Error while closing port {ports[self.port_index].port}: {close_error}")
+
+                # Reopen the port
+                try:
+                    port_info = ports[self.port_index].port  # Retrieve the port name
+                    ports[self.port_index] = serial.Serial(port_info, 921600)
+                    print(f"Reopened port {port_info}.")
+                except Exception as reopen_error:
+                    print(f"Failed to reopen port {port_info}: {reopen_error}. Retrying in 1 second...")
+                    time.sleep(1)  # Wait before retrying
+            except json.JSONDecodeError as e:
+                print(f"JSON decode error: {e}. Possible buffer corruption.")
+                decode_fail_count += 1
+                
+                # Reset the port if decoding failures persist
+                if decode_fail_count >= max_decode_failures:
+                    ports[self.port_index].reset_input_buffer()
+                    # Close the problematic port
+                    try:
+                        ports[self.port_index].close()
+                        print(f"Closed port {ports[self.port_index].port} due to an error.")
+                    except Exception as close_error:
+                        print(f"Error while closing port {ports[self.port_index].port}: {close_error}")
+
+                    # Reopen the port
+                    try:
+                        port_info = ports[self.port_index].port  # Retrieve the port name
+                        ports[self.port_index] = serial.Serial(port_info, 921600)
+                        print(f"Reopened port {port_info}.")
+                    except Exception as reopen_error:
+                        print(f"Failed to reopen port {port_info}: {reopen_error}. Retrying in 1 second...")
+                        time.sleep(1)  # Wait before retrying
+                    
             except Exception as e:
                 print(f"Serial read error: {e}")
                 print(f"Exception type: {type(e)}")
