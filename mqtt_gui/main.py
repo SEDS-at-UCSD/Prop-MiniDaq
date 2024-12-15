@@ -184,7 +184,7 @@ def open_serial_ports():
     if system == "Darwin":  # macOS
         port_list = ['/dev/cu.usbserial-0001', '/dev/cu.usbserial-3', '/dev/cu.usbserial-4', '/dev/cu.usbmodem56292564361', '/dev/cu.usbmodem56292564362']  # Example ports
     elif system == "Windows":
-        port_list = ['COM6', 'COM5', 'COM4', 'COM3']  # Example ports
+        port_list = ['COM6', 'COM5', 'COM4']  # Example ports
     elif system == "Linux":
         port_list = ['/dev/ttyUSB0', '/dev/ttyUSB1', '/dev/ttyUSB2']  # Example ports
 
@@ -195,7 +195,8 @@ def open_serial_ports():
         try:
             for available_port in available_ports:
                 if available_port.device == port_info:
-                    ports[i] = serial.Serial(port_info, 921600,timeout=0.1)
+                    ports[i] = serial.Serial(port_info, 921600)
+                    ports[i].set_buffer_size(rx_size=4096, tx_size=4096)
                     print(f"Opened port: {port_info}")
                     break  # Stop checking after opening the port
         except Exception as e:
@@ -211,15 +212,15 @@ gui_log_file = open('gui_serial.txt', 'w')
 
 # Mapped to boards
 raw_log_file = open('raw_serial_log.txt', 'a')
-"""raw_log_file_2 = open('raw_serial_log_2.txt', 'a')
+raw_log_file_2 = open('raw_serial_log_2.txt', 'a')
 raw_log_file_3 = open('raw_serial_log_3.txt', 'a')
 raw_log_file_4 = open('raw_serial_log_4.txt', 'a')
 raw_log_file_5 = open('raw_serial_log_5.txt', 'a')
-raw_log_file_6 = open('raw_serial_log_6.txt', 'a')"""
+raw_log_file_6 = open('raw_serial_log_6.txt', 'a')
 
 
 # Switch Case Dicts
-#board_to_log_file_dict = {"Board 1": raw_log_file, "Board 2": raw_log_file_2, "Board 3": raw_log_file_3, "Board 4": raw_log_file_4, "Board 5": raw_log_file_5, "Board 6": raw_log_file_6}
+board_to_log_file_dict = {"Board 1": raw_log_file, "Board 2": raw_log_file_2, "Board 3": raw_log_file_3, "Board 4": raw_log_file_4, "Board 5": raw_log_file_5, "Board 6": raw_log_file_6}
 b_to_solenoid_status_topic_dict = {"Board 4": 'switch_states_status_4', "Board 5": 'switch_states_status_5', "Board 6": 'switch_states_status_6'}
 
 number_to_sensor_type = {"0": "Boot", "1": "ADS1015", "2": "ADS1115", "3": "TC", "4": "ADS1256"}
@@ -336,8 +337,6 @@ class Board_DAQ():
                 print(e)
 
     def read_serial_and_log_high_freq(self):
-        decode_fail_count = 0  # Track consecutive decoding failures
-        max_decode_failures = 10  # Threshold for resetting the serial port on json failures
         while True:
             if reload_flag.is_set():
                 print("Reload flag set. Reloading configurations...")
@@ -392,8 +391,7 @@ class Board_DAQ():
                 Board_ID_worded = "Board " +  Board_ID
                 sensor_type = data_dict['SensorType'] 
 
-                file_to_write = raw_log_file
-                #board_to_log_file_dict[Board_ID_worded]                
+                file_to_write = board_to_log_file_dict[Board_ID_worded]                
                 
                 data_formatted = (
                     str(datetime.now())[11:] 
@@ -537,48 +535,11 @@ class Board_DAQ():
             
             except serial.SerialException as e:
                 if "Device not configured" in str(e):
-                    print(f"Serial read error: {e}. Retrying in 0.5 seconds...")
-                    time.sleep(0.5)
+                    print(f"Serial read error: {e}. Retrying in 1 seconds...")
+                    time.sleep(1)
+                    open_serial_ports()
                 else:
                     print(f"Serial read error: {e}")
-                # Close the problematic port
-                try:
-                    ports[self.port_index].close()
-                    print(f"Closed port {ports[self.port_index].port} due to an error.")
-                except Exception as close_error:
-                    print(f"Error while closing port {ports[self.port_index].port}: {close_error}")
-
-                # Reopen the port
-                try:
-                    port_info = ports[self.port_index].port  # Retrieve the port name
-                    ports[self.port_index] = serial.Serial(port_info, 921600)
-                    print(f"Reopened port {port_info}.")
-                except Exception as reopen_error:
-                    print(f"Failed to reopen port {port_info}: {reopen_error}. Retrying in 1 second...")
-                    time.sleep(1)  # Wait before retrying
-            except json.JSONDecodeError as e:
-                print(f"JSON decode error: {e}. Possible buffer corruption.")
-                decode_fail_count += 1
-                
-                # Reset the port if decoding failures persist
-                if decode_fail_count >= max_decode_failures:
-                    ports[self.port_index].reset_input_buffer()
-                    # Close the problematic port
-                    try:
-                        ports[self.port_index].close()
-                        print(f"Closed port {ports[self.port_index].port} due to an error.")
-                    except Exception as close_error:
-                        print(f"Error while closing port {ports[self.port_index].port}: {close_error}")
-
-                    # Reopen the port
-                    try:
-                        port_info = ports[self.port_index].port  # Retrieve the port name
-                        ports[self.port_index] = serial.Serial(port_info, 921600)
-                        print(f"Reopened port {port_info}.")
-                    except Exception as reopen_error:
-                        print(f"Failed to reopen port {port_info}: {reopen_error}. Retrying in 1 second...")
-                        time.sleep(1)  # Wait before retrying
-                    
             except Exception as e:
                 print(f"Serial read error: {e}")
                 print(f"Exception type: {type(e)}")
