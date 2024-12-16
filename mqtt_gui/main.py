@@ -625,7 +625,7 @@ class Board_DAQ():
             except Exception as e:
                 print(f"Serial read error: {e}")
                 print(f"Exception type: {type(e)}")
-                print(extractdata)
+                #print(extractdata)
         
                     
     def solenoid_write(self, message):
@@ -756,7 +756,6 @@ def abort_process():
     abort_manager.run()
 
 
-
 def process_for_port(port_name, port_index):
     """
     Function to handle a specific serial port in a separate process.
@@ -770,17 +769,19 @@ def process_for_port(port_name, port_index):
         # Create an instance of Board_DAQ with the opened port
         port_ = Board_DAQ(port, port_index)
 
+        
+        try:
         # Create threads for read and publish functions
-        read_thread = threading.Thread(target=port_.read_serial_and_log_high_freq)
-        publish_thread = threading.Thread(target=port_.publish_data)
+            read_thread = threading.Thread(target=port_.read_serial_and_log_high_freq)
+            publish_thread = threading.Thread(target=port_.publish_data)
 
-        # Start the threads
-        read_thread.start()
-        publish_thread.start()
+            # Start the threads
+            read_thread.start()
+            publish_thread.start()
 
-        # Wait for both threads to finish
-        read_thread.join()
-        publish_thread.join()
+        except Exception as e:
+            print(f"Thread encountered an error: {e}. Restarting...")
+
 
     except Exception as e:
         print(f"Error in process for port {port_name}: {e}")
