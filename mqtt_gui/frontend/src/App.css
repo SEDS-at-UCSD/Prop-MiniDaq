@@ -69,6 +69,11 @@ body {
   grid-template-columns: repeat(1, auto);
 }
 
+.calc_board_cluster {
+  display: inline-grid;
+  grid-template-columns: repeat(1, auto);
+}
+
 .solenoid_cluster{
   display: inline-grid;
   grid-template-columns: repeat(2, auto);
