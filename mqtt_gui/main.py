@@ -4,6 +4,7 @@ import serial.tools.list_ports
 import time
 import json
 from datetime import datetime
+import multiprocessing
 import threading
 import numpy as np
 import platform
@@ -18,6 +19,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.concurrency import run_in_threadpool
 import socket
 import math
+import random
 
 app = FastAPI()
 
@@ -134,8 +136,8 @@ def reload_config(filename):
         with open(filename, 'r') as file:
             channel_calc_dict = fetch_file_data_yaml(filename)
             channel_calc_config = channel_calc_dict
-            print(channel_calc_config)
-            print("Channel calculations updated")
+            """print(channel_calc_config)
+            print("Channel calculations updated")"""
     
     else:
         print(f"Unknown config file: {filename}")
@@ -216,7 +218,7 @@ def open_serial_ports():
         try:
             for available_port in available_ports:
                 if available_port.device == port_info:
-                    ports[i] = serial.Serial(port_info, 921600,timeout=0.1)
+                    ports[i] = port_info
                     print(f"Opened port: {port_info}")
                     break  # Stop checking after opening the port
         except Exception as e:
@@ -345,8 +347,9 @@ interval = 2.0  # Time interval in seconds to calculate frequency
 
 class Board_DAQ():
 
-    def __init__(self, port_index):
+    def __init__(self, port,  port_index):
         self.port_index = port_index
+        self.port = port
         self.data_lock = threading.Lock()
         self.publish_dict = {}
         self.last_time = time.time()
@@ -355,7 +358,7 @@ class Board_DAQ():
         while True:
             time.sleep(0.05)
             try:
-                reload_config("calculation_config.yaml")
+                #reload_config("calculation_config.yaml")
                 for topic in self.publish_dict:
                     client.publish(topic,self.publish_dict[topic])
             except Exception as e:
@@ -375,7 +378,7 @@ class Board_DAQ():
                 # Clear the flag after reloading
                 reload_flag.clear()
             try:
-                data = ports[self.port_index].readline().decode('utf-8').strip()
+                data = self.port.readline().decode('utf-8').strip()
                 #print(data)
                 data_dict = json.loads(data)
                 # Extract the board ID, skip if invalid hex or key is missing
@@ -536,6 +539,7 @@ class Board_DAQ():
                     calculations = channel_calc_config[f'B{Board_ID}']["calculations"]
                     #print(calculations)
                     if calculations:
+                        #print('entered')
                         interchannel_calc = []
                         for calc in calculations:
                             val_to_calc = float(eval(convert_c_to_final_values(calc)))
@@ -621,6 +625,7 @@ class Board_DAQ():
             except Exception as e:
                 print(f"Serial read error: {e}")
                 print(f"Exception type: {type(e)}")
+                print(extractdata)
         
                     
     def solenoid_write(self, message):
@@ -751,40 +756,82 @@ def abort_process():
     abort_manager.run()
 
 
-def main():
 
-
+def process_for_port(port_name, port_index):
+    """
+    Function to handle a specific serial port in a separate process.
+    """
     try:
+        # Open the serial port in the child process
+        print(f"PORT INDEX: {port_index}")
+        port = serial.Serial(port_name, 921600, timeout=0.1)
+        print(f"Opened port {port_name} in process.")
+
+        # Create an instance of Board_DAQ with the opened port
+        port_ = Board_DAQ(port, port_index)
+
+        # Create threads for read and publish functions
+        read_thread = threading.Thread(target=port_.read_serial_and_log_high_freq)
+        publish_thread = threading.Thread(target=port_.publish_data)
+
+        # Start the threads
+        read_thread.start()
+        publish_thread.start()
+
+        # Wait for both threads to finish
+        read_thread.join()
+        publish_thread.join()
+
+    except Exception as e:
+        print(f"Error in process for port {port_name}: {e}")
+
+
+"""def open_serial_ports():
+    
+    Detect and list available serial ports.
+    
+    available_ports = list(serial.tools.list_ports.comports())
+    return [port.device for port in available_ports]  # Return port names"""
+
+
+def main():
+    try:
+        # Start the fileserver once in the main process
+        global fileserver_process
+        fileserver_process = start_fileserver()
+
+        # Initialize MQTT client
         client.on_connect = on_connect
         client.on_message = on_message
-
         client.connect(mqtt_broker_address, 1884, 60)
         client.loop_start()
 
         open_serial_ports()
 
-        t1 = [None] * 5
-        t2 = [None] * 5
+        # Get a list of available serial ports
+        if not ports:
+            print("No serial ports available.")
+            return
 
-        for i, port in enumerate(ports):
-            if port:
-                port_ = Board_DAQ(i)
-                t1[i] = threading.Thread(target=port_.read_serial_and_log_high_freq)
-                t2[i] = threading.Thread(target=port_.publish_data)
-                t1[i].start()
-                t2[i].start()
-         # Wait for all threads to finish using join()
-        for i in range(len(ports)):
-            if t1[i]:
-                t1[i].join()  # Ensure read_serial_and_log_high_freq finishes
-            if t2[i]:
-                t2[i].join()  # Ensure publish_data finishes
+        # Create a list to hold processes
+        processes = []
+
+        # Start a process for each serial port
+        for i, port_name in enumerate(ports):
+                if port_name:
+                    process = multiprocessing.Process(target=process_for_port, args=(port_name, i))
+                    process.start()
+                    processes.append(process)
+                    print(f"Started process for port {port_name}")
+
+        # Wait for all processes to finish
+        for process in processes:
+            process.join()
 
     finally:
         # Ensure the fileserver process is stopped when exiting
         stop_fileserver(fileserver_process)
-        
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
