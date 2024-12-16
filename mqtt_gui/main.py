@@ -23,17 +23,16 @@ import random
 
 app = FastAPI()
 
-# Shared timer for synchronization
-global_timer = multiprocessing.Value('d', 0.0)  # 'd' indicates double (for time in seconds)
 
-def update_global_time(global_timer):
+def update_global_time(namespace):
     """
     Function to update the global timer continuously.
     """
     while True:
-        with global_timer.get_lock():  # Acquire lock to safely update the timer
-            global_timer.value = time.time()
+        namespace.global_timer = time.time()  # Update the timer in the shared namespace
+        #print(f"[Timer Process] Updated Global Timer: {namespace.global_timer}")
         time.sleep(0.01)  # Update every 10ms
+
 
 """def get_global_time(global_timer):
     
@@ -329,7 +328,7 @@ interval = 2.0  # Time interval in seconds to calculate frequency
 
 class Board_DAQ():
 
-    def __init__(self, port,  port_index, mqtt_client, port_name):
+    def __init__(self, port,  port_index, mqtt_client, port_name, namespace):
         self.port_index = port_index
         self.port = port
         self.data_lock = threading.Lock()
@@ -339,21 +338,25 @@ class Board_DAQ():
         self.mqtt_client.on_connect = self.on_connect 
         self.mqtt_client.on_message = self.on_message
         self.port_name = port_name
+        self.namespace = namespace
         # Initialize TaskManager
-        self.automanager = TaskManager(automation_config['automation_sequence'], port, global_timer, port_index=port_index)
-        self.abort_manager = TaskManager(abort_config['abort_sequence'], port, global_timer, port_index=port_index, force=True)
+        self.automanager = TaskManager(automation_config['automation_sequence'], port, namespace, port_index=port_index)
+        self.abort_manager = TaskManager(abort_config['abort_sequence'], port, namespace, port_index=port_index, force=True)
 
     def on_connect(self, client, userdata, flags, rc):
         print("Connected to MQTT broker with result code " + str(rc))
+        #print("UHUFRHIFURHFIUHFIUHFIRFUHRIFUHRI")
         for board_num in SWITCH_BOARD_RANGE:  # Boards 4, 5, and 6
             client.subscribe(mqtt_switch_states_update[board_num])
             client.subscribe(mqtt_switch_states_status[board_num])
             client.subscribe(ignition_topic)
+            #print("SUBSCRIBED")
     
     def on_message(self, client, userdata, message):
         #global ignition_in_progress
         # MAP SOLENOID BOARDS HERE
         #print(f"Received message on topic '{message.topic}': {message.payload.decode('utf-8')}")
+        #print("MESSAGE")
         message_payload = message.payload.decode('utf-8')
         
         if (message.topic == "AUTO"):
@@ -610,9 +613,9 @@ class Board_DAQ():
                 # Close the problematic port
                 try:
                     self.port.close()
-                    print(f"Closed port {ports[self.port_index].port} due to an error.")
+                    print(f"Closed port {self.port_name} due to an error.")
                 except Exception as close_error:
-                    print(f"Error while closing port {ports[self.port_index].port}: {close_error}")
+                    print(f"Error while closing port {self.port_name}: {close_error}")
 
                 # Reopen the port
                 try:
@@ -635,7 +638,7 @@ class Board_DAQ():
                         self.port.close()
                         print(f"Closed port {self.port_name} due to an error.")
                     except Exception as close_error:
-                        print(f"Error while closing port {ports[self.port_index].port}: {close_error}")
+                        print(f"Error while closing port {self.port_name}: {close_error}")
 
                     # Reopen the port
                     try:
@@ -663,20 +666,26 @@ class Board_DAQ():
         #abort_manager = TaskManager(abort_config['abort_sequence'], global_timer=global_timer, force=True)
         #global ignition_in_progress
         #ignition_in_progress = False
+        self.automanager.reset_tasks()
         print("Abort triggered! Completing current tasks and running abort sequence.")
-        self.automanager.join_all_threads()
+        #self.automanager.join_all_threads()
 
         self.abort_manager.run()
 
+
+
 class TaskManager:
-    def __init__(self, sequence, port, global_timer, port_index=0, force = False):
+    def __init__(self, sequence, port, namespace, port_index=0, force = False):
         self.tasks = {}
         self.port = port
         self.port_index = port_index
         self.force = force
         self.threads = []  # To collect threads for repeat tasks
-        self.global_timer = global_timer
+        self.namespace = namespace
         self.load_tasks(sequence)
+        self.tasklist = []
+        self.sequence = sequence
+        
 
     def load_tasks(self, sequence):
         for step in sequence:
@@ -689,11 +698,18 @@ class TaskManager:
                 port_index=self.port_index,
                 next_id=step.get('next_id', []),
                 task_id=step['id'],
-                global_timer=self.global_timer
+                namespace=self.namespace
             )
             self.tasks[step['id']] = task
 
+    def reset_tasks(self):
+        self.tasks = {}
+        self.load_tasks(self.sequence)
+
+
     def run_task_by_id(self, task_id):
+        self.tasklist.append(task_id)
+
         if task_id not in self.tasks:
             return
         
@@ -707,29 +723,33 @@ class TaskManager:
 
         for next_task_id in task.next_id:
             self.run_task_by_id(next_task_id)
+        self.tasklist.remove(task_id)
+        if not self.tasklist:
+            self.reset_tasks()
 
     def run(self, starting_id = 1):
         self.run_task_by_id(starting_id)
 
-    def join_all_threads(self):
+    def halt_all_threads(self):
         for thread in self.threads:
             thread.join()
         print("All background threads have been joined.")
     
     def get_global_time(self):
-        with self.global_timer.get_lock():
-            return self.global_timer.value
+        timer_value = self.namespace.global_timer
+        print(f"[Task] Timer Value: {timer_value}")
+        return timer_value
 
 
 class Task:
-    def __init__(self, name, command, delay, repeat, port, global_timer, port_index=0, next_id=None, task_id=None,):
+    def __init__(self, name, command, delay, repeat, port, namespace, port_index=0, next_id=None, task_id=None,):
         self.name = name
         self.command = command + "\n"
         self.delay = delay
         self.repeat = repeat
         self.port = port
         self.port_index = port_index
-        self.global_timer = global_timer
+        self.namespace = namespace
         self.start_time = self.get_global_time()
         self.completed = False
         self.next_id = next_id if next_id else []
@@ -742,8 +762,8 @@ class Task:
             if self.port:
                 self.port.write(send_command)
                 self.port.flush()
-            print(f"Executed {self.name}: {send_command}")
-            print(f"Read Global Timer: {self.get_global_time()}")  # Ensure the timer is being read correctly
+            #print(f"Executed {self.name}: {send_command}")
+            #print(f"Read Global Timer: {self.get_global_time()}")  # Ensure the timer is being read correctly
             if self.get_global_time() - self.start_time >= self.delay:
                 print(f"Completed {self.name}: {send_command}")
                 self.completed = True
@@ -781,8 +801,8 @@ class Task:
             return self.global_timer.value - self.start_time
 
     def get_global_time(self):
-        with self.global_timer.get_lock():
-            return self.global_timer.value
+        print(self.namespace.global_timer)
+        return self.namespace.global_timer
 
 # Helper function to load YAML configuration
 def load_yaml(file_path):
@@ -798,7 +818,7 @@ abort_config = load_yaml('abort_config.yaml')
 
 
 
-def process_for_port(port_name, port_index, gt):
+def process_for_port(port_name, port_index, namespace):
     """
     Function to handle a specific serial port in a separate process.
     """
@@ -811,13 +831,14 @@ def process_for_port(port_name, port_index, gt):
         # Create an instance of Board_DAQ with the opened port
 
         local_client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION1, f"propdaq_client_{port_name}")
-        local_client.connect(mqtt_broker_address, 1884, 60)
-        local_client.loop_start()
 
         # Initialize TaskManager
-        automanager = TaskManager(automation_config['automation_sequence'], port, gt, port_index=port_index)
-        abort_manager = TaskManager(abort_config['abort_sequence'], port, gt, port_index=port_index, force=True)
-        port_ = Board_DAQ(port, port_index, local_client, port_name)
+        #automanager = TaskManager(automation_config['automation_sequence'], port, namespace, port_index=port_index)
+        #abort_manager = TaskManager(abort_config['abort_sequence'], port, namespace, port_index=port_index, force=True)
+        print("initboarddaq")
+        port_ = Board_DAQ(port, port_index, local_client, port_name, namespace)
+        port_.mqtt_client.connect(mqtt_broker_address, 1884, 60)
+        port_.mqtt_client.loop_start()
 
         #automanager.run()
         
@@ -849,42 +870,54 @@ def process_for_port(port_name, port_index, gt):
 
 def main():
     try:
+        #multiprocessing.set_start_method('spawn')
+
+        # Shared timer for synchronization
+        #manager = multiprocessing.Manager()
+
+        with multiprocessing.Manager() as manager:
+        # Create a shared namespace for storing the global timer
+            namespace = manager.Namespace()
+            namespace.global_timer = 0.0
+
+        #global_timer = multiprocessing.Value('d', 0.0)  # 'd' indicates double (for time in seconds)
+
         # Start the fileserver once in the main process
-        global fileserver_process
-        fileserver_process = start_fileserver()
+            global fileserver_process
+            fileserver_process = start_fileserver()
 
-        timer_process = multiprocessing.Process(target=update_global_time, args=(global_timer,))
-        timer_process.daemon = True
-        timer_process.start()
-        processes = []
+            timer_process = multiprocessing.Process(target=update_global_time, args=(namespace,))
+            timer_process.daemon = True
+            timer_process.start()
+            time.sleep(0.1)
 
-        # Initialize MQTT client
-        """client.on_connect = on_connect
-        client.on_message = on_message
-        client.connect(mqtt_broker_address, 1884, 60)
-        client.loop_start()"""
+            # Initialize MQTT client
+            """client.on_connect = on_connect
+            client.on_message = on_message
+            client.connect(mqtt_broker_address, 1884, 60)
+            client.loop_start()"""
 
-        open_serial_ports()
+            open_serial_ports()
 
-        # Get a list of available serial ports
-        if not ports:
-            print("No serial ports available.")
-            return
+            # Get a list of available serial ports
+            if not ports:
+                print("No serial ports available.")
+                return
 
-        # Create a list to hold processes
-        processes = []
+            # Create a list to hold processes
+            processes = []
 
-        # Start a process for each serial port
-        for i, port_name in enumerate(ports):
-            if port_name:
-                process = multiprocessing.Process(target=process_for_port, args=(port_name, i, global_timer))
-                process.start()
-                processes.append(process)
-                print(f"Started process for port {port_name}")
+            # Start a process for each serial port
+            for i, port_name in enumerate(ports):
+                if port_name:
+                    process = multiprocessing.Process(target=process_for_port, args=(port_name, i, namespace))
+                    process.start()
+                    processes.append(process)
+                    print(f"Started process for port {port_name}")
 
-        # Wait for all processes to finish
-        for process in processes:
-            process.join()
+            # Wait for all processes to finish
+            for process in processes:
+                process.join()
 
     finally:
         # Ensure the fileserver process is stopped when exiting
