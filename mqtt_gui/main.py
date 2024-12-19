@@ -828,8 +828,12 @@ def process_for_port(port_name, port_index, namespace):
     try:
         # Open the serial port in the child process
         print(f"PORT INDEX: {port_index}")
-        port = serial.Serial(port_name, 921600, timeout=0.1)
-        print(f"Opened port {port_name} in process.")
+        try:
+            port = serial.Serial(port_name, 921600, timeout=0.1)
+            print(f"Opened port {port_name} in process.")
+        except Exception as e:
+            print("Retrying port {port_name}")
+            port = serial.Serial(port_name, 921600, timeout=0.1)
 
         # Create an instance of Board_DAQ with the opened port
 
