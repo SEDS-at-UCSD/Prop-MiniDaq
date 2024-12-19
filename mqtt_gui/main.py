@@ -666,10 +666,9 @@ class Board_DAQ():
         #abort_manager = TaskManager(abort_config['abort_sequence'], global_timer=global_timer, force=True)
         #global ignition_in_progress
         #ignition_in_progress = False
+        self.automanager.halt_all_threads
         self.automanager.reset_tasks()
         print("Abort triggered! Completing current tasks and running abort sequence.")
-        #self.automanager.join_all_threads()
-
         self.abort_manager.run()
 
 
@@ -685,6 +684,7 @@ class TaskManager:
         self.load_tasks(sequence)
         self.tasklist = []
         self.sequence = sequence
+        self.stop_event = threading.Event()
         
 
     def load_tasks(self, sequence):
@@ -708,29 +708,31 @@ class TaskManager:
 
 
     def run_task_by_id(self, task_id):
-        self.tasklist.append(task_id)
+        if not self.stop_event.is_set():
+            self.tasklist.append(task_id)
 
-        if task_id not in self.tasks:
-            return
-        
-        task = self.tasks[task_id]
-        task.start_time = self.get_global_time()
+            if task_id not in self.tasks:
+                return
+            
+            task = self.tasks[task_id]
+            task.start_time = self.get_global_time()
 
-        task.execute(self.force)
-        while not task.is_completed():
-            time.sleep(0.1)
-            task.update(self.force)
+            task.execute(self.force)
+            while not task.is_completed():
+                time.sleep(0.1)
+                task.update(self.force)
 
-        for next_task_id in task.next_id:
-            self.run_task_by_id(next_task_id)
-        self.tasklist.remove(task_id)
-        if not self.tasklist:
-            self.reset_tasks()
+            for next_task_id in task.next_id:
+                self.run_task_by_id(next_task_id)
+            self.tasklist.remove(task_id)
+            if not self.tasklist:
+                self.reset_tasks()
 
     def run(self, starting_id = 1):
         self.run_task_by_id(starting_id)
 
     def halt_all_threads(self):
+        self.stop_event.set()
         for thread in self.threads:
             thread.join()
         print("All background threads have been joined.")
