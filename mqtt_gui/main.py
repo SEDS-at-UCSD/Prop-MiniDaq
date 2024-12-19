@@ -427,14 +427,14 @@ class Board_DAQ():
                     current_time = time.time()
                     if True: #printing frequencies
                         if current_time - self.last_time >= interval:
-                            print(f"\nData summary for the past {interval} second(s):")
+                            # print(f"\nData summary for the past {interval} second(s):")
 
                             # Print data for each board ID
-                            for board, sensor_data in boards_data.items():
+                            """for board, sensor_data in boards_data.items():
                                 print(f"\nBoard ID: {board}")
                                 print("Sensor Type Frequencies (per second):")
                                 for stype, count in sensor_data.items():
-                                    print(f"  Sensor Type {stype}: {count / interval} Hz")
+                                    print(f"  Sensor Type {stype}: {count / interval} Hz")"""
                             
                             # Reset counts and timer
                             boards_data.clear()
@@ -666,7 +666,7 @@ class Board_DAQ():
         #abort_manager = TaskManager(abort_config['abort_sequence'], global_timer=global_timer, force=True)
         #global ignition_in_progress
         #ignition_in_progress = False
-        self.automanager.halt_all_threads
+        self.automanager.halt_all_threads()
         self.automanager.reset_tasks()
         print("Abort triggered! Completing current tasks and running abort sequence.")
         self.abort_manager.run()
@@ -786,7 +786,7 @@ class Task:
             '''
             #print(self.get_global_time(global_timer))
             #print(self.start_time)
-            print(f"Read Global Timer: {self.get_global_time()}")  # Ensure the timer is being read correctly
+            ###print(f"Read Global Timer: {self.get_global_time()}")  # Ensure the timer is being read correctly
             if self.get_global_time() - self.start_time >= self.delay:
                 print(f"Completed {self.name}: {send_command}")
                 self.completed = True
@@ -800,10 +800,10 @@ class Task:
     
     def get_elapsed_time(self):
         with self.global_timer.get_lock():
-            return self.global_timer.value - self.start_time
+            return self.namespace.global_timer - self.start_time
 
     def get_global_time(self):
-        print(self.namespace.global_timer)
+        #print(self.namespace.global_timer)
         return self.namespace.global_timer
 
 # Helper function to load YAML configuration
