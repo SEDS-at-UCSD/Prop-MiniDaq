@@ -328,7 +328,7 @@ interval = 2.0  # Time interval in seconds to calculate frequency
 
 class Board_DAQ():
 
-    def __init__(self, port,  port_index, mqtt_client, port_name, namespace):
+    def __init__(self, port,  port_index, mqtt_client, port_name, namespace, automation_event, abort_event):
         self.port_index = port_index
         self.port = port
         self.data_lock = threading.Lock()
@@ -342,6 +342,8 @@ class Board_DAQ():
         # Initialize TaskManager
         self.automanager = TaskManager(automation_config['automation_sequence'], port, namespace, port_index=port_index)
         self.abort_manager = TaskManager(abort_config['abort_sequence'], port, namespace, port_index=port_index, force=True)
+        self.automation_event = automation_event
+        self.abort_event = abort_event
 
     def on_connect(self, client, userdata, flags, rc):
         print("Connected to MQTT broker with result code " + str(rc))
@@ -659,18 +661,24 @@ class Board_DAQ():
         #global ignition_in_progress
         #automanager = TaskManager(automation_config['automation_sequence'], global_timer=global_timer)
         #ignition_in_progress = True
-        self.automanager.stop_event.clear()
-        self.automanager.run()
+        if not self.automation_event.is_set():
+            self.automation_event.set()
+            print("Starting automation sequence")
+            self.automanager.stop_event.clear()
+            self.automanager.run()
+        else:
+            print("Automation already running in another process. Skipping...")
 
     # Abort process that also runs abort tasks
     def abort_process(self):
-        #abort_manager = TaskManager(abort_config['abort_sequence'], global_timer=global_timer, force=True)
-        #global ignition_in_progress
-        #ignition_in_progress = False
-        self.automanager.halt_all_threads()
-        self.automanager.reset_tasks()
-        print("Abort triggered! Completing current tasks and running abort sequence.")
-        self.abort_manager.run()
+        if not self.abort_event.is_set():
+            self.abort_event.set()
+            self.automanager.halt_all_threads()
+            self.automanager.reset_tasks()
+            print("Abort triggered! Completing current tasks and running abort sequence.")
+            self.abort_manager.run()
+        else:
+            print("Abort already initiated in another process. Skipping...")
 
 
 
@@ -821,7 +829,7 @@ abort_config = load_yaml('abort_config.yaml')
 
 
 
-def process_for_port(port_name, port_index, namespace):
+def process_for_port(port_name, port_index, namespace, automation_event, abort_event):
     """
     Function to handle a specific serial port in a separate process.
     """
@@ -843,7 +851,7 @@ def process_for_port(port_name, port_index, namespace):
         #automanager = TaskManager(automation_config['automation_sequence'], port, namespace, port_index=port_index)
         #abort_manager = TaskManager(abort_config['abort_sequence'], port, namespace, port_index=port_index, force=True)
         print("initboarddaq")
-        port_ = Board_DAQ(port, port_index, local_client, port_name, namespace)
+        port_ = Board_DAQ(port, port_index, local_client, port_name, namespace, automation_event, abort_event)
         port_.mqtt_client.connect(mqtt_broker_address, 1884, 60)
         port_.mqtt_client.loop_start()
 
@@ -886,6 +894,8 @@ def main():
         # Create a shared namespace for storing the global timer
             namespace = manager.Namespace()
             namespace.global_timer = 0.0
+            automation_event = manager.Event()  # Event to signal if automation started
+            abort_event = manager.Event() 
 
         #global_timer = multiprocessing.Value('d', 0.0)  # 'd' indicates double (for time in seconds)
 
@@ -917,7 +927,7 @@ def main():
             # Start a process for each serial port
             for i, port_name in enumerate(ports):
                 if port_name:
-                    process = multiprocessing.Process(target=process_for_port, args=(port_name, i, namespace))
+                    process = multiprocessing.Process(target=process_for_port, args=(port_name, i, namespace, automation_event, abort_event))
                     process.start()
                     processes.append(process)
                     print(f"Started process for port {port_name}")
