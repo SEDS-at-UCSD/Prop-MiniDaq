@@ -659,6 +659,7 @@ class Board_DAQ():
         #global ignition_in_progress
         #automanager = TaskManager(automation_config['automation_sequence'], global_timer=global_timer)
         #ignition_in_progress = True
+        self.automanager.stop_event.clear()
         self.automanager.run()
 
     # Abort process that also runs abort tasks
