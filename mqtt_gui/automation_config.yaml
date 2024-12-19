@@ -11,7 +11,7 @@ automation_sequence:
     command: "411"  # Ox Main On
     delay: 0.1
     repeat: false
-    next_id: [3, 4]
+    next_id: [2, 3, 4]
 
   - id: 2
     name: "Fuel Main Valve Open"
