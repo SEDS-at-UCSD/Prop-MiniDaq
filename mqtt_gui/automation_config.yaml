@@ -4,35 +4,35 @@ automation_sequence:
     command: ""
     delay: 0.0
     repeat: false
-    next_id: [1]
+    next_id: [1, 2]
 
   - id: 1
     name: "Ox Main Valve Open"
     command: "411"  # Ox Main On
-    delay: 0.0
+    delay: 0.1
     repeat: false
-    next_id: [2]
+    next_id: [2, 3, 4]
 
   - id: 2
     name: "Fuel Main Valve Open"
     command: "421"  # Fuel Main On
-    delay: 0.1
+    delay: 0.0
     repeat: false
-    next_id: [3]
+    next_id: []
 
   - id: 3
     name: "Ox Purge Valve Open"
     command: "431"  # Ox Purge On
-    delay: 0.0
+    delay: 0.1
     repeat: false
-    next_id: [4]
+    next_id: [5]
 
   - id: 4
     name: "Fuel Purge Valve Open"
     command: "441"  # Fuel Purge On
-    delay: 0.1
+    delay: 0.0
     repeat: false
-    next_id: [5]
+    next_id: []
 
   - id: 5
     name: "Spark Plug On"
@@ -67,54 +67,54 @@ automation_sequence:
     command: "811"  # Fuel Throttle On
     delay: 2.9
     repeat: false
-    next_id: [10]
+    next_id: [10, 11, 12]
 
   - id: 10
     name: "Ox Purge Valve Close"
     command: "430"  # Ox Purge Off
-    delay: 0.0
+    delay: 0.4
     repeat: false
-    next_id: [11]
+    next_id: [13, 14]
 
   - id: 11
     name: "Fuel Purge Valve Close"
     command: "440"  # Fuel Purge Off
     delay: 0.0
     repeat: false
-    next_id: [12]
+    next_id: []
 
   - id: 12
     name: "Turn Off Spark Plug"
     command: "800"  # Spark Plug Off
-    delay: 0.6
+    delay: 0.0
     repeat: false
-    next_id: [13]
+    next_id: []
 
   - id: 13
     name: "Close Igniter Fuel Valve"
     command: "400"  # Igniter Fuel Off
-    delay: 0.0
+    delay: 6.7
     repeat: false
-    next_id: [14]
+    next_id: [15]
 
   - id: 14
     name: "Close Igniter Ox Valve"
     command: "540"  # Igniter Ox Off
-    delay: 3.0
+    delay: 0.0
     repeat: false
-    next_id: [15]
+    next_id: []
 
   - id: 15
     name: "Fuel Throttle Valve Close"
     command: "810"  # Fuel Throttle Off
-    delay: 0.5
+    delay: 2.25
     repeat: false
     next_id: [16]
 
   - id: 16
     name: "Ox Throttle Valve Close"
     command: "820"  # Ox Throttle Off
-    delay: 5.9
+    delay: 0.65
     repeat: false
     next_id: [17]
 
