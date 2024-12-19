@@ -180,7 +180,7 @@
         "sensors": [
           {
             "type": "Solenoid",
-            "title": "E-match"
+            "title": "Igniter FUEL"
           },
           {
             "type": "Solenoid",
@@ -226,7 +226,7 @@
           },
           {
             "type": "Solenoid",
-            "title": "4"
+            "title": "Igniter OX"
           }
         ],
         "topic": "b5_switch_states_status"
@@ -304,15 +304,15 @@
         "sensors": [
           {
             "type": "Solenoid",
-            "title": "0"
+            "title": "Spark Plug"
           },
           {
             "type": "Solenoid",
-            "title": "1"
+            "title": "Fuel Throttle"
           },
           {
             "type": "Solenoid",
-            "title": "2"
+            "title": "OX Throttle"
           },
           {
             "type": "Solenoid",
