@@ -35,32 +35,32 @@
         "sensor_type": "ADS1015",
         "sensors": [
           {
-            "min_reading": 0,
+            "min_reading": 1,
             "max_reading": 5,
-            "min_value": 0,
-            "max_value": 1000,
-            "title": "FUEL TANK 1K (PSI)"
+            "min_value": -14,
+            "max_value": 3000,
+            "title": "POM"
           },
           {
             "min_reading": 1,
             "max_reading": 5,
-            "min_value": "-15",
-            "max_value": "3000",
-            "title": "MSH MANIFOLD 1K (PSI)"
+            "min_value": -14,
+            "max_value": 1000,
+            "title": "PFM"
           },
           {
-            "min_reading": 0,
+            "min_reading": 1,
             "max_reading": 5,
-            "min_value": 0,
+            "min_value": -14,
             "max_value": 1000,
-            "title": "FUEL DOME 1K (PSI)"
+            "title": "PC"
           },
           {
-            "min_reading": 0,
+            "min_reading": 1,
             "max_reading": 5,
-            "min_value": 0,
-            "max_value": 1000,
-            "title": "OX DOME 1K (PSI)"
+            "min_value": -14,
+            "max_value": 3000,
+            "title": "IGNITER PC"
           }
         ],
         "topic": "b2_log_data_1015"
@@ -69,32 +69,32 @@
         "sensor_type": "ADS1115",
         "sensors": [
           {
-            "min_reading": "0",
+            "min_reading": 0,
             "max_reading": 5,
             "min_value": 0,
             "max_value": 1000,
-            "title": "VENTURI BIG D 1K (PSI)"
-          },
-          {
-            "min_reading": "0",
-            "max_reading": 5,
-            "min_value": 0,
-            "max_value": "1000",
-            "title": "VENTURI SMALL D 1K (PSI)"
-          },
-          {
-            "min_reading": "0",
-            "max_reading": 5,
-            "min_value": 0,
-            "max_value": "2000",
-            "title": "VENTURI INLET 2K (PSI)"
+            "title": "FUEL TANK"
           },
           {
             "min_reading": 0,
             "max_reading": 5,
             "min_value": 0,
-            "max_value": "1000",
-            "title": "VENTURI OUTLET 1K (PSI)"
+            "max_value": 1000,
+            "title": "OX TANK"
+          },
+          {
+            "min_reading": 0,
+            "max_reading": 5,
+            "min_value": 0,
+            "max_value": 1000,
+            "title": "FUEL DOME"
+          },
+          {
+            "min_reading": 0,
+            "max_reading": 5,
+            "min_value": 0,
+            "max_value": 1000,
+            "title": "OX DOME"
           }
         ],
         "topic": "b2_log_data_1115"
