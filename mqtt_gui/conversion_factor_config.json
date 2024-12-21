@@ -356,19 +356,19 @@
         "sensors": [
           {
             "type": "Solenoid",
-            "title": "0"
+            "title": "FUEL THROTTLE OFF"
           },
           {
             "type": "Solenoid",
-            "title": "1"
+            "title": "OX THROTTLE OFF"
           },
           {
             "type": "Solenoid",
-            "title": "2"
+            "title": "LNG DOME OUT"
           },
           {
             "type": "Solenoid",
-            "title": "3"
+            "title": "OX DOME OUT"
           }
         ],
         "topic": "b10_switch_states_status"
