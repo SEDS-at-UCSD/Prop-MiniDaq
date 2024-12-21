@@ -304,7 +304,7 @@
         "sensors": [
           {
             "type": "Solenoid",
-            "title": "Spark Plug"
+            "title": "----"
           },
           {
             "type": "Solenoid",
@@ -330,7 +330,7 @@
         "sensors": [
           {
             "type": "Solenoid",
-            "title": "0"
+            "title": "Spark Plug"
           },
           {
             "type": "Solenoid",

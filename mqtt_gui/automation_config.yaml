@@ -37,7 +37,7 @@ automation_sequence:
 
   - id: 5
     name: "Spark Plug On"
-    command: "801"  # Spark Plug On
+    command: "901"  # Spark Plug On
     delay: 0.3
     repeat: false
     next_id: [6]
@@ -58,7 +58,7 @@ automation_sequence:
 
   - id: 8
     name: "Turn Off Spark Plug"
-    command: "800"  # Spark Plug Off
+    command: "900"  # Spark Plug Off
     delay: 2.0
     repeat: false
     next_id: [9]
