@@ -42,7 +42,7 @@
             "title": "FUEL TANK 1K (PSI)"
           },
           {
-            "min_reading": "1",
+            "min_reading": 1,
             "max_reading": 5,
             "min_value": "-15",
             "max_value": "3000",
@@ -144,29 +144,29 @@
             "min_reading": "0",
             "max_reading": 5,
             "min_value": 0,
-            "max_value": "5000",
-            "title": "mV"
+            "max_value": "1000",
+            "title": "OV VENTURI IN"
           },
           {
             "min_reading": "0",
             "max_reading": 5,
             "min_value": 0,
-            "max_value": "5000",
-            "title": "mV"
+            "max_value": "2000",
+            "title": "OX VENTURI THROAT"
           },
           {
             "min_reading": 1,
             "max_reading": 5,
-            "min_value": "4",
-            "max_value": "20",
-            "title": "mA"
+            "min_value": "0",
+            "max_value": "2000",
+            "title": "LNG VENTURI IN"
           },
           {
             "min_reading": "1",
             "max_reading": 5,
-            "min_value": "4",
-            "max_value": "20",
-            "title": "mA"
+            "min_value": "0",
+            "max_value": "2000",
+            "title": "LNG VENTURI THROAT"
           }
         ],
         "topic": "b3_log_data_1256"
@@ -265,32 +265,32 @@
         "sensor_type": "ADS1256",
         "sensors": [
           {
-            "min_reading": "0",
+            "min_reading": 0,
             "max_reading": 5,
             "min_value": 0,
-            "max_value": "5000",
-            "title": "mV"
+            "max_value": 5000,
+            "title": "--"
           },
           {
-            "min_reading": "0",
+            "min_reading": 0,
             "max_reading": 5,
             "min_value": 0,
-            "max_value": "5000",
-            "title": "mV"
+            "max_value": 5000,
+            "title": "Excitation -"
           },
           {
-            "min_reading": 1,
+            "min_reading": 0,
             "max_reading": 5,
-            "min_value": "4",
-            "max_value": "20",
-            "title": "mA"
+            "min_value": 0,
+            "max_value": 5000,
+            "title": "Excitation +"
           },
           {
-            "min_reading": "1",
+            "min_reading": 0,
             "max_reading": 5,
-            "min_value": "4",
-            "max_value": "20",
-            "title": "mA"
+            "min_value": 0,
+            "max_value": 5000,
+            "title": "Reference"
           }
         ],
         "topic": "b7_log_data_1256"
