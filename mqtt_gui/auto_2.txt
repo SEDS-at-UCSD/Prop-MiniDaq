@@ -56,14 +56,14 @@ automation_sequence:
     next_id: [8]
 
   - id: 8
-    name: "Ox Throttle Valve Open"
+    name: "Ox Throttle ON Valve Open"
     command: "821"  # Ox Throttle On
     delay: 0.5
     repeat: false
     next_id: [9]
 
   - id: 9
-    name: "Fuel Throttle Valve Open"
+    name: "Fuel Throttle ON Valve Open"
     command: "811"  # Fuel Throttle On
     delay: 2.9
     repeat: false
@@ -112,14 +112,14 @@ automation_sequence:
     next_id: [16]
 
   - id: 16
-    name: "Fuel Throttle Off Valve Open"
+    name: "Fuel Throttle OFF Valve Open"
     command: "1001"  # Fuel Throttle Off Open
     delay: 0.5
     repeat: false
     next_id: [17]
 
   - id: 17
-    name: "OX Throttle On Valve Close"
+    name: "OX Throttle ON Valve Close"
     command: "820"  # Ox Throttle On Close
     delay: 0.0
     repeat: false
