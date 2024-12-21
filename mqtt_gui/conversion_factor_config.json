@@ -155,18 +155,18 @@
             "title": "OX VENTURI THROAT"
           },
           {
-            "min_reading": 1,
+            "min_reading": 0,
             "max_reading": 5,
             "min_value": 0,
-            "max_value": 2000,
-            "title": "LNG VENTURI IN"
+            "max_value": 1000,
+            "title": "FUEL DOME"
           },
           {
-            "min_reading": 1,
+            "min_reading": 0,
             "max_reading": 5,
             "min_value": 0,
-            "max_value": 2000,
-            "title": "LNG VENTURI THROAT"
+            "max_value": 1000,
+            "title": "OX DOME"
           }
         ],
         "topic": "b3_log_data_1256"
