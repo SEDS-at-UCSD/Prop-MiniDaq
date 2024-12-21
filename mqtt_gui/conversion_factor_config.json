@@ -141,31 +141,31 @@
         "sensor_type": "ADS1256",
         "sensors": [
           {
-            "min_reading": "0",
+            "min_reading": 0,
             "max_reading": 5,
             "min_value": 0,
-            "max_value": "1000",
+            "max_value": 1000,
             "title": "OV VENTURI IN"
           },
           {
-            "min_reading": "0",
+            "min_reading": 0,
             "max_reading": 5,
             "min_value": 0,
-            "max_value": "2000",
+            "max_value": 2000,
             "title": "OX VENTURI THROAT"
           },
           {
             "min_reading": 1,
             "max_reading": 5,
-            "min_value": "0",
-            "max_value": "2000",
+            "min_value": 0,
+            "max_value": 2000,
             "title": "LNG VENTURI IN"
           },
           {
-            "min_reading": "1",
+            "min_reading": 1,
             "max_reading": 5,
-            "min_value": "0",
-            "max_value": "2000",
+            "min_value": 0,
+            "max_value": 2000,
             "title": "LNG VENTURI THROAT"
           }
         ],
