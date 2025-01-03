@@ -304,19 +304,19 @@
         "sensors": [
           {
             "type": "Solenoid",
-            "title": "----"
+            "title": "Fuel Throttle ON"
           },
           {
             "type": "Solenoid",
-            "title": "Fuel Throttle"
+            "title": "Fuel Throttle OFF"
           },
           {
             "type": "Solenoid",
-            "title": "OX Throttle"
+            "title": "OX Throttle ON"
           },
           {
             "type": "Solenoid",
-            "title": "3"
+            "title": "OX Throttle OFF"
           }
         ],
         "topic": "b8_switch_states_status"

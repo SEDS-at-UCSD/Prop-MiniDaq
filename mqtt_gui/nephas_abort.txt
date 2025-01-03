@@ -1,0 +1,21 @@
+abort_sequence:
+  - id: 1
+    name: "Fuel Main Close"
+    command: "420"
+    delay: 0.0
+    repeat: false
+    next_id: [2]
+
+  - id: 2
+    name: "Ox Main Close"
+    command: "410"
+    delay: 0.05
+    repeat: false
+    next_id: [3]
+
+  - id: 3
+    name: "Turn Off Spark Plug"
+    command: "800"
+    delay: 0.1
+    repeat: false
+    next_id: []

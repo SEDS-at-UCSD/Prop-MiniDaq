@@ -1,6 +1,6 @@
 automation_sequence:
   - id: 0
-    name: "Start"
+    name: "Start Nephas Throttle"
     command: ""
     delay: 0.0
     repeat: false
@@ -51,21 +51,21 @@ automation_sequence:
   - id: 7
     name: "Igniter Fuel Valve Open"
     command: "401"  # Igniter Fuel On
-    delay: 10.0
+    delay: 2.0
     repeat: false
     next_id: [8]
 
   - id: 8
     name: "Ox Throttle ON Valve Open"
     command: "821"  # Ox Throttle On
-    delay: 0.5
+    delay: 4.5
     repeat: false
     next_id: [9]
 
   - id: 9
     name: "Fuel Throttle ON Valve Open"
-    command: "811"  # Fuel Throttle On
-    delay: 2.9
+    command: "801"  # Fuel Throttle On
+    delay: 1.9
     repeat: false
     next_id: [10]
 
@@ -100,21 +100,21 @@ automation_sequence:
   - id: 14
     name: "Close Igniter Ox Valve"
     command: "540"  # Igniter Ox Off
-    delay: 3.0
+    delay: 11.0
     repeat: false
     next_id: [15]
 
   - id: 15
     name: "Fuel Throttle On Valve Close"
-    command: "810"  # Fuel Throttle On Close
+    command: "800"  # Fuel Throttle On Close
     delay: 0.0
     repeat: false
     next_id: [16]
 
   - id: 16
     name: "Fuel Throttle OFF Valve Open"
-    command: "1001"  # Fuel Throttle Off Open
-    delay: 0.5
+    command: "811"  # Fuel Throttle Off Open
+    delay: 1.0
     repeat: false
     next_id: [17]
 
@@ -127,8 +127,8 @@ automation_sequence:
 
   - id: 18
     name: "OX Throttle Off Valve Open"
-    command: "1011"  # OX Throttle Off Open
-    delay: 5.9
+    command: "831"  # OX Throttle Off Open
+    delay: 6.4
     repeat: false
     next_id: [19]
 
