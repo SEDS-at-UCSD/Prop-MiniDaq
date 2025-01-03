@@ -812,10 +812,10 @@ def load_yaml(file_path):
     with open(file_path, 'r') as file:
         return yaml.safe_load(file)
 
-automation_config = load_yaml('automation_config.yaml')
+automation_config = load_yaml('moonshine_auto.yaml')
 #automanager = TaskManager(automation_config['automation_sequence'], ports, global_timer)
 
-abort_config = load_yaml('abort_config.yaml')
+abort_config = load_yaml('moonshine_abort.yaml')
 #abort_manager = TaskManager(abort_config['abort_sequence'], ports, global_timer, force=True)
 
 
