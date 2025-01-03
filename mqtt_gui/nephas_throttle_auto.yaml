@@ -1,6 +1,6 @@
 automation_sequence:
   - id: 0
-    name: "Start Nephas Long"
+    name: "Start Nephas Throttle"
     command: ""
     delay: 0.0
     repeat: false
@@ -51,14 +51,14 @@ automation_sequence:
   - id: 7
     name: "Igniter Fuel Valve Open"
     command: "401"  # Igniter Fuel On
-    delay: 2.0
+    delay: 5.0
     repeat: false
     next_id: [8]
 
   - id: 8
     name: "Ox Throttle ON Valve Open"
     command: "821"  # Ox Throttle On
-    delay: 4.5
+    delay: 7.5
     repeat: false
     next_id: [9]
 
@@ -100,46 +100,102 @@ automation_sequence:
   - id: 14
     name: "Close Igniter Ox Valve"
     command: "540"  # Igniter Ox Off
-    delay: 11.0
+    delay: 7.4
     repeat: false
     next_id: [15]
 
   - id: 15
-    name: "Fuel Throttle On Valve Close"
-    command: "800"  # Fuel Throttle On Close
-    delay: 0.0
+    name: "OX Throttle OFF Valve On"
+    command: "831"  # OX Throttle Going Back 
+    delay: 1.1
     repeat: false
     next_id: [16]
 
   - id: 16
-    name: "Fuel Throttle OFF Valve Open"
-    command: "811"  # Fuel Throttle Off Open
-    delay: 1.0
+    name: "Fuel Throttle OFF Valve On"
+    command: "830\n811"  # Igniter Ox Off
+    delay: 0.2
     repeat: false
     next_id: [17]
 
   - id: 17
-    name: "OX Throttle ON Valve Close"
-    command: "820"  # Ox Throttle On Close
-    delay: 0.0
+    name: "Fuel Throttle OFF Valve Off"
+    command: "810"  # Both throttles off 
+    delay: 2.0
     repeat: false
     next_id: [18]
 
   - id: 18
-    name: "OX Throttle Off Valve Open"
-    command: "831"  # OX Throttle Off Open
-    delay: 6.4
+    name: "OX Throttle OFF Valve On"
+    command: "831"  # OX Throttle Going Back 
+    delay: 1.1
     repeat: false
     next_id: [19]
 
   - id: 19
-    name: "Fuel Main Valve Close"
-    command: "420"  # Fuel Main Off
-    delay: 0.25
+    name: "Fuel Throttle OFF Valve On"
+    command: "830\n811"  # Igniter Ox Off
+    delay: 0.2
     repeat: false
     next_id: [20]
 
   - id: 20
+    name: "Fuel Throttle OFF Valve Off"
+    command: "810"  # Both throttles off 
+    delay: 2.0
+    repeat: false
+    next_id: [21]
+
+  - id: 21
+    name: "OX Throttle OFF Valve On"
+    command: "831"  # OX Throttle Going Back 
+    delay: 1.1
+    repeat: false
+    next_id: [22]
+
+  - id: 22
+    name: "Fuel Throttle OFF Valve On"
+    command: "830\n811"  # Igniter Ox Off
+    delay: 0.2
+    repeat: false
+    next_id: [23]
+
+  - id: 23
+    name: "Fuel Throttle OFF Valve Off"
+    command: "810"  # Both throttles off 
+    delay: 2.0
+    repeat: false
+    next_id: [24]
+
+  - id: 24
+    name: "OX Throttle OFF Valve On"
+    command: "831"  # OX Throttle Going Back 
+    delay: 1.1
+    repeat: false
+    next_id: [25]
+
+  - id: 25
+    name: "Fuel Throttle OFF Valve On"
+    command: "830\n811"  # Igniter Ox Off
+    delay: 0.2
+    repeat: false
+    next_id: [26]
+
+  - id: 26
+    name: "Fuel Throttle OFF Valve Off"
+    command: "810"  # Both throttles off 
+    delay: 2.0
+    repeat: false
+    next_id: [27]
+
+  - id: 27
+    name: "Fuel Main Valve Close"
+    command: "420"  # Fuel Main Off
+    delay: 0.25
+    repeat: false
+    next_id: [28]
+
+  - id: 28
     name: "Ox Main Valve Close"
     command: "410"  # Ox Main Off
     delay: 0.0
