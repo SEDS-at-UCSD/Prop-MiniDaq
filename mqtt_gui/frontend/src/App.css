@@ -166,3 +166,22 @@ body {
   background-color: gray;
   cursor: not-allowed;
 }
+
+.global-toggle-button {
+  padding: 12px 24px;
+  margin-top: 20px;
+  font-size: 18px;
+  border: none;
+  cursor: pointer;
+  border-radius: 6px;
+}
+
+.global-toggle-button.on {
+  background-color: #4caf50; /* Green */
+  color: white;
+}
+
+.global-toggle-button.off {
+  background-color: #f44336; /* Red */
+  color: white;
+}

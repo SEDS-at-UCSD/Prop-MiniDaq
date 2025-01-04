@@ -3,6 +3,8 @@ import { useState, useEffect } from "react";
 import * as mqtt from 'mqtt/dist/mqtt.min';
 import { DialCluster } from './components/DialCluster';
 import { SwitchConfigure } from './components/SwitchConfigure';
+import { ToggleButton } from './components/ToggleButton';
+
 
 function App() {
   //const connectionurl = "ws://localhost:9002";
@@ -199,6 +201,18 @@ function App() {
     }
   }, [client, topicsList, boardConfig]);
 
+
+  const [globalToggle, setGlobalToggle] = useState(false); // State for the toggle button
+
+  const handleGlobalToggle = () => {
+    const newState = !globalToggle;
+    setGlobalToggle(newState);
+
+    // Send MQTT message based on the new state
+    const message = newState ? "SHORT" : "LONG";
+    sendMessage("AUTO_TOGGLE", message); 
+  };
+
   return (
     <div className="App">
       <div className="settings">
@@ -235,10 +249,21 @@ function App() {
               </button>
               <button onClick={() => setSolenoidControl(!solenoidControl)} className="status control_button">
                 {solenoidControl ? "Disable Buttons" : "Enable Buttons"}
-              </button>
+              </button>    
             </div>
           </div>
         </div>
+
+        <div classname='global-toggle'>
+          <button
+              onClick={handleGlobalToggle}
+              className={`global-toggle-button ${globalToggle ? "on" : "off"}`}
+            >
+              {globalToggle ? "SHORT" : "LONG"}
+            </button>
+        </div>
+
+        
 
         <div className='solenoid_cluster'>
           {Object.entries(solenoidBoardsData).map(([topic, value]) => (

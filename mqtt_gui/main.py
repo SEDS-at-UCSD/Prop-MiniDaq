@@ -268,6 +268,7 @@ bit_to_V_factor = {"1": 2048, "2": 32768, "3": 1, "4": 32768} #TEMP FOR ADS 1256
 
 # AUTO-IGNITION TOPIC
 ignition_topic = "AUTO"    # expects message "IGNITE" when pressed
+auto_type_topic = "AUTO_TOGGLE"
 
 
 
@@ -340,8 +341,10 @@ class Board_DAQ():
         self.port_name = port_name
         self.namespace = namespace
         # Initialize TaskManager
-        self.automanager = TaskManager(automation_config['automation_sequence'], port, namespace, port_index=port_index)
-        self.abort_manager = TaskManager(abort_config['abort_sequence'], port, namespace, port_index=port_index, force=True)
+        """self.automanager = TaskManager(automation_config['automation_sequence'], port, namespace, port_index=port_index)
+        self.abort_manager = TaskManager(abort_config['abort_sequence'], port, namespace, port_index=port_index, force=True)"""
+        self.automanager = TaskManager(self.namespace.auto_current['automation_sequence'], port, namespace, port_index=port_index)
+        self.abort_manager = TaskManager(self.namespace.abort_current['abort_sequence'], port, namespace, port_index=port_index, force=True)
 
     def on_connect(self, client, userdata, flags, rc):
         print("Connected to MQTT broker with result code " + str(rc))
@@ -350,6 +353,7 @@ class Board_DAQ():
             client.subscribe(mqtt_switch_states_update[board_num])
             client.subscribe(mqtt_switch_states_status[board_num])
             client.subscribe(ignition_topic)
+            client.subscribe(auto_type_topic)
             #print("SUBSCRIBED")
     
     def on_message(self, client, userdata, message):
@@ -370,6 +374,21 @@ class Board_DAQ():
                 print("ABORTING...")
                 t4 = threading.Thread(target=self.abort_process)
                 t4.start()
+        # COMMENT THESE 
+        if (message.topic == "AUTO_TOGGLE"):
+            if message_payload == "LONG":
+                self.namespace.auto_current = load_yaml("nephas_long_auto.yaml")
+                self.namespace.abort_current = load_yaml("nephas_abort.yaml")
+                self.automanager = TaskManager(self.namespace.auto_current['automation_sequence'], self.port, self.namespace, port_index=self.port_index)
+                self.abort_manager = TaskManager(self.namespace.abort_current['abort_sequence'], self.port, self.namespace, port_index=self.port_index, force=True)
+                print("LONG")
+            elif message_payload == "SHORT":
+                self.namespace.auto_current = load_yaml("nephas_short_auto.yaml")
+                self.namespace.abort_current = load_yaml("nephas_abort.yaml")
+                self.automanager = TaskManager(self.namespace.auto_current['automation_sequence'], self.port, self.namespace, port_index=self.port_index)
+                self.abort_manager = TaskManager(self.namespace.abort_current['abort_sequence'], self.port, self.namespace, port_index=self.port_index, force=True)
+                print("SHORT")
+
                 
         
         for board_num in SWITCH_BOARD_RANGE:  # Boards 4, 5, and 6
@@ -569,8 +588,11 @@ class Board_DAQ():
                         #print('entered')
                         interchannel_calc = []
                         for calc in calculations:
-                            val_to_calc = float(eval(convert_c_to_final_values(calc)))
-                            interchannel_calc.append(val_to_calc)
+                            try:
+                                val_to_calc = float(eval(convert_c_to_final_values(calc)))
+                                interchannel_calc.append(val_to_calc)
+                            except Exception as eval_error:
+                                print(eval_error)
 
                         publish_calc_dict = {"time": str(datetime.now())[11:22], "sensor_readings": interchannel_calc}
                         publish_calc_json = json.dumps(publish_calc_dict)
@@ -661,6 +683,8 @@ class Board_DAQ():
         #ignition_in_progress = True
         self.automanager.stop_event.clear()
         self.automanager.run()
+
+
 
     # Abort process that also runs abort tasks
     def abort_process(self):
@@ -811,12 +835,17 @@ class Task:
 def load_yaml(file_path):
     with open(file_path, 'r') as file:
         return yaml.safe_load(file)
+    
 
-automation_config = load_yaml('moonshine_auto.yaml')
+
 #automanager = TaskManager(automation_config['automation_sequence'], ports, global_timer)
-
-abort_config = load_yaml('moonshine_abort.yaml')
 #abort_manager = TaskManager(abort_config['abort_sequence'], ports, global_timer, force=True)
+
+#UNCOMMENT THIS AND COMMENT LINES 375 - 383, 343 - 344
+
+"""automation_config = load_yaml('moonshine_auto.yaml')
+abort_config = load_yaml('moonshine_abort.yaml')"""
+
 
 
 
@@ -886,6 +915,8 @@ def main():
         # Create a shared namespace for storing the global timer
             namespace = manager.Namespace()
             namespace.global_timer = 0.0
+            namespace.auto_current = load_yaml("moonshine_auto.yaml")
+            namespace.abort_current = load_yaml("moonshine_abort.yaml")
 
         #global_timer = multiprocessing.Value('d', 0.0)  # 'd' indicates double (for time in seconds)
 
