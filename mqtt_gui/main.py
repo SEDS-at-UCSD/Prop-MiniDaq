@@ -744,7 +744,7 @@ class TaskManager:
 
             task.execute(self.force)
             while not task.is_completed():
-                time.sleep(0.1)
+                time.sleep(0.01)
                 task.update(self.force)
 
             for next_task_id in task.next_id:
