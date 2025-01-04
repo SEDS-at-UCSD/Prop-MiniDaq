@@ -792,7 +792,7 @@ class Task:
             #print(f"Executed {self.name}: {send_command}")
             #print(f"Read Global Timer: {self.get_global_time()}")  # Ensure the timer is being read correctly
             if self.get_global_time() - self.start_time >= self.delay:
-                print(f"Completed {self.name}: {send_command}")
+                print(f"Completed {self.name}: {send_command} TASK ID: {self.task_id}")
                 self.completed = True
         else:
             print(f"Aborted {self.name}: {send_command}")
