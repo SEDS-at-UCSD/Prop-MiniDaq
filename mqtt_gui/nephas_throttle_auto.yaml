@@ -56,15 +56,15 @@ automation_sequence:
     next_id: [8]
 
   - id: 8
-    name: "Ox Throttle ON Valve Open"
-    command: "821"  # Ox Throttle On
-    delay: 7.5
+    name: "Ox Throttle ON Valve Open "
+    command: "821\n830"  # Ox Throttle FULLY OPEN
+    delay: 7.5      # Does setekh know
     repeat: false
     next_id: [9]
 
   - id: 9
     name: "Fuel Throttle ON Valve Open"
-    command: "801"  # Fuel Throttle On
+    command: "801\n810"  # Fuel Throttle FULLY OPEN
     delay: 1.9
     repeat: false
     next_id: [10]
@@ -105,35 +105,35 @@ automation_sequence:
     next_id: [15]
 
   - id: 15
-    name: "OX Throttle OFF Valve On"
-    command: "831"  # OX Throttle Going Back 
+    name: "OX Throttle OFF Valve On 80%"
+    command: "800\n820\n831"  # OX Throttle Going Back 
     delay: 1.1
     repeat: false
     next_id: [16]
 
   - id: 16
-    name: "Fuel Throttle OFF Valve On"
-    command: "830\n811"  # Igniter Ox Off
+    name: "Fuel Throttle OFF Valve On 80%"
+    command: "830\n811"  # Igniter Ox Off    # Ask about 830 
     delay: 0.2
     repeat: false
     next_id: [17]
 
   - id: 17
     name: "Fuel Throttle OFF Valve Off"
-    command: "810"  # Both throttles off 
+    command: "810\n800"  # Both throttles off 
     delay: 2.0
     repeat: false
     next_id: [18]
 
   - id: 18
-    name: "OX Throttle OFF Valve On"
+    name: "OX Throttle OFF Valve On 60%"
     command: "831"  # OX Throttle Going Back 
     delay: 1.1
     repeat: false
     next_id: [19]
 
   - id: 19
-    name: "Fuel Throttle OFF Valve On"
+    name: "Fuel Throttle OFF Valve On 60%"
     command: "830\n811"  # Igniter Ox Off
     delay: 0.2
     repeat: false
@@ -147,14 +147,14 @@ automation_sequence:
     next_id: [21]
 
   - id: 21
-    name: "OX Throttle OFF Valve On"
+    name: "OX Throttle OFF Valve On 40%"
     command: "831"  # OX Throttle Going Back 
     delay: 1.1
     repeat: false
     next_id: [22]
 
   - id: 22
-    name: "Fuel Throttle OFF Valve On"
+    name: "Fuel Throttle OFF Valve On 40%"
     command: "830\n811"  # Igniter Ox Off
     delay: 0.2
     repeat: false
@@ -168,14 +168,14 @@ automation_sequence:
     next_id: [24]
 
   - id: 24
-    name: "OX Throttle OFF Valve On"
+    name: "OX Throttle OFF Valve On 20%"
     command: "831"  # OX Throttle Going Back 
     delay: 1.1
     repeat: false
     next_id: [25]
 
   - id: 25
-    name: "Fuel Throttle OFF Valve On"
+    name: "Fuel Throttle OFF Valve On 20%"
     command: "830\n811"  # Igniter Ox Off
     delay: 0.2
     repeat: false
