@@ -7,17 +7,17 @@
           {
             "type": "TC",
             "tc_type": "K",
-            "title": "Thermocouple 1"
+            "title": "OX TANK"
           },
           {
             "type": "TC",
             "tc_type": "K",
-            "title": "Thermocouple 2"
+            "title": "FUEL TANK"
           },
           {
             "type": "TC",
             "tc_type": "T",
-            "title": "Thermocouple 3"
+            "title": "TFM"
           },
           {
             "type": "TC",
@@ -37,28 +37,28 @@
           {
             "min_reading": 1,
             "max_reading": 5,
-            "min_value": -14,
+            "min_value": "0",
             "max_value": 3000,
             "title": "POM"
           },
           {
             "min_reading": 1,
             "max_reading": 5,
-            "min_value": -14,
+            "min_value": "0",
             "max_value": 1000,
             "title": "PFM"
           },
           {
             "min_reading": 1,
             "max_reading": 5,
-            "min_value": -14,
+            "min_value": "0",
             "max_value": 1000,
             "title": "PC"
           },
           {
             "min_reading": 1,
             "max_reading": 5,
-            "min_value": -14,
+            "min_value": "0",
             "max_value": 3000,
             "title": "IGNITER PC"
           }
@@ -107,28 +107,28 @@
             "max_reading": 5,
             "min_value": 0,
             "max_value": "5000",
-            "title": "mV"
+            "title": "XX1"
           },
           {
             "min_reading": "0",
             "max_reading": 5,
             "min_value": 0,
             "max_value": "5000",
-            "title": "mV"
+            "title": "XX2"
           },
           {
             "min_reading": 1,
             "max_reading": 5,
             "min_value": "4",
             "max_value": "20",
-            "title": "mA"
+            "title": "XX3"
           },
           {
             "min_reading": "1",
             "max_reading": 5,
             "min_value": "4",
             "max_value": "20",
-            "title": "mA"
+            "title": "XX4"
           }
         ],
         "topic": "b2_log_data_1256"
@@ -144,29 +144,29 @@
             "min_reading": 0,
             "max_reading": 5,
             "min_value": 0,
-            "max_value": 1000,
+            "max_value": "2000",
             "title": "OV VENTURI IN"
           },
           {
             "min_reading": 0,
             "max_reading": 5,
             "min_value": 0,
-            "max_value": 2000,
+            "max_value": "1000",
             "title": "OX VENTURI THROAT"
           },
           {
-            "min_reading": 0,
+            "min_reading": "1",
             "max_reading": 5,
             "min_value": 0,
-            "max_value": 1000,
-            "title": "FUEL DOME"
+            "max_value": "2000",
+            "title": "FUEL VENTURI IN"
           },
           {
-            "min_reading": 0,
+            "min_reading": "1",
             "max_reading": 5,
             "min_value": 0,
-            "max_value": 1000,
-            "title": "OX DOME"
+            "max_value": "2000",
+            "title": "FUEL VENTURI THROAT"
           }
         ],
         "topic": "b3_log_data_1256"
