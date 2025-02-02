@@ -60,22 +60,22 @@
             "min_reading": 0,
             "max_reading": 5,
             "min_value": 0,
-            "max_value": 1000,
-            "title": "FUEL TANK 1K (PSI)"
+            "max_value": 5000,
+            "title": "COPV"
           },
           {
-            "min_reading": 0,
+            "min_reading": 1,
             "max_reading": 5,
             "min_value": 0,
-            "max_value": 1000,
-            "title": "OX TANK 1K (PSI)"
+            "max_value": 1500,
+            "title": "OX"
           },
           {
-            "min_reading": 0,
+            "min_reading": 1,
             "max_reading": 5,
             "min_value": 0,
-            "max_value": 1000,
-            "title": "FUEL DOME 1K (PSI)"
+            "max_value": 1500,
+            "title": "FUEL"
           },
           {
             "min_reading": 0,
@@ -217,7 +217,7 @@
       }
     ]
   },
-  "B11": {
+  "B6": {
     "data": [
       {
         "sensor_type": "solenoids",
@@ -243,11 +243,11 @@
             "title": "B4 GSE-DRAIN-LNG"
           }
         ],
-        "topic": "b11_switch_states_status"
+        "topic": "b6_switch_states_status"
       }
     ]
   },
-  "B12": {
+  "B7": {
     "data": [
       {
         "sensor_type": "solenoids",
@@ -267,24 +267,20 @@
           {
             "type": "Solenoid",
             "title": "A3 GSE-HI"
-          },
-          {
-            "type": "Solenoid",
-            "title": "A4 GSE-LNG-FILL"
           }
         ],
-        "topic": "b12_switch_states_status"
+        "topic": "b7_switch_states_status"
       }
     ]
   },
-  "B13": {
+  "B8": {
     "data": [
       {
-        "sensor_type": "solenoids",
+        "sensor_type": "Solenoid",
         "sensors": [
           {
             "type": "Solenoid",
-            "title": "0"
+            "title": "A4 GSE-LNG-FILL"
           },
           {
             "type": "Solenoid",
@@ -299,7 +295,7 @@
             "title": "3"
           }
         ],
-        "topic": "b13_switch_states_status"
+        "topic": "b8_switch_states_status"
       }
     ]
   }
