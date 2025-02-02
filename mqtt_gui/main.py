@@ -30,7 +30,7 @@ app.add_middleware(
 )
 
 # Define the range of boards
-SWITCH_BOARD_RANGE = [1,2,11,12,13] #DRIVERS
+SWITCH_BOARD_RANGE = [1,2,6,7,8,11,12,13] #DRIVERS
 ANAL_BOARD_RANGE = [3,4,5] #DATA
 
 # Dynamically generate conversion factors and add factors from JSON config
