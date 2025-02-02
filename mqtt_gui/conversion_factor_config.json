@@ -276,7 +276,7 @@
   "B13": {
     "data": [
       {
-        "sensor_type": "Solenoid",
+        "sensor_type": "solenoids",
         "sensors": [
           {
             "type": "Solenoid",
