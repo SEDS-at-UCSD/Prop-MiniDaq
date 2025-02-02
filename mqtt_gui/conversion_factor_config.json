@@ -217,7 +217,7 @@
       }
     ]
   },
-  "B6": {
+  "B11": {
     "data": [
       {
         "sensor_type": "solenoids",
@@ -243,11 +243,11 @@
             "title": "B4 GSE-DRAIN-LNG"
           }
         ],
-        "topic": "b6_switch_states_status"
+        "topic": "b11_switch_states_status"
       }
     ]
   },
-  "B7": {
+  "B12": {
     "data": [
       {
         "sensor_type": "solenoids",
@@ -269,11 +269,11 @@
             "title": "A3 GSE-HI"
           }
         ],
-        "topic": "b7_switch_states_status"
+        "topic": "b12_switch_states_status"
       }
     ]
   },
-  "B8": {
+  "B13": {
     "data": [
       {
         "sensor_type": "Solenoid",
@@ -295,7 +295,7 @@
             "title": "3"
           }
         ],
-        "topic": "b8_switch_states_status"
+        "topic": "b13_switch_states_status"
       }
     ]
   }
