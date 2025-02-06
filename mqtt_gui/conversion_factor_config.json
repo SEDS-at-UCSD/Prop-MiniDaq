@@ -104,6 +104,11 @@
             "type": "TC",
             "tc_type": "T",
             "title": "OX TC"
+          },
+          {
+            "type": "TC",
+            "tc_type": "T",
+            "title": "TC 4"
           }
         ],
         "topic": "b3_log_data_tc"
