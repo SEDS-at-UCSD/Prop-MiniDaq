@@ -40,11 +40,11 @@
           },
           {
             "type": "Solenoid",
-            "title": "C2 HLY-IGNITER-LOX"
+            "title": "C2 (not used) HLY-IGNITER-LOX"
           },
           {
             "type": "Solenoid",
-            "title": "C3 HLY-IGNITER-LNG"
+            "title": "C3 (not used) HLY-IGNITER-LNG"
           }
         ],
         "topic": "b2_switch_states_status"
@@ -88,38 +88,25 @@
         "topic": "b3_log_data_1015"
       },
       {
-        "sensor_type": "ADS1115",
+        "sensor_type": "TC",
         "sensors": [
           {
-            "min_reading": "0",
-            "max_reading": 5,
-            "min_value": 0,
-            "max_value": "5000",
-            "title": "mV"
+            "type": "TC",
+            "tc_type": "T",
+            "title": "COPV TC"
           },
           {
-            "min_reading": "0",
-            "max_reading": 5,
-            "min_value": 0,
-            "max_value": "5000",
-            "title": "mV"
+            "type": "TC",
+            "tc_type": "T",
+            "title": "FUEL TC"
           },
           {
-            "min_reading": 1,
-            "max_reading": 5,
-            "min_value": "4",
-            "max_value": "20",
-            "title": "mA"
-          },
-          {
-            "min_reading": 0,
-            "max_reading": 5,
-            "min_value": "4",
-            "max_value": "20",
-            "title": "mA"
+            "type": "TC",
+            "tc_type": "T",
+            "title": "OX TC"
           }
         ],
-        "topic": "b3_log_data_1115"
+        "topic": "b3_log_data_tc"
       },
       {
         "sensor_type": "ADS1256",
@@ -262,7 +249,7 @@
           },
           {
             "type": "Solenoid",
-            "title": "A2 GSE-HI-VENT"
+            "title": "A2 GSE-VENT"
           },
           {
             "type": "Solenoid",
