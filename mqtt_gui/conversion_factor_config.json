@@ -88,30 +88,31 @@
         "topic": "b3_log_data_1015"
       },
       {
-        "sensor_type": "TC",
+        "sensor_type": "ADS1115",
         "sensors": [
           {
-            "type": "TC",
-            "tc_type": "T",
+            "min_reading": -0.03,
+            "max_reading": 0.03,
+            "min_value": -200,
+            "max_value": 400,
             "title": "COPV TC"
           },
           {
-            "type": "TC",
-            "tc_type": "T",
+            "min_reading": -0.008,
+            "max_reading": 0.08,
+            "min_value": -200,
+            "max_value": 400,
             "title": "FUEL TC"
           },
           {
-            "type": "TC",
-            "tc_type": "T",
+            "min_reading": -0.03,
+            "max_reading": 0.03,
+            "min_value": -200,
+            "max_value": 400,
             "title": "OX TC"
-          },
-          {
-            "type": "TC",
-            "tc_type": "T",
-            "title": "TC 4"
           }
         ],
-        "topic": "b3_log_data_tc"
+        "topic": "b3_log_data_ads1115"
       }
     ]
   },
