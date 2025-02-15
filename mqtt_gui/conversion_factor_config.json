@@ -267,6 +267,10 @@
           {
             "type": "Solenoid",
             "title": "A3 GSE-HI"
+          },
+          {
+            "type": "Solenoid",
+            "title": "A4 GSE-LNG-FILL"
           }
         ],
         "topic": "b7_switch_states_status"
@@ -280,7 +284,7 @@
         "sensors": [
           {
             "type": "Solenoid",
-            "title": "A4 GSE-LNG-FILL"
+            "title": "0"
           },
           {
             "type": "Solenoid",
