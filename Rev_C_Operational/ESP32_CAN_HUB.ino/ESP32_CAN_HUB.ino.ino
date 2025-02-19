@@ -282,7 +282,7 @@ void commandTask(void *pvParameters) {
   (void)pvParameters;
 
   while (1) {
-    String message = Serial.readStringUntil('\n');
+    String message = Serial.readStringUntil('\n'); // this is the line we need to change so we don't send through serial anymore (important line)
     // Capture all characters except the last three for solboardIDnum
     String solboardIDnum = message.substring(0, message.length() - 2);
     char command = message[message.length() - 2];
