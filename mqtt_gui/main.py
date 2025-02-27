@@ -915,8 +915,8 @@ def main():
         # Create a shared namespace for storing the global timer
             namespace = manager.Namespace()
             namespace.global_timer = 0.0
-            namespace.auto_current = load_yaml("moonshine_auto.yaml")
-            namespace.abort_current = load_yaml("moonshine_abort.yaml")
+            namespace.auto_current = load_yaml("nephas_short_auto.yaml")
+            namespace.abort_current = load_yaml("nephas_abort.yaml")
 
         #global_timer = multiprocessing.Value('d', 0.0)  # 'd' indicates double (for time in seconds)
 
