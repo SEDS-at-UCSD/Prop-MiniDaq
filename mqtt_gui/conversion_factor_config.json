@@ -190,30 +190,30 @@
   "B5": {
     "data": [
       {
-        "sensor_type": "solenoids",
+        "sensor_type": "TC",
         "sensors": [
           {
-            "type": "Solenoid",
-            "title": "OX VENT"
+            "type": "TC",
+            "tc_type": "K",
+            "title": "Satellites"
           },
           {
-            "type": "Solenoid",
-            "title": "FUEL VENT"
+            "type": "TC",
+            "tc_type": "K",
+            "title": "Net Acceleration"
           },
           {
-            "type": "Solenoid",
-            "title": "OX DOME IN"
+            "type": "TC",
+            "tc_type": "T",
+            "title": "Altitude"
           },
           {
-            "type": "Solenoid",
-            "title": "FUEL DOME IN"
-          },
-          {
-            "type": "Solenoid",
-            "title": "4"
+            "type": "TC",
+            "tc_type": "T",
+            "title": "Thermocouple 4"
           }
         ],
-        "topic": "b5_switch_states_status"
+        "topic": "b13_log_data_tc"
       }
     ]
   },
@@ -304,36 +304,6 @@
           }
         ],
         "topic": "b8_switch_states_status"
-      }
-    ]
-  },
-  "B13": {
-    "data": [
-      {
-        "sensor_type": "TC",
-        "sensors": [
-          {
-            "type": "TC",
-            "tc_type": "K",
-            "title": "Satellites"
-          },
-          {
-            "type": "TC",
-            "tc_type": "K",
-            "title": "Net Acceleration"
-          },
-          {
-            "type": "TC",
-            "tc_type": "T",
-            "title": "Altitude"
-          },
-          {
-            "type": "TC",
-            "tc_type": "T",
-            "title": "Thermocouple 4"
-          }
-        ],
-        "topic": "b13_log_data_tc"
       }
     ]
   }
