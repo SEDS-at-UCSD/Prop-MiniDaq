@@ -297,35 +297,13 @@
           {
             "type": "Solenoid",
             "title": "GPS Connected"
+          },
+          {
+            "type": "Solenoid",
+            "title": "GPS Fix"
           }
         ],
         "topic": "b8_switch_states_status"
-      }
-    ]
-  },
-  "B9": {
-    "data": [
-      {
-        "sensor_type": "solenoids",
-        "sensors": [
-          {
-            "type": "Solenoid",
-            "title": "GPS FIX"
-          },
-          {
-            "type": "Solenoid",
-            "title": "Preignition State"
-          },
-          {
-            "type": "Solenoid",
-            "title": "3"
-          },
-          {
-            "type": "Solenoid",
-            "title": "4"
-          }          
-        ],
-        "topic": "b9_switch_states_status"
       }
     ]
   },
@@ -355,7 +333,7 @@
             "title": "Thermocouple 4"
           }
         ],
-        "topic": "b1_log_data_tc"
+        "topic": "b14_log_data_tc"
       }
     ]
   }
