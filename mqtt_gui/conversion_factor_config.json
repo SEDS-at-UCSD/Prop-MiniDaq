@@ -91,22 +91,22 @@
         "sensor_type": "ADS1115",
         "sensors": [
           {
-            "min_reading": -0.03,
-            "max_reading": 0.03,
-            "min_value": -200,
+            "min_reading": -0.006,
+            "max_reading": 0.010,
+            "min_value": -205,
             "max_value": 400,
             "title": "COPV TC"
           },
           {
-            "min_reading": -0.008,
-            "max_reading": 0.08,
+            "min_reading": -0.006,
+            "max_reading": 0.010,
             "min_value": -200,
             "max_value": 400,
             "title": "FUEL TC"
           },
           {
-            "min_reading": -0.03,
-            "max_reading": 0.03,
+            "min_reading": -0.006,
+            "max_reading": 0.010,
             "min_value": -200,
             "max_value": 400,
             "title": "OX TC"
@@ -304,6 +304,32 @@
           }
         ],
         "topic": "b8_switch_states_status"
+      }
+    ]
+  },
+  "B9": {
+    "data": [
+      {
+        "sensor_type": "solenoids",
+        "sensors": [
+          {
+            "type": "Solenoid",
+            "title": "Reset"
+          },
+          {
+            "type": "Solenoid",
+            "title": "1"
+          },
+          {
+            "type": "Solenoid",
+            "title": "2"
+          },
+          {
+            "type": "Solenoid",
+            "title": "3"
+          }          
+        ],
+        "topic": "b9_switch_states_status"
       }
     ]
   }
