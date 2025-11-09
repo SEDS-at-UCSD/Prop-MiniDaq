@@ -1,0 +1,45 @@
+
+automation_sequence:
+  - id: 0
+    name: "Start"
+    command: ""
+    delay: 0.0
+    repeat: false
+    next_id: [1]
+
+  - id: 1
+    name: "Spark Plug On"
+    command: "901"  # Ox Main On
+    delay: 3.0
+    repeat: false
+    next_id: [2]
+
+  - id: 2
+    name: "Ox Main Valve Open"
+    command: "411"  # Ox Main On
+    delay: 0.5
+    repeat: false
+    next_id: [3]
+
+  - id: 3
+    name: "Fuel Main Valve Open"
+    command: "421"  # Fuel Main On
+    delay: 8.0
+    repeat: false
+    next_id: [4]
+
+  - id: 4
+    name: "Fuel Main Valve Close"
+    command: "420"  # Fuel Main Off
+    delay: 0.25
+    repeat: false
+    next_id: [5]
+
+  - id: 5
+    name: "Ox Main Valve Close"
+    command: "410"  # Ox Main Off
+    delay: 0.0
+    repeat: false
+    next_id: []
+
+

@@ -69,6 +69,11 @@ body {
   grid-template-columns: repeat(1, auto);
 }
 
+.calc_board_cluster {
+  display: inline-grid;
+  grid-template-columns: repeat(1, auto);
+}
+
 .solenoid_cluster{
   display: inline-grid;
   grid-template-columns: repeat(2, auto);
@@ -160,4 +165,23 @@ body {
 .auto-ignition-button:disabled:hover {
   background-color: gray;
   cursor: not-allowed;
+}
+
+.global-toggle-button {
+  padding: 12px 24px;
+  margin-top: 20px;
+  font-size: 18px;
+  border: none;
+  cursor: pointer;
+  border-radius: 6px;
+}
+
+.global-toggle-button.on {
+  background-color: #4caf50; /* Green */
+  color: white;
+}
+
+.global-toggle-button.off {
+  background-color: #f44336; /* Red */
+  color: white;
 }

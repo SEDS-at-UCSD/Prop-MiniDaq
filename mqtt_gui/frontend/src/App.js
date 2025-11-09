@@ -3,6 +3,8 @@ import { useState, useEffect } from "react";
 import * as mqtt from 'mqtt/dist/mqtt.min';
 import { DialCluster } from './components/DialCluster';
 import { SwitchConfigure } from './components/SwitchConfigure';
+import { ToggleButton } from './components/ToggleButton';
+
 
 function App() {
   //const connectionurl = "ws://localhost:9002";
@@ -21,6 +23,8 @@ function App() {
   const [boardConfig, setBoardConfig] = useState({});  // Store config here
   const [boardData, setBoardData] = useState({});
   const [solenoidBoardsData, setSolenoidBoardsData] = useState({});
+
+  const [calcBoardData, setCalcBoardData] = useState({});
 
   // Fetch the config file dynamically
   const fetchConfigData = async () => {
@@ -51,6 +55,13 @@ function App() {
         tempLabels[topic] = sensors.map(sensor => sensor.title);
       });
     });
+
+  // Add b1_calc, b2_calc, b3_calc, and b4_calc topics for raw data display
+  ['b1_calc', 'b2_calc', 'b3_calc', 'b4_calc'].forEach(topic => {
+    tempTopicsList.push(topic);
+    tempLabels[topic] = ['Calc 1', 'Calc 2', 'Calc 3', 'Calc 4'];  // Simple labels for raw data topics
+  });
+
 
     setTopicsList(tempTopicsList);
     setLabels(tempLabels);
@@ -154,6 +165,15 @@ function App() {
           parsedMessage = message.toString();
         }
 
+        // Check if topic is for raw calculation boards
+        if (['b1_calc', 'b2_calc', 'b3_calc', 'b4_calc'].includes(topic)) {
+          setCalcBoardData((prev) => ({
+            ...prev,
+            [topic]: parsedMessage
+          }));
+          return;
+        }
+
         // Ensure the topic contains a valid board number (e.g., skip "AUTO")
         const boardNumMatch = topic.match(/\d+/);
         if (!boardNumMatch) {
@@ -180,6 +200,18 @@ function App() {
       });
     }
   }, [client, topicsList, boardConfig]);
+
+
+  const [globalToggle, setGlobalToggle] = useState(false); // State for the toggle button
+
+  const handleGlobalToggle = () => {
+    const newState = !globalToggle;
+    setGlobalToggle(newState);
+
+    // Send MQTT message based on the new state
+    const message = newState ? "SHORT" : "LONG";
+    sendMessage("AUTO_TOGGLE", message); 
+  };
 
   return (
     <div className="App">
@@ -209,15 +241,29 @@ function App() {
               <button onClick={() => window.location.href = '/autoconfig'} className="status control_button">
                 View Auto Flow
               </button>
+              <button onClick={() => window.location.href = '/channel_calc_config'} className="status control_button">
+                Channel Calc
+              </button>
               <button onClick={() => setArrangable(!arrangable)} className="status control_button">
                 {arrangable ? "Stop Arranging" : "Arrange Dials"}
               </button>
               <button onClick={() => setSolenoidControl(!solenoidControl)} className="status control_button">
                 {solenoidControl ? "Disable Buttons" : "Enable Buttons"}
-              </button>
+              </button>    
             </div>
           </div>
         </div>
+
+        <div classname='global-toggle'>
+          <button
+              onClick={handleGlobalToggle}
+              className={`global-toggle-button ${globalToggle ? "on" : "off"}`}
+            >
+              {globalToggle ? "SHORT" : "LONG"}
+            </button>
+        </div>
+
+        
 
         <div className='solenoid_cluster'>
           {Object.entries(solenoidBoardsData).map(([topic, value]) => (
@@ -245,12 +291,27 @@ function App() {
               data={value}
               sensor_name={topic}
               arrangable={arrangable}
-              psiLabels={labels[topic] || []}
+              psiLabels={labels[topic] || ['1', '2', '3', '4']}
               minValues={minValues}  // Pass all min values for each sensor
               maxValues={maxValues}  // Pass all max values for each sensor
             />
           );
         })}
+      </div>
+
+      <div className="calc_board_cluster">
+        {Object.entries(calcBoardData).map(([topic, value]) => (
+          <DialCluster
+            key={topic}
+            label={topic}
+            data={value}
+            sensor_name={topic}
+            arrangable={arrangable}
+            psiLabels={labels[topic] || []}
+            minValues={[0]}  // Set generic min value
+            maxValues={[2000]}  // Set generic max value
+          />
+        ))}
       </div>
       <img src="../seds_logo.png" alt="SEDS Logo" className="logo" />
     </div>

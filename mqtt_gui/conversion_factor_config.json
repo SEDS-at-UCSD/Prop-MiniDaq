@@ -7,17 +7,17 @@
           {
             "type": "TC",
             "tc_type": "K",
-            "title": "Thermocouple 1"
+            "title": "OX TANK"
           },
           {
             "type": "TC",
             "tc_type": "K",
-            "title": "Thermocouple 2"
+            "title": "FUEL TANK"
           },
           {
             "type": "TC",
             "tc_type": "T",
-            "title": "Thermocouple 3"
+            "title": "TFM"
           },
           {
             "type": "TC",
@@ -35,32 +35,32 @@
         "sensor_type": "ADS1015",
         "sensors": [
           {
-            "min_reading": 0,
+            "min_reading": 1,
             "max_reading": 5,
-            "min_value": 0,
-            "max_value": 1000,
-            "title": "FUEL TANK 1K (PSI)"
+            "min_value": "0",
+            "max_value": 3000,
+            "title": "POM"
           },
           {
-            "min_reading": 0,
+            "min_reading": 1,
             "max_reading": 5,
-            "min_value": 0,
+            "min_value": "0",
             "max_value": 1000,
-            "title": "OX TANK 1K (PSI)"
+            "title": "PFM"
           },
           {
-            "min_reading": 0,
+            "min_reading": 1,
             "max_reading": 5,
-            "min_value": 0,
+            "min_value": "0",
             "max_value": 1000,
-            "title": "FUEL DOME 1K (PSI)"
+            "title": "PC"
           },
           {
-            "min_reading": 0,
+            "min_reading": 1,
             "max_reading": 5,
-            "min_value": 0,
-            "max_value": 1000,
-            "title": "OX DOME 1K (PSI)"
+            "min_value": "0",
+            "max_value": 3000,
+            "title": "IGNITER PC"
           }
         ],
         "topic": "b2_log_data_1015"
@@ -69,32 +69,32 @@
         "sensor_type": "ADS1115",
         "sensors": [
           {
-            "min_reading": 1,
+            "min_reading": 0,
             "max_reading": 5,
             "min_value": 0,
             "max_value": 1000,
-            "title": "CHAMBER 1K (PSI)"
-          },
-          {
-            "min_reading": 1,
-            "max_reading": 5,
-            "min_value": 0,
-            "max_value": 2000,
-            "title": "FUEL MANIFOLD 1K (PSI)"
-          },
-          {
-            "min_reading": 1,
-            "max_reading": 5,
-            "min_value": 0,
-            "max_value": 3000,
-            "title": "OX MANIFOLD 3K (PSI)"
+            "title": "FUEL TANK"
           },
           {
             "min_reading": 0,
             "max_reading": 5,
             "min_value": 0,
             "max_value": 1000,
-            "title": "OX FLOWRATE 32.5 (GPM)"
+            "title": "OX TANK"
+          },
+          {
+            "min_reading": 0,
+            "max_reading": 5,
+            "min_value": 0,
+            "max_value": 1000,
+            "title": "FUEL DOME"
+          },
+          {
+            "min_reading": 0,
+            "max_reading": 5,
+            "min_value": 0,
+            "max_value": 1000,
+            "title": "OX DOME"
           }
         ],
         "topic": "b2_log_data_1115"
@@ -107,28 +107,28 @@
             "max_reading": 5,
             "min_value": 0,
             "max_value": "5000",
-            "title": "mV"
+            "title": "XX1"
           },
           {
             "min_reading": "0",
             "max_reading": 5,
             "min_value": 0,
             "max_value": "5000",
-            "title": "mV"
+            "title": "XX2"
           },
           {
             "min_reading": 1,
             "max_reading": 5,
             "min_value": "4",
             "max_value": "20",
-            "title": "mA"
+            "title": "XX3"
           },
           {
             "min_reading": "1",
             "max_reading": 5,
             "min_value": "4",
             "max_value": "20",
-            "title": "mA"
+            "title": "XX4"
           }
         ],
         "topic": "b2_log_data_1256"
@@ -138,103 +138,35 @@
   "B3": {
     "data": [
       {
-        "sensor_type": "ADS1015",
-        "sensors": [
-          {
-            "min_reading": 0,
-            "max_reading": 5,
-            "min_value": 0,
-            "max_value": 1000,
-            "title": "FUEL TANK 1K (PSI)"
-          },
-          {
-            "min_reading": 0,
-            "max_reading": 5,
-            "min_value": 0,
-            "max_value": 1000,
-            "title": "OX TANK 1K (PSI)"
-          },
-          {
-            "min_reading": 0,
-            "max_reading": 5,
-            "min_value": 0,
-            "max_value": 1000,
-            "title": "FUEL DOME 1K (PSI)"
-          },
-          {
-            "min_reading": 0,
-            "max_reading": 5,
-            "min_value": 0,
-            "max_value": 1000,
-            "title": "OX DOME 1K (PSI)"
-          }
-        ],
-        "topic": "b3_log_data_1015"
-      },
-      {
-        "sensor_type": "ADS1115",
-        "sensors": [
-          {
-            "min_reading": "0",
-            "max_reading": 5,
-            "min_value": 0,
-            "max_value": "5000",
-            "title": "mV"
-          },
-          {
-            "min_reading": "0",
-            "max_reading": 5,
-            "min_value": 0,
-            "max_value": "5000",
-            "title": "mV"
-          },
-          {
-            "min_reading": 1,
-            "max_reading": 5,
-            "min_value": "4",
-            "max_value": "20",
-            "title": "mA"
-          },
-          {
-            "min_reading": 0,
-            "max_reading": 5,
-            "min_value": "4",
-            "max_value": "20",
-            "title": "mA"
-          }
-        ],
-        "topic": "b3_log_data_1115"
-      },
-      {
         "sensor_type": "ADS1256",
         "sensors": [
           {
-            "min_reading": "0",
+            "min_reading": 0,
             "max_reading": 5,
             "min_value": 0,
-            "max_value": "5000",
-            "title": "mV"
+            "max_value": "2000",
+            "title": "OV VENTURI IN"
           },
           {
-            "min_reading": "0",
+            "min_reading": 0,
             "max_reading": 5,
             "min_value": 0,
-            "max_value": "5000",
-            "title": "mV"
-          },
-          {
-            "min_reading": 1,
-            "max_reading": 5,
-            "min_value": "4",
-            "max_value": "20",
-            "title": "mA"
+            "max_value": "1000",
+            "title": "OX VENTURI THROAT"
           },
           {
             "min_reading": "1",
             "max_reading": 5,
-            "min_value": "4",
-            "max_value": "20",
-            "title": "mA"
+            "min_value": 0,
+            "max_value": "2000",
+            "title": "FUEL VENTURI IN"
+          },
+          {
+            "min_reading": "1",
+            "max_reading": 5,
+            "min_value": 0,
+            "max_value": "2000",
+            "title": "FUEL VENTURI THROAT"
           }
         ],
         "topic": "b3_log_data_1256"
@@ -248,7 +180,7 @@
         "sensors": [
           {
             "type": "Solenoid",
-            "title": "E-match"
+            "title": "Igniter FUEL"
           },
           {
             "type": "Solenoid",
@@ -294,7 +226,7 @@
           },
           {
             "type": "Solenoid",
-            "title": "4"
+            "title": "Igniter OX"
           }
         ],
         "topic": "b5_switch_states_status"
@@ -324,6 +256,122 @@
           }
         ],
         "topic": "b6_switch_states_status"
+      }
+    ]
+  },
+  "B7": {
+    "data": [
+      {
+        "sensor_type": "ADS1256",
+        "sensors": [
+          {
+            "min_reading": 0,
+            "max_reading": 5,
+            "min_value": 0,
+            "max_value": 5000,
+            "title": "--"
+          },
+          {
+            "min_reading": 0,
+            "max_reading": 5,
+            "min_value": 0,
+            "max_value": 5000,
+            "title": "Excitation -"
+          },
+          {
+            "min_reading": 0,
+            "max_reading": 5,
+            "min_value": 0,
+            "max_value": 5000,
+            "title": "Excitation +"
+          },
+          {
+            "min_reading": 0,
+            "max_reading": 5,
+            "min_value": 0,
+            "max_value": 5000,
+            "title": "Reference"
+          }
+        ],
+        "topic": "b7_log_data_1256"
+      }
+    ]
+  },
+  "B8": {
+    "data": [
+      {
+        "sensor_type": "solenoids",
+        "sensors": [
+          {
+            "type": "Solenoid",
+            "title": "Fuel Throttle ON"
+          },
+          {
+            "type": "Solenoid",
+            "title": "Fuel Throttle OFF"
+          },
+          {
+            "type": "Solenoid",
+            "title": "OX Throttle ON"
+          },
+          {
+            "type": "Solenoid",
+            "title": "OX Throttle OFF"
+          }
+        ],
+        "topic": "b8_switch_states_status"
+      }
+    ]
+  },
+  "B9": {
+    "data": [
+      {
+        "sensor_type": "solenoids",
+        "sensors": [
+          {
+            "type": "Solenoid",
+            "title": "Spark Plug"
+          },
+          {
+            "type": "Solenoid",
+            "title": "1"
+          },
+          {
+            "type": "Solenoid",
+            "title": "2"
+          },
+          {
+            "type": "Solenoid",
+            "title": "3"
+          }
+        ],
+        "topic": "b9_switch_states_status"
+      }
+    ]
+  },
+  "B10": {
+    "data": [
+      {
+        "sensor_type": "solenoids",
+        "sensors": [
+          {
+            "type": "Solenoid",
+            "title": "FUEL THROTTLE OFF"
+          },
+          {
+            "type": "Solenoid",
+            "title": "OX THROTTLE OFF"
+          },
+          {
+            "type": "Solenoid",
+            "title": "LNG DOME OUT"
+          },
+          {
+            "type": "Solenoid",
+            "title": "OX DOME OUT"
+          }
+        ],
+        "topic": "b10_switch_states_status"
       }
     ]
   }

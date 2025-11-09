@@ -1,0 +1,203 @@
+automation_sequence:
+  - id: 0
+    name: "Start Nephas Throttle"
+    command: ""
+    delay: 0.0
+    repeat: false
+    next_id: [1]
+
+  - id: 1
+    name: "Ox Main Valve Open"
+    command: "411"  # Ox Main On
+    delay: 0.0
+    repeat: false
+    next_id: [2]
+
+  - id: 2
+    name: "Fuel Main Valve Open"
+    command: "421"  # Fuel Main On
+    delay: 0.1
+    repeat: false
+    next_id: [3]
+
+  - id: 3
+    name: "Ox Purge Valve Open"
+    command: "431"  # Ox Purge On
+    delay: 0.0
+    repeat: false
+    next_id: [4]
+
+  - id: 4
+    name: "Fuel Purge Valve Open"
+    command: "441"  # Fuel Purge On
+    delay: 0.1
+    repeat: false
+    next_id: [5]
+
+  - id: 5
+    name: "Spark Plug On"
+    command: "901"  # Spark Plug On
+    delay: 0.3
+    repeat: false
+    next_id: [6]
+
+  - id: 6
+    name: "Igniter Ox Valve Open"
+    command: "541"  # Igniter Ox On
+    delay: 0.1
+    repeat: false
+    next_id: [7]
+
+  - id: 7
+    name: "Igniter Fuel Valve Open"
+    command: "401"  # Igniter Fuel On
+    delay: 5.0
+    repeat: false
+    next_id: [8]
+
+  - id: 8
+    name: "Ox Throttle ON Valve Open "
+    command: "821\n830"  # Ox Throttle FULLY OPEN
+    delay: 7.5      # Does setekh know
+    repeat: false
+    next_id: [9]
+
+  - id: 9
+    name: "Fuel Throttle ON Valve Open"
+    command: "801\n810"  # Fuel Throttle FULLY OPEN
+    delay: 1.9
+    repeat: false
+    next_id: [10]
+
+  - id: 10
+    name: "Ox Purge Valve Close"
+    command: "430"  # Ox Purge Off
+    delay: 0.0
+    repeat: false
+    next_id: [11]
+
+  - id: 11
+    name: "Fuel Purge Valve Close"
+    command: "440"  # Fuel Purge Off
+    delay: 0.0
+    repeat: false
+    next_id: [12]
+
+  - id: 12
+    name: "Turn Off Spark Plug"
+    command: "900"  # Spark Plug Off
+    delay: 0.6
+    repeat: false
+    next_id: [13]
+
+  - id: 13
+    name: "Close Igniter Fuel Valve"
+    command: "400"  # Igniter Fuel Off
+    delay: 0.0
+    repeat: false
+    next_id: [14]
+
+  - id: 14
+    name: "Close Igniter Ox Valve"
+    command: "540"  # Igniter Ox Off
+    delay: 7.4
+    repeat: false
+    next_id: [15]
+
+  - id: 15
+    name: "OX Throttle OFF Valve On 80%"
+    command: "800\n820\n831"  # OX Throttle Going Back 
+    delay: 1.1
+    repeat: false
+    next_id: [16]
+
+  - id: 16
+    name: "Fuel Throttle OFF Valve On 80%"
+    command: "830\n811"  # Igniter Ox Off    # Ask about 830 
+    delay: 0.2
+    repeat: false
+    next_id: [17]
+
+  - id: 17
+    name: "Fuel Throttle OFF Valve Off"
+    command: "810\n800"  # Both throttles off 
+    delay: 2.0
+    repeat: false
+    next_id: [18]
+
+  - id: 18
+    name: "OX Throttle OFF Valve On 60%"
+    command: "831"  # OX Throttle Going Back 
+    delay: 1.1
+    repeat: false
+    next_id: [19]
+
+  - id: 19
+    name: "Fuel Throttle OFF Valve On 60%"
+    command: "830\n811"  # Igniter Ox Off
+    delay: 0.2
+    repeat: false
+    next_id: [20]
+
+  - id: 20
+    name: "Fuel Throttle OFF Valve Off"
+    command: "810"  # Both throttles off 
+    delay: 2.0
+    repeat: false
+    next_id: [21]
+
+  - id: 21
+    name: "OX Throttle OFF Valve On 40%"
+    command: "831"  # OX Throttle Going Back 
+    delay: 1.1
+    repeat: false
+    next_id: [22]
+
+  - id: 22
+    name: "Fuel Throttle OFF Valve On 40%"
+    command: "830\n811"  # Igniter Ox Off
+    delay: 0.2
+    repeat: false
+    next_id: [23]
+
+  - id: 23
+    name: "Fuel Throttle OFF Valve Off"
+    command: "810"  # Both throttles off 
+    delay: 2.0
+    repeat: false
+    next_id: [24]
+
+  - id: 24
+    name: "OX Throttle OFF Valve On 20%"
+    command: "831"  # OX Throttle Going Back 
+    delay: 1.1
+    repeat: false
+    next_id: [25]
+
+  - id: 25
+    name: "Fuel Throttle OFF Valve On 20%"
+    command: "830\n811"  # Igniter Ox Off
+    delay: 0.2
+    repeat: false
+    next_id: [26]
+
+  - id: 26
+    name: "Fuel Throttle OFF Valve Off"
+    command: "810"  # Both throttles off 
+    delay: 2.0
+    repeat: false
+    next_id: [27]
+
+  - id: 27
+    name: "Fuel Main Valve Close"
+    command: "420"  # Fuel Main Off
+    delay: 0.25
+    repeat: false
+    next_id: [28]
+
+  - id: 28
+    name: "Ox Main Valve Close"
+    command: "410"  # Ox Main Off
+    delay: 0.0
+    repeat: false
+    next_id: []
