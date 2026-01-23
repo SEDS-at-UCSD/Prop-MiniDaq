@@ -18,7 +18,7 @@
           },
           {
             "type": "Solenoid",
-            "title": "4"
+            "title": "D3 PROP-OX-ISO"
           }          
         ],
         "topic": "b1_switch_states_status"
@@ -40,11 +40,11 @@
           },
           {
             "type": "Solenoid",
-            "title": "C2 (not used) HLY-IGNITER-LOX"
+            "title": "C2 PROP-EMATCH"
           },
           {
             "type": "Solenoid",
-            "title": "C3 (not used) HLY-IGNITER-LNG"
+            "title": "C3 PROP-FUEL-ISO"
           }
         ],
         "topic": "b2_switch_states_status"
