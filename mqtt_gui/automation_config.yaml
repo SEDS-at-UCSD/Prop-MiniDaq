@@ -14,15 +14,15 @@ automation_sequence:
     next_id: [2]
 
   - id: 2
-    name: "Ox Iso Valve Open"
-    command: "131"  # Ox Iso Valve Open
+    name: "Ox Main Open"
+    command: "201"  # Ox Iso Valve Open
     delay: 0.5
     repeat: false
     next_id: [3]
 
   - id: 3
-    name: "Fuel Iso Valve Open"
-    command: "331"  # Fuel Iso Valve Open
+    name: "Fuel Main Open"
+    command: "211"  # Fuel Iso Valve Open
     delay: 0.1
     repeat: false
     next_id: [4]
@@ -34,31 +34,3 @@ automation_sequence:
     repeat: false
     next_id: [5]
 
-  - id: 5
-    name: "Fuel Iso Valve Close"
-    command: "230"  # Fuel Iso Valve Close
-    delay: 0.3
-    repeat: false
-    next_id: [6]
-
-  - id: 6
-    name: "Ox Iso Valve Close"
-    command: "130"  # Ox Iso Valve Close
-    delay: 0.0
-    repeat: false
-    next_id: [7]
-
-
-  - id: 7
-    name: "Fuel Main Open"
-    command: "211" # Fuel Main Open
-    delay: 0.3
-    repeat: false
-    next_id: [8]
-
-  - id: 8
-    name: "Ox Main Open"
-    command: "201" # Ox Main Open
-    delay: 0.0
-    repeat: false
-    next_id: []

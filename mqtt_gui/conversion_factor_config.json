@@ -6,7 +6,7 @@
         "sensors": [
           {
             "type": "Solenoid",
-            "title": "D0 HLY-N2-COPV"
+            "title": "D0 HLY-N2-COPV-VENT"
           },
           {
             "type": "Solenoid",
@@ -18,7 +18,7 @@
           },
           {
             "type": "Solenoid",
-            "title": "D3 PROP-OX-ISO"
+            "title": "D3"
           }          
         ],
         "topic": "b1_switch_states_status"
@@ -44,7 +44,7 @@
           },
           {
             "type": "Solenoid",
-            "title": "C3 PROP-FUEL-ISO"
+            "title": "C3"
           }
         ],
         "topic": "b2_switch_states_status"
