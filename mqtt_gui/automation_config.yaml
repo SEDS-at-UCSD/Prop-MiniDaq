@@ -32,5 +32,5 @@ automation_sequence:
     command: "220"  # Ematch Off
     delay: 5.0
     repeat: false
-    next_id: [5]
+    next_id: []
 
