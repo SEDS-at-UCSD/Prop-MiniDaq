@@ -82,7 +82,7 @@
             "max_reading": 5,
             "min_value": 0,
             "max_value": 500,
-            "title": "PROP PT 1 (PSI)"
+            "title": "PROP LOX INLET PT"
           }
         ],
         "topic": "b3_log_data_1015"
@@ -109,7 +109,7 @@
             "max_reading": 5,
             "min_value": 0,
             "max_value": 500,
-            "title": "PROP PT 2 (PSI)"
+            "title": "PROP LNG INLET PT"
           },
           {
             "min_reading": 1,
